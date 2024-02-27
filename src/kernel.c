@@ -3,14 +3,8 @@
 #include "header/cpu/gdt.h"
 #include "header/kernel-entrypoint.h"
 
-
-
-void kernel_setup(void) {
-    uint32_t a;
-    uint32_t volatile b = 0x0000BABE;
-    __asm__("mov $0xCAFE0000, %0" : "=r"(a));
-
-    load_gdt(&_gdt_gdtr);
+void protectedMode(void){
+    uint32_t a; 
     __asm__("cli");
     __asm__("lgdt %[gdtr]" : : [gdtr] "m"(_gdt_gdtr));
     __asm__(
@@ -20,9 +14,19 @@ void kernel_setup(void) {
         : "=r"(a)
     );
     __asm__("ljmp $0x08, $PModeMain");
+
     __asm__(
         "PModeMain:;"
     );
+}
+
+void kernel_setup(void) {
+    uint32_t a;
+    uint32_t volatile b = 0x0000BABE;
+    __asm__("mov $0xCAFE0000, %0" : "=r"(a));
+
+    load_gdt(&_gdt_gdtr);
+    protectedMode();
 
 
     while (true) b += 1;
