@@ -26,8 +26,9 @@ void kernel_setup(void) {
     // __asm__("mov $0xCAFE0000, %0" : "=r"(a));
 
     load_gdt(&_gdt_gdtr);
+    __asm__ volatile("int $1");
     int a =0;
-    protectedMode();
+
 
 
     while (true) a += 1;
