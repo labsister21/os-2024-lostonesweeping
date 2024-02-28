@@ -47,12 +47,12 @@ struct SegmentDescriptor {
     // Completed I guess(?)
     uint8_t privillege_bit: 2; //DPL
     uint8_t present_bit: 1; //p
-    uint8_t segment_limit: 4; //seg.Limit
+    uint8_t segment_high: 4; //seg.Limit
     uint8_t available_bit: 1; //AVL
     uint8_t code_segment_bit: 1; //L
     uint8_t default_bit: 1; // D/B
     uint8_t granularity_bit: 1; //G
-    uint8_t base_mid2: 8; // Base31:24
+    uint8_t base_high: 8; // Base31:24
     
 } __attribute__((packed));
 
