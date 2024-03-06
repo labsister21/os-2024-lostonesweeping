@@ -6,8 +6,9 @@ ISO           = genisoimage
 # Directory
 SOURCE_FOLDER = src
 SOURCE_FOLDER_CODE = src/code
+SOURCE_FOLDER_STDLIB = src/stdlib
+SOURCE_FOLDER_KERNEL = src/kernel
 OUTPUT_FOLDER = bin
-OUTPUT_FOLDER_CODE = bin/code
 ISO_NAME      = os2024
 
 # Flags
@@ -22,14 +23,21 @@ ISOFLAGS      = -R -b boot/grub/grub1 -no-emul-boot -boot-load-size 4 -A os -inp
 #wildcard
 SRCS := $(wildcard $(SOURCE_FOLDER)/**/*.c)
 OBJS_CODE := $(patsubst $(SOURCE_FOLDER_CODE)/%.c, $(OUTPUT_FOLDER)/%.o, $(SRCS))
+OBJS_STDLIB := $(patsubst $(SOURCE_FOLDER_STDLIB)/%.c, $(OUTPUT_FOLDER)/%.o, $(SRCS))
+OBJS_KERNEL := $(patsubst $(SOURCE_FOLDER_KERNEL)/%.c, $(OUTPUT_FOLDER)/%.o, $(SRCS))
 
 #otomisasi 
 $(OUTPUT_FOLDER)/%.o: $(SOURCE_FOLDER_CODE)/%.c
 	$(CC) $(CFLAGS) -c $< -o $@
 
+$(OUTPUT_FOLDER)/%.o: $(SOURCE_FOLDER_STDLIB)/%.c
+	$(CC) $(CFLAGS) -c $< -o $@
+
+$(OUTPUT_FOLDER)/%.o: $(SOURCE_FOLDER_KERNEL)/%.c
+	$(CC) $(CFLAGS) -c $< -o $@
 
 #prerequisites
-prereq_code: $(OBJS_CODE)
+prereq: $(OBJS_CODE) $(OBJS_STDLIB) $(OBJS_KERNEL)
 #main
 run: all
 	@qemu-system-i386 -s -S -cdrom $(OUTPUT_FOLDER)/$(ISO_NAME).iso
@@ -39,14 +47,10 @@ clean:
 	rm -rf $(OUTPUT_FOLDER)/*.o
 	rm -rf *.o *.iso $(OUTPUT_FOLDER)/kernel
 	rm -rf $(OUTPUT_FOLDER)/*.iso
-	@clear
-	@echo All file has been removed
 
-kernel: prereq_code
+kernel: prereq
 	@$(ASM) $(AFLAGS) $(SOURCE_FOLDER)/kernel-entrypoint.s -o $(OUTPUT_FOLDER)/kernel-entrypoint.o
-	$(CC) $(CFLAGS) $(SOURCE_FOLDER)/kernel.c -o $(OUTPUT_FOLDER)/kernel.o
 	@$(LIN) $(LFLAGS) $(OUTPUT_FOLDER)/*.o -o $(OUTPUT_FOLDER)/kernel
-	@clear
 	@echo Linking object files and generate elf32...
 	@rm -f *.o
 
@@ -57,6 +61,5 @@ iso: kernel
 	cp $(SOURCE_FOLDER)/menu.lst   $(OUTPUT_FOLDER)/iso/boot/grub/
 	$(ISO) $(ISOFLAGS)
 	rm -r $(OUTPUT_FOLDER)/iso/
-	@clear
 	@echo succesfully linked files
 
