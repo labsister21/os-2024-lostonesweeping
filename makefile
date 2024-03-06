@@ -7,6 +7,7 @@ ISO           = genisoimage
 SOURCE_FOLDER = src
 SOURCE_FOLDER_CODE = src/code
 OUTPUT_FOLDER = bin
+OUTPUT_FOLDER_CODE = bin/code
 ISO_NAME      = os2024
 
 # Flags
@@ -44,7 +45,7 @@ clean:
 kernel: prereq_code
 	@$(ASM) $(AFLAGS) $(SOURCE_FOLDER)/kernel-entrypoint.s -o $(OUTPUT_FOLDER)/kernel-entrypoint.o
 	$(CC) $(CFLAGS) $(SOURCE_FOLDER)/kernel.c -o $(OUTPUT_FOLDER)/kernel.o
-	@$(LIN) $(LFLAGS) bin/*.o -o $(OUTPUT_FOLDER)/kernel
+	@$(LIN) $(LFLAGS) $(OUTPUT_FOLDER)/*.o -o $(OUTPUT_FOLDER)/kernel
 	@clear
 	@echo Linking object files and generate elf32...
 	@rm -f *.o
