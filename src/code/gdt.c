@@ -1,4 +1,4 @@
-#include "header/cpu/gdt.h"
+#include "../header/cpu/gdt.h"
 
 /**
  * global_descriptor_table, predefined GDT.
@@ -9,7 +9,10 @@ struct GlobalDescriptorTable global_descriptor_table = {
     .table = {
         {
             .segment_low = 0,
+            .segment_high = 0,
             .base_low = 0, 
+            .base_mid = 0, 
+            .base_high = 0,
             .type_bit = 0,
             .non_system = 0,
             .privillege_bit = 0,
@@ -17,11 +20,15 @@ struct GlobalDescriptorTable global_descriptor_table = {
             .code_segment_bit = 0, 
             .default_bit = 0,
             .granularity_bit = 0,
+            .available_bit = 0
 
         },
         {
             .segment_low = 0xFFFF, 
+            .segment_high = 0xF, 
             .base_low = 0, 
+            .base_mid = 0, 
+            .base_high = 0,
             .type_bit = 0xA, 
             .non_system = 1, 
             .privillege_bit = 0, 
@@ -29,10 +36,14 @@ struct GlobalDescriptorTable global_descriptor_table = {
             .code_segment_bit = 0, 
             .default_bit = 1,
             .granularity_bit = 1,
+            .available_bit = 0
         },
         {
             .segment_low = 0xFFFF,
+            .segment_high = 0xF,
             .base_low = 0, 
+            .base_mid = 0,
+            .base_high = 0,
             .type_bit = 0x2, 
             .non_system = 1, 
             .privillege_bit = 0, 
@@ -40,6 +51,7 @@ struct GlobalDescriptorTable global_descriptor_table = {
             .code_segment_bit = 0, 
             .default_bit= 1, 
             .granularity_bit = 1,
+            .available_bit = 0
         }
     }
 };
