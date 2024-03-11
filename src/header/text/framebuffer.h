@@ -6,6 +6,7 @@
 #include <stddef.h>
 
 #define FRAMEBUFFER_MEMORY_OFFSET ((uint8_t*) 0xB8000)
+#define BASE_MEMORY_OFFSET 0xB8000
 #define BUFFER_WIDTH 80
 #define BUFFER_HEIGHT 50
 #define CURSOR_PORT_CMD 0x03D4
