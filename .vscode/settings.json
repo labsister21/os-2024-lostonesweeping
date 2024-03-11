@@ -6,6 +6,10 @@
         "gdt.h": "c",
         "framebuffer.h": "c",
         "interrupt.h": "c",
-        "idt.h": "c"
+        "idt.h": "c",
+        "string.h": "c",
+        "keyboard.h": "c",
+        "stdint.h": "c"
     },
+    "C_Cpp.default.compilerPath": "C:\\msys64\\mingw64\\bin\\gcc.exe",
 }
