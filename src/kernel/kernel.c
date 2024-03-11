@@ -5,6 +5,7 @@
 #include "header/text/framebuffer.h"
 #include "header/cpu/idt.h"
 #include "header/cpu/interrupt.h"
+#include "header/driver/keyboard.h"
 
 
 void kernel_setup(void) {
@@ -15,11 +16,15 @@ void kernel_setup(void) {
     framebuffer_clear();
     framebuffer_set_cursor(0, 0);
 
+
     int col = 0;
     keyboard_state_activate();
     while (true){
         char c;
         get_keyboard_buffer(&c);
-        framebuffer_write(0, col++, c, 0xF, 0);
+        if(keyboard_state.bufferIsFilled){
+            framebuffer_write(0, col++, c, 0xF, 0);
+            keyboard_state.bufferIsFilled = false;
+        }
     }
 }

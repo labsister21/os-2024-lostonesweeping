@@ -30,6 +30,8 @@
  * @param fg  Foreground / Character color
  * @param bg  Background color
  */
+
+
 void framebuffer_write(uint8_t row, uint8_t col, char c, uint8_t fg, uint8_t bg);
 
 /**

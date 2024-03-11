@@ -1,15 +1,17 @@
 #include "header/driver/keyboard.h"
 #include "header/cpu/portio.h"
-#include <stdint.h>
 #include "header/cpu/interrupt.h"
+#include <stdint.h>
 
 
 struct KeyboardDriverState keyboard_state = {
 	.read_extended_mode = false,
-    .keyboard_input_on = false,
-    .keyboard_buffer = '\0',
+  .keyboard_input_on = false,
+  .keyboard_buffer = '\0',
 	.bufferIsFilled = false
 };
+
+
 
 const char keyboard_scancode_1_to_ascii_map[256] = {
       0, 0x1B, '1', '2', '3', '4', '5', '6',  '7', '8', '9',  '0',  '-', '=', '\b', '\t',
@@ -58,3 +60,4 @@ void get_keyboard_buffer(char *buf){
 	*buf = keyboard_state.keyboard_buffer;
 	keyboard_state.bufferIsFilled = false;
 }
+
