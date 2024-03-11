@@ -2,34 +2,16 @@
 #include <stdbool.h>
 #include "header/cpu/gdt.h"
 #include "header/kernel-entrypoint.h"
-
-void protectedMode(void){
-    uint32_t a; 
-    __asm__("cli");
-    __asm__("lgdt %[gdtr]" : : [gdtr] "m"(_gdt_gdtr));
-    __asm__(
-        "mov %%cr0, %0;"
-        "or $0x1, %0;"
-        "mov %0, %%cr0;"
-        : "=r"(a)
-    );
-    __asm__("ljmp $0x08, $PModeMain");
-
-    __asm__(
-        "PModeMain:;"
-    );
-}
+#include "header/text/framebuffer.h"
+#include "header/cpu/idt.h"
+#include "header/cpu/interrupt.h"
 
 void kernel_setup(void) {
-    // uint32_t a;
-    // uint32_t volatile b = 0x0000BABE;
-    // __asm__("mov $0xCAFE0000, %0" : "=r"(a));
-
     load_gdt(&_gdt_gdtr);
-    // __asm__ volatile("int $1");
-    int a =0;
-
-
-
-    while (true) a += 1;
+    pic_remap();
+    initialize_idt();
+    framebuffer_clear();
+    framebuffer_set_cursor(0, 0);
+    __asm__("int $0x4");
+    while (true);
 }

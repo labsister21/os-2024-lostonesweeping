@@ -1,6 +1,11 @@
 {
     "debug.onTaskErrors": "debugAnyway",
     "files.associations": {
-        "kernel-entrypoint.h": "c"
+        "kernel-entrypoint.h": "c",
+        "portio.h": "c",
+        "gdt.h": "c",
+        "framebuffer.h": "c",
+        "interrupt.h": "c",
+        "idt.h": "c"
     },
 }
