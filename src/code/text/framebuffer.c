@@ -1,9 +1,9 @@
 #include <stdint.h>
 #include <stdbool.h>
 #include <stddef.h>
-#include "../header/text/framebuffer.h"
-#include "../header/stdlib/string.h"
-#include "../header/cpu/portio.h"
+#include "../../header/text/framebuffer.h"
+#include "../../header/stdlib/string.h"
+#include "../../header/cpu/portio.h"
 
 struct FramebufferState framebuffer_state = {
     .row = 0, 
