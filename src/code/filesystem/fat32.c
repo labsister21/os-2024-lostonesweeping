@@ -1,10 +1,5 @@
-#include <stdint.h>
-#include <stdbool.h>
-#include <stddef.h>
-#include "../../header/stdlib/string.h"
-#include "../../header/filesystem/fat32.h"
-#include "../../header/driver/disk.h"
-
+#include "header/stdlib/string.h"
+#include "header/filesystem/fat32.h"
 
 static struct FAT32DriverState fat32_driver_state;
 
@@ -133,13 +128,14 @@ void create_fat32(void){
 }
 
 bool is_empty_storage(void){
-    struct BlockBuffer block; 
+    struct BlockBuffer b; 
+    read_blocks(&b, 0, 1);
     /**
      * pada bagian ini dilakukan pengecekan 
      * jika ada block yang kosong maka akan di-return true 
     */
     for(int i = 0; i < BLOCK_SIZE; i++){
-        if(fs_signature[i] != block.buf[i]){
+        if(fs_signature[i] != b.buf[i]){
             return true;
         }
     }
