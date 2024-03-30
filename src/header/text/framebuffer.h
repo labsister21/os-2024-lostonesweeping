@@ -30,6 +30,15 @@
  * @param fg  Foreground / Character color
  * @param bg  Background color
  */
+
+struct FramebufferState{
+    int row; 
+    int col; 
+    uint8_t fg; 
+    uint8_t bg; 
+
+}__attribute((packed)); 
+
 void framebuffer_write(uint8_t row, uint8_t col, char c, uint8_t fg, uint8_t bg);
 
 /**
@@ -47,5 +56,7 @@ void framebuffer_set_cursor(uint8_t r, uint8_t c);
  *
  */
 void framebuffer_clear(void);
+
+void framebuffer_place(char c);
 
 #endif
