@@ -6,9 +6,8 @@
 
 struct KeyboardDriverState keyboard_state = {
 	.read_extended_mode = false,
-  .keyboard_input_on = false,
-  .keyboard_buffer = '\0',
-	.bufferIsFilled = false
+    .keyboard_input_on = false,
+    .keyboard_buffer = '\0',
 };
 
 
@@ -41,10 +40,6 @@ void keyboard_isr(void) {
 	//Ketika keyboard_state.keyboard_input_on bernilai true
     if (keyboard_state.keyboard_input_on) {
 		keyboard_state.keyboard_buffer = keyboard_scancode_1_to_ascii_map[scancode];
-		keyboard_state.bufferIsFilled = true;
-	}
-	else {
-		return;
 	}
 }
 
@@ -58,6 +53,6 @@ void keyboard_state_deactivate(void){
 
 void get_keyboard_buffer(char *buf){
 	*buf = keyboard_state.keyboard_buffer;
-	keyboard_state.bufferIsFilled = false;
+  keyboard_state.keyboard_buffer = '\0';
 }
 
