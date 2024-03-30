@@ -21,4 +21,10 @@ void out(uint16_t port, uint8_t data);
  */
 uint8_t in(uint16_t port);
 
+//I/O port 16-bit for sending data from the disk controller
+void out16(uint16_t port, uint16_t data);
+
+//I/O port 16-bit for receiving to the disk controller
+uint16_t in16(uint16_t port);
+
 #endif
