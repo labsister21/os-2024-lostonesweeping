@@ -59,4 +59,7 @@ void framebuffer_clear(void);
 
 void framebuffer_place(char c);
 
+void framebuffer_clear_delete(void); 
+    
+
 #endif
