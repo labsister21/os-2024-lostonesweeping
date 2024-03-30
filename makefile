@@ -36,6 +36,8 @@ OBJS_KERNEL := $(patsubst $(SOURCE_FOLDER)/kernel/%.c, $(OUTPUT_FOLDER)/%.o, $(S
 ASM_OBJS := $(patsubst $(SOURCE_FOLDER_ASM)/%.s, $(OUTPUT_FOLDER)/%.o, $(ASM_SRCS))
 OBJS := $(patsubst $(SOURCE_FOLDER)/code/%.c, $(OUTPUT_FOLDER)/%.o, $(OBJS_CODE))
 
+$(shell mkdir -p $(dir $(OBJS)))
+
 $(OUTPUT_FOLDER)/%.o: $(SOURCE_FOLDER)/code/%.c
 	$(CC) $(CFLAGS) -c $< -o $@
 
