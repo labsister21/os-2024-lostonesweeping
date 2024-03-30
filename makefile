@@ -3,6 +3,8 @@ ASM           = nasm
 LIN           = ld
 CC            = gcc
 ISO           = genisoimage
+DISK_NAME     = storage
+
 # Directory
 SOURCE_FOLDER = src
 SOURCE_FOLDER_CODE = src/code
@@ -49,7 +51,7 @@ $(OUTPUT_FOLDER)/%.o: $(SOURCE_FOLDER_ASM)/%.s
 prereq = $(OBJS_CODE) $(OBJS_STDLIB) $(OBJS_KERNEL) $(ASM_OBJS)  
 #main
 run: all
-	@qemu-system-i386 -s -S -cdrom $(OUTPUT_FOLDER)/$(ISO_NAME).iso
+	@qemu-system-i386 -s -S -drive file=$(OUTPUT_FOLDER)/storage.bin,format=raw,if=ide,index=0,media=disk -cdrom $(OUTPUT_FOLDER)/$(ISO_NAME).iso 
 all: build
 build: iso
 clean:
@@ -63,6 +65,9 @@ kernel: $(prereq)
 	@$(LIN) $(LFLAGS) $^ -o $(OUTPUT_FOLDER)/kernel
 	@echo Linking object files and generate elf32...
 	@rm -f *.o
+
+disk:
+	@qemu-img create -f raw $(OUTPUT_FOLDER)/$(DISK_NAME).bin 4M
 
 iso: kernel
 	mkdir -p $(OUTPUT_FOLDER)/iso/boot/grub
