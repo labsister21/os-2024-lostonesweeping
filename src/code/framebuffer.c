@@ -31,28 +31,57 @@ void framebuffer_write(uint8_t row, uint8_t col, char c, uint8_t fg, uint8_t bg)
     *where = c | (attrib << 8);
 }
 
-void framebuffer_place(char c){
-    framebuffer_write(
-        framebuffer_state.row, 
-        framebuffer_state.col, 
-        c, 
-        framebuffer_state.fg, 
-        framebuffer_state.bg
-    );
-    framebuffer_set_cursor(framebuffer_state.row, framebuffer_state.col);
 
-	framebuffer_state.col += 1;
-    if (framebuffer_state.col == BUFFER_WIDTH) {
-        framebuffer_state.col = 0;
-        framebuffer_state.row += 1;
-        if (framebuffer_state.row == BUFFER_HEIGHT) {
-            framebuffer_state.row = 0;
+void framebuffer_clear_delete(void){
+    if (framebuffer_state.col > 0) {
+        framebuffer_state.col--;  
+        framebuffer_write(
+            framebuffer_state.row, 
+            framebuffer_state.col, 
+            '\0',  
+            0xF,   
+            0x0    
+        );
+    } 
+    else if (framebuffer_state.row > 0) {
+        framebuffer_state.row--;  
+        framebuffer_state.col = BUFFER_WIDTH - 1; 
+        framebuffer_write(
+            framebuffer_state.row, 
+            framebuffer_state.col, 
+            '\0',  
+            0xF,   
+            0x0    
+        );
+    }
+}
+
+void framebuffer_place(char c){
+    if(c == '\b') framebuffer_clear_delete();
+    else{
+        framebuffer_write(
+            framebuffer_state.row, 
+            framebuffer_state.col, 
+            c, 
+            framebuffer_state.fg, 
+            framebuffer_state.bg
+        );
+        framebuffer_set_cursor(framebuffer_state.row, framebuffer_state.col);
+
+        framebuffer_state.col += 1;
+        if (framebuffer_state.col == BUFFER_WIDTH) {
+            framebuffer_state.col = 0;
+            framebuffer_state.row += 1;
+            if (framebuffer_state.row == BUFFER_HEIGHT) {
+                framebuffer_state.row = 0;
+            }
         }
     }
-
 }
 
 void framebuffer_clear(void) {
     size_t framebuffer_size = BUFFER_WIDTH * BUFFER_HEIGHT + sizeof(FRAMEBUFFER_MEMORY_OFFSET);
     memset(FRAMEBUFFER_MEMORY_OFFSET, 0, framebuffer_size);
 }
+
+
