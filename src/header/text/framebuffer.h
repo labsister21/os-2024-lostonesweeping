@@ -60,6 +60,7 @@ void framebuffer_clear(void);
 void framebuffer_place(char c);
 
 void framebuffer_clear_delete(void); 
-    
 
+void framebuffer_newline(void);
+    
 #endif

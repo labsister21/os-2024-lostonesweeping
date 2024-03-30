@@ -45,7 +45,12 @@ void framebuffer_clear_delete(void){
     } 
     else if (framebuffer_state.row > 0) {
         framebuffer_state.row--;  
-        framebuffer_state.col = BUFFER_WIDTH - 1; 
+        size_t prev_col = BUFFER_WIDTH - 1; 
+        uint16_t *prev_row_start = (uint16_t *)(BASE_MEMORY_OFFSET + (framebuffer_state.row * BUFFER_WIDTH * 2));
+        while(prev_col > 0 && prev_row_start[prev_col] == 0x00){
+            prev_col--;
+        }
+        framebuffer_state.col = prev_col;
         framebuffer_write(
             framebuffer_state.row, 
             framebuffer_state.col, 
@@ -54,10 +59,21 @@ void framebuffer_clear_delete(void){
             0x0    
         );
     }
+  
+}
+
+void framebuffer_newline(void){
+    framebuffer_state.row++;
+    framebuffer_state.col = 0;
+    framebuffer_set_cursor(
+        framebuffer_state.row, 
+        framebuffer_state.col
+    );
 }
 
 void framebuffer_place(char c){
     if(c == '\b') framebuffer_clear_delete();
+    else if(c == '\n') framebuffer_newline();
     else{
         framebuffer_write(
             framebuffer_state.row, 
