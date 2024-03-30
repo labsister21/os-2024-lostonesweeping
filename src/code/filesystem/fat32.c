@@ -1,7 +1,14 @@
 #include "header/stdlib/string.h"
 #include "header/filesystem/fat32.h"
-
+#include <stdint.h>
+#include <stdbool.h>
 static struct FAT32DriverState fat32_driver_state;
+
+
+void copyStringWithLength(char* destination, const char* source, size_t length) {
+    memcpy(destination, source, length);
+    destination[length] = '\0'; // Null-terminate the string
+}
 
 const uint8_t fs_signature[BLOCK_SIZE] = {
     'C', 'o', 'u', 'r', 's', 'e', ' ', ' ', ' ', ' ', ' ', ' ', ' ', ' ', ' ',  ' ',
@@ -56,7 +63,7 @@ void create_empty_dir_table(struct FAT32DirectoryTable* dir_table, uint32_t curr
      * pada bagian ini akan dibuat parent directory 
     */
     struct FAT32DirectoryEntry *parent_entry = &(dir_table->table[0]);
-    strcpy(parent_entry->name, "..", 8);
+    copyStringWithLength(parent_entry->name, "..", 8);
     parent_entry->attribute = ATTR_SUBDIRECTORY;
     parent_entry->user_attribute = UATTR_NOT_EMPTY;
      /**
@@ -73,7 +80,7 @@ void create_empty_dir_table(struct FAT32DirectoryTable* dir_table, uint32_t curr
      * umumnya nama dari directory saat "kita" berada pada direktori tersebut adalah "."
     */
     struct FAT32DirectoryEntry *curr_entry = &(dir_table->table[1]);
-    strcpy(curr_entry->name, ".", 8); // nama file dari dir hanya bisa 8 karakter saja
+    copyStringWithLength(curr_entry->name, ".", 8); // nama file dari dir hanya bisa 8 karakter saja
     parent_entry->attribute = ATTR_SUBDIRECTORY;
     parent_entry->user_attribute = UATTR_NOT_EMPTY;
     /**
