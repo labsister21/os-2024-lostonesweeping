@@ -22,6 +22,6 @@ void kernel_setup(void) {
         char c;
         get_keyboard_buffer(&c);
         // if (c) framebuffer_write(0, col++, c, 0xF, 0);
-        if (c) framebuffer_plc(c);
+        if (c) framebuffer_place(c);
     }
 }

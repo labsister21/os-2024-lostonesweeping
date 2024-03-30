@@ -31,8 +31,7 @@ void framebuffer_write(uint8_t row, uint8_t col, char c, uint8_t fg, uint8_t bg)
     *where = c | (attrib << 8);
 }
 
-void framebuffer_plc(char c){
-	// framebuffer_set_cursor(framebuffer_state.row, framebuffer_state.col);
+void framebuffer_place(char c){
     framebuffer_write(
         framebuffer_state.row, 
         framebuffer_state.col, 
@@ -50,6 +49,7 @@ void framebuffer_plc(char c){
             framebuffer_state.row = 0;
         }
     }
+
 }
 
 void framebuffer_clear(void) {

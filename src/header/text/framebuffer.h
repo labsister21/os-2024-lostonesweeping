@@ -57,8 +57,6 @@ void framebuffer_set_cursor(uint8_t r, uint8_t c);
  */
 void framebuffer_clear(void);
 
-void framebuffer_plc(char c);
-
-void framebuffer_init(void);
+void framebuffer_place(char c);
 
 #endif
