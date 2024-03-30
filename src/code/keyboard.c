@@ -11,7 +11,8 @@ struct KeyboardDriverState keyboard_state = {
 		.shift_pressed = false,
 		.alt_pressed = false,
 		.ctrl_pressed = false,
-		.buffer_filled = false
+		.buffer_filled = false, 
+    .caps_active = false
 };
 
 //normal ascii code
