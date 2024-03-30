@@ -1,5 +1,5 @@
-#include "header/driver/disk.h"
-#include "header/cpu/portio.h"
+#include "../../header/driver/disk.h"
+#include "../../header/cpu/portio.h"
 
 static void ATA_busy_wait() {
     while (in(0x1F7) & ATA_STATUS_BSY);
