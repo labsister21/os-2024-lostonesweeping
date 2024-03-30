@@ -58,10 +58,11 @@ run: all
 all: build
 build: iso
 clean:
-	rm -rf $(OUTPUT_FOLDER)/**/*.o
+	$(shell rm -rf  $(dir $(OBJS)))
 	rm -rf $(OUTPUT_FOLDER)/*.o
 	rm -rf *.o *.iso $(OUTPUT_FOLDER)/kernel
 	rm -rf $(OUTPUT_FOLDER)/*.iso
+
 t: $(prereq)
 	echo $^
 
