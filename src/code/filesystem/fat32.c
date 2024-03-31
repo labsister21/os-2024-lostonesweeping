@@ -311,7 +311,6 @@ int8_t write(struct FAT32DriverRequest request){
      * berada dalam direktori parent tidak ada. 
     */
 
-
     for(i=0; i<TOTAL_DIRECTORY_ENTRY; i++){
         if( fat32_driver_state.dir_table_buf.table[i].user_attribute == UATTR_NOT_EMPTY
         && cmp_string_with_fixed_length(fat32_driver_state.dir_table_buf.table[i].name, request.name, 8)
@@ -399,5 +398,35 @@ int8_t write(struct FAT32DriverRequest request){
 }
 
 int8_t delete(struct FAT32DriverRequest request){
+    bool isFolder = request.buffer_size == 0;
+    bool isParentValid = get_dir_table_from_cluster(request.parent_cluster_number, &fat32_driver_state.dir_table_buf);
+    if (!isParentValid){
+        return -1;
+    }
 
+    bool found = false;
+    int i;
+
+    for(i=0; i<TOTAL_DIRECTORY_ENTRY; i++){
+        if(fat32_driver_state.dir_table_buf.table[i].user_attribute == UATTR_NOT_EMPTY
+        && cmp_string_with_fixed_length(fat32_driver_state.dir_table_buf.table[i].name, request.name, 8)
+        && (isFolder || cmp_string_with_fixed_length(fat32_driver_state.dir_table_buf.table[i].ext, request.ext, 3))
+        ){
+            found = true;
+            break;
+        }
+    }
+
+    if (!found) return 1;
+    else{
+        int prev;
+        //Linked list allocationTable pada indeks i jika ketemu file dalam folder
+        while (fat32_driver_state.fat_table.cluster_map[i] != FAT32_FAT_END_OF_FILE){
+            prev = i;
+            i = fat32_driver_state.fat_table.cluster_map[i];
+            fat32_driver_state.fat_table.cluster_map[prev] = 0;
+        }
+        fat32_driver_state.fat_table.cluster_map[i] = 0;
+    }
+    //Note: delete pada directoryTable BELUM diimplementasikan
 }
