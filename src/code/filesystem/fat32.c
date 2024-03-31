@@ -1,7 +1,7 @@
-#include "header/stdlib/string.h"
 #include "header/filesystem/fat32.h"
 #include <stdint.h>
 #include <stdbool.h>
+
 static struct FAT32DriverState fat32_driver_state;
 
 
@@ -62,10 +62,10 @@ void create_empty_dir_table(struct FAT32DirectoryTable* dir_table, uint32_t curr
     /**
      * pada bagian ini akan dibuat parent directory 
     */
-    struct FAT32DirectoryEntry *parent_entry = &(dir_table->table[0]);
-    copyStringWithLength(parent_entry->name, "..", 8);
-    parent_entry->attribute = ATTR_SUBDIRECTORY;
-    parent_entry->user_attribute = UATTR_NOT_EMPTY;
+    struct FAT32DirectoryEntry *current_entry = &(dir_table->table[0]);
+    copyStringWithLength(current_entry->name, ".", 8);
+    current_entry->attribute = ATTR_SUBDIRECTORY;
+    current_entry->user_attribute = UATTR_NOT_EMPTY;
      /**
      * bagian ini diambil dari parameter parent_dir
      * diatur menjadi uint16_t karena parameternya minta begitu 
@@ -73,14 +73,14 @@ void create_empty_dir_table(struct FAT32DirectoryTable* dir_table, uint32_t curr
      * cluster_low langsung pake aja
      * cluster_high perlu dishifting ke kanan sebanyak 16 bit.
     */
-    parent_entry->cluster_low = (uint16_t) parent_dir;
-    parent_entry->cluster_high = (uint16_t) (parent_dir >> 16);
+    current_entry->cluster_low = (uint16_t) current_dir;
+    current_entry->cluster_high = (uint16_t) (current_dir >> 16);
     /**
      * Pada bagian ini dibuat current directory 
      * umumnya nama dari directory saat "kita" berada pada direktori tersebut adalah "."
     */
-    struct FAT32DirectoryEntry *curr_entry = &(dir_table->table[1]);
-    copyStringWithLength(curr_entry->name, ".", 8); // nama file dari dir hanya bisa 8 karakter saja
+    struct FAT32DirectoryEntry *parent_entry = &(dir_table->table[1]);
+    copyStringWithLength(parent_entry->name, "..", 8); // nama file dari dir hanya bisa 8 karakter saja
     parent_entry->attribute = ATTR_SUBDIRECTORY;
     parent_entry->user_attribute = UATTR_NOT_EMPTY;
     /**
@@ -90,8 +90,8 @@ void create_empty_dir_table(struct FAT32DirectoryTable* dir_table, uint32_t curr
      * cluster_low langsung pake aja
      * cluster_high perlu dishifting ke kanan sebanyak 16 bit.
     */
-    parent_entry->cluster_low = (uint16_t) current_dir;
-    parent_entry->cluster_high = (uint16_t) (current_dir >> 16); 
+    parent_entry->cluster_low = (uint16_t) parent_dir;
+    parent_entry->cluster_high = (uint16_t) (parent_dir >> 16); 
 }
 
 /**
@@ -177,4 +177,118 @@ void initialize_filesystem_fat32(void){
         read_clusters(&fat32_driver_state.fat_table.cluster_map, FAT_CLUSTER_NUMBER, 1);
         read_clusters(&fat32_driver_state.dir_table_buf.table, ROOT_CLUSTER_NUMBER, 1);
     }
+}
+
+bool cmp_string_with_fixed_length(const char *a, const char *b, int l){
+    if (a == NULL || b == NULL){
+        return false;
+    }
+    for (int i=0; i<l; i++){
+        if (a[i] != b[i]){
+            return false;
+        }
+    }
+    return true;
+}
+
+bool get_dir_table_from_cluster(uint32_t cluster, struct FAT32DirectoryTable *dir_entry) {
+    if (fat32_driver_state.fat_table.cluster_map[cluster] !=
+            FAT32_FAT_END_OF_FILE)
+        return false;
+    read_clusters(dir_entry, cluster, 1);
+    if (cmp_string_with_fixed_length(dir_entry->table[0].name, ".", 8) == 0 &&
+            dir_entry->table[0].attribute == ATTR_SUBDIRECTORY &&
+            cmp_string_with_fixed_length(dir_entry->table[1].name, "..", 8) == 0 &&
+            dir_entry->table[1].attribute == ATTR_SUBDIRECTORY)
+        return true;
+    return false;
+}
+
+
+int8_t read_directory(struct FAT32DriverRequest request){
+    //Asumsi parent merupakan folder valid
+    //int8_t parent = fat32_driver_state.fat_table.cluster_map[request.parent_cluster_number];
+
+    bool isParentValid = get_dir_table_from_cluster(request.parent_cluster_number, fat32_driver_state.dir_table_buf.table);
+    if (!isParentValid){
+        return -1;
+    }
+
+    bool found = false;
+    int i;
+
+    //Iterasi setiap file dalam directoryTable parent
+    for (i=0; i<TOTAL_DIRECTORY_ENTRY; i++){
+        if (fat32_driver_state.dir_table_buf.table[i].user_attribute != UATTR_NOT_EMPTY
+        && cmp_string_with_fixed_length(fat32_driver_state.dir_table_buf.table[i].name, request.name, 8)){
+            if(fat32_driver_state.dir_table_buf.table[i].attribute == ATTR_SUBDIRECTORY){ //Bukan sebuah folder
+                return 1;
+            }
+            if(request.buffer_size < fat32_driver_state.dir_table_buf.table[i].filesize){ //Ukuran request tidak cukup
+                return -1;
+            }
+            found = true;
+            break;
+        }
+    }
+
+    //Jika file tidak tertemu, return 2
+    if (!found) return 2;
+
+    //Folder terdapat dalam allocationTable
+    uint32_t cluster_number = fat32_driver_state.dir_table_buf.table[i].cluster_low + (fat32_driver_state.dir_table_buf.table[i].cluster_high >> 16);
+    read_clusters(request.buf, cluster_number, 1);
+
+    return 0;
+}
+
+int8_t read(struct FAT32DriverRequest request){
+    //Asumsi parent merupakan folder valid
+    //int8_t parent = fat32_driver_state.fat_table.cluster_map[request.parent_cluster_number];
+
+    bool isParentValid = get_dir_table_from_cluster(request.parent_cluster_number, fat32_driver_state.dir_table_buf.table);
+    if (!isParentValid){
+        return -1;
+    }
+
+    bool found = false;
+    int i;
+    int j = 0;
+
+    //Iterasi setiap file dalam directoryTable parent
+    for (i=0; i<TOTAL_DIRECTORY_ENTRY; i++){
+        if (fat32_driver_state.dir_table_buf.table[i].user_attribute != UATTR_NOT_EMPTY
+        && cmp_string_with_fixed_length(fat32_driver_state.dir_table_buf.table[i].name, request.name, 8)
+        && cmp_string_with_fixed_length(fat32_driver_state.dir_table_buf.table[i].ext, request.ext, 3)){
+            if(fat32_driver_state.dir_table_buf.table[i].attribute != ATTR_SUBDIRECTORY){ //Bukan sebuah file
+                return 1;
+            }
+            if(request.buffer_size < fat32_driver_state.dir_table_buf.table[i].filesize){ //Ukuran request tidak cukup
+                return -1;
+            }
+            found = true;
+            break;
+        }
+    }
+
+    //Jika file tidak tertemu, return 2
+    if (!found) return 2;
+
+    //Linked list allocationTable pada indeks i jika ketemu file dalam folder
+    uint32_t cluster_number = fat32_driver_state.dir_table_buf.table[i].cluster_low + (fat32_driver_state.dir_table_buf.table[i].cluster_high >> 16);
+    while (fat32_driver_state.fat_table.cluster_map[i] != FAT32_FAT_END_OF_FILE){
+        read_clusters(request.buf + CLUSTER_SIZE*j, cluster_number, 1);
+        i = fat32_driver_state.fat_table.cluster_map[i];
+        j++;
+    }
+
+    return 0;
+}
+
+int8_t write(struct FAT32DriverRequest request){
+
+}
+
+int8_t delete(struct FAT32DriverRequest request){
+
 }

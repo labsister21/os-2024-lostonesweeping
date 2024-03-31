@@ -34,6 +34,8 @@
 #define ATTR_SUBDIRECTORY     0b00010000
 #define UATTR_NOT_EMPTY       0b10101010
 
+/* -- Custom Iterators -- */
+#define TOTAL_DIRECTORY_ENTRY (int)(CLUSTER_SIZE/sizeof(struct FAT32DirectoryEntry))
 
 
 // Boot sector signature for this file system "FAT32 - IF2230 edition"
@@ -246,5 +248,9 @@ int8_t write(struct FAT32DriverRequest request);
  * @return Error code: 0 success - 1 not found - 2 folder is not empty - -1 unknown
  */
 int8_t delete(struct FAT32DriverRequest request);
+
+//Komparasi dua char* dengan length sama, return true jika char* sama. Digunakan dalam komparasi name dan ext file system
+//Prekondisi: Kedua char* berukuran l
+bool cmp_string_with_fixed_length(const char *a, const char *b, int l);
 
 #endif
