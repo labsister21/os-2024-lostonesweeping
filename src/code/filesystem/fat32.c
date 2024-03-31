@@ -6,10 +6,20 @@ static struct FAT32DriverState fat32_driver_state;
 
 
 void copyStringWithLength(char* destination, const char* source, size_t length) {
-    memcpy(destination, source, length);
-    destination[length] = '\0'; // Null-terminate the string
+    for (size_t i = 0; i < length; ++i) {
+        destination[i] = source[i];
+        if (source[i] == '\0') // If source string ends earlier than specified length
+            break;
+    }
+    destination[length] = '\0'; // Null-terminate the destination string
 }
 
+void my_memset(void *ptr, int value, size_t num) {
+    uint8_t *p = (uint8_t *)ptr;
+    for (size_t i = 0; i < num; i++) {
+        p[i] = (uint8_t)value;
+    }
+}
 const uint8_t fs_signature[BLOCK_SIZE] = {
     'C', 'o', 'u', 'r', 's', 'e', ' ', ' ', ' ', ' ', ' ', ' ', ' ', ' ', ' ',  ' ',
     'D', 'e', 's', 'i', 'g', 'n', 'e', 'd', ' ', 'b', 'y', ' ', ' ', ' ', ' ',  ' ',
@@ -58,7 +68,7 @@ void create_empty_dir_table(struct FAT32DirectoryTable* dir_table, uint32_t curr
      * karena kita melakukan inisiasi pada tabel direktori maka semestinya kita melakukan clearing 
      * caranya dengan melakukan memset pada dir_table dan mengatur semua nilanya menjadi 0 
     */
-    memset(dir_table, 0, sizeof(struct FAT32DirectoryTable));
+    my_memset(dir_table, 0, sizeof(struct FAT32DirectoryTable));
     /**
      * pada bagian ini akan dibuat parent directory 
     */
@@ -126,6 +136,7 @@ void create_fat32(void){
      * 1.4.4.3
      * 1.4.4.4
     */
+    write_clusters(&file_table, FAT_CLUSTER_NUMBER, 1);
     struct FAT32DirectoryTable dir_table; 
     create_empty_dir_table(&dir_table, ROOT_CLUSTER_NUMBER, ROOT_CLUSTER_NUMBER);
     /**
@@ -209,7 +220,7 @@ int8_t read_directory(struct FAT32DriverRequest request){
     //Asumsi parent merupakan folder valid
     //int8_t parent = fat32_driver_state.fat_table.cluster_map[request.parent_cluster_number];
 
-    bool isParentValid = get_dir_table_from_cluster(request.parent_cluster_number, fat32_driver_state.dir_table_buf.table);
+    bool isParentValid = get_dir_table_from_cluster(request.parent_cluster_number, &fat32_driver_state.dir_table_buf);
     if (!isParentValid){
         return -1;
     }
@@ -246,7 +257,7 @@ int8_t read(struct FAT32DriverRequest request){
     //Asumsi parent merupakan folder valid
     //int8_t parent = fat32_driver_state.fat_table.cluster_map[request.parent_cluster_number];
 
-    bool isParentValid = get_dir_table_from_cluster(request.parent_cluster_number, fat32_driver_state.dir_table_buf.table);
+    bool isParentValid = get_dir_table_from_cluster(request.parent_cluster_number, &fat32_driver_state.dir_table_buf);
     if (!isParentValid){
         return -1;
     }
