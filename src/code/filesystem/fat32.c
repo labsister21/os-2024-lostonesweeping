@@ -191,13 +191,8 @@ void initialize_filesystem_fat32(void){
 }
 
 bool cmp_string_with_fixed_length(const char *a, const char *b, int l){
-    if (a == NULL && b == NULL){
-        return true;
-    }
-    if (a == NULL || b == NULL){
-        return false;
-    }
-    for (int i=0; i<l; i++){
+    int i;
+    for (i=0; i<l; i++){
         if (a[i] != b[i]){
             return false;
         }
@@ -300,6 +295,8 @@ int8_t read(struct FAT32DriverRequest request){
 }
 
 int8_t write(struct FAT32DriverRequest request){
+    //pada bagian isFile mengecek apakah request termasuk ke dalam file atau folder 
+    bool isFolder = request.buffer_size == 0;
     bool isParentValid = get_dir_table_from_cluster(request.parent_cluster_number, &fat32_driver_state.dir_table_buf);
     if (!isParentValid){
         return -1;
@@ -309,22 +306,80 @@ int8_t write(struct FAT32DriverRequest request){
     int i;
 
     //Iterasi setiap file dalam directoryTable parent
-    for (i=0; i<TOTAL_DIRECTORY_ENTRY; i++){
-        if (fat32_driver_state.dir_table_buf.table[i].user_attribute != UATTR_NOT_EMPTY
-        && cmp_string_with_fixed_length(fat32_driver_state.dir_table_buf.table[i].name, request.name, 8)
-        && cmp_string_with_fixed_length(fat32_driver_state.dir_table_buf.table[i].ext, request.ext, 3)){
+    /**
+     * pada bagian kita memastikan folder atau file yang dicari 
+     * berada dalam direktori parent tidak ada. 
+    */
 
+
+    for(i=0; i<TOTAL_DIRECTORY_ENTRY; i++){
+        if( fat32_driver_state.dir_table_buf.table[i].user_attribute == UATTR_NOT_EMPTY
+        && cmp_string_with_fixed_length(fat32_driver_state.dir_table_buf.table[i].name, request.name, 8)
+        && (isFolder || cmp_string_with_fixed_length(fat32_driver_state.dir_table_buf.table[i].ext, request.ext, 3))
+        ){
             found = true;
             break;
         }
     }
-
-    //Jika ada file/folder dengan nama sama, return 1
+    //Jika ada file/folder dengan nama sama atau sudah ADA, return 1
     if (found) return 1;
 
-    
+    /**
+     * kasus dimana file/folder belum ada. kita nyari yang kosong
+    */
+    int idx_empty_entry = -1;
+    for(i = 0; i < TOTAL_DIRECTORY_ENTRY; i++){
+        //kasus kalo? file/folder (entry) tidak ada
+        if(idx_empty_entry == -1 && fat32_driver_state.dir_table_buf.table[i].user_attribute != UATTR_NOT_EMPTY){
+            idx_empty_entry = i;
+        }
+    }
 
+    /**
+     * kasus dimana sudah melakukan iterasi sampe akhir dan belum ditemukan sama sekali 
+     * sehingga bisa dibilang directorynya penuh 
+    */
+    if(idx_empty_entry == -1){
+        return -1;
+    }
 
+    /**
+     * Algoritma utama
+    */
+    //tentuin folder atau file? 
+    uint32_t filesize;
+    if(isFolder){filesize = CLUSTER_SIZE;}
+    else filesize = request.buffer_size;
+
+    //hitung filesize dalam cluster_size; 
+    int alloc_cluster = (filesize) / CLUSTER_SIZE;
+    uint32_t empty_clusters[alloc_cluster];
+
+    //ini hanyalah sebuah iterator
+    int curr_cluster = 0; 
+    int empty_cluster = 0; 
+    /**
+     * kalo misalkan empty cluster belum sepenuhnya terisi dan current cluster tidak melebihi dari size cluster map
+     * 
+    */
+    while(empty_cluster < alloc_cluster && curr_cluster < CLUSTER_MAP_SIZE){
+        /**bagian ini memastikan cluster block kosong atau tidak sehingga bisa diisi
+         * FAT32_FAT_EMPTY_ENTRY menandakan block dari cluster adalah block kosong yang dapat terisi 
+         */
+        uint32_t is_cluster_empty = fat32_driver_state.fat_table.cluster_map[curr_cluster];
+        if(is_cluster_empty == FAT32_FAT_EMPTY_ENTRY){
+            empty_clusters[empty_cluster] = curr_cluster;
+            empty_cluster++;
+        }
+        curr_cluster++;
+    }   
+    /**
+     * kasus dimana file allocation tidak berhasil 
+     * sehingga akan direturn menjadi -1 sebagai error;
+    */
+    if(empty_cluster < alloc_cluster){
+        return -1;
+    }
 }
 
 int8_t delete(struct FAT32DriverRequest request){
