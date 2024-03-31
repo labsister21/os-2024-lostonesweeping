@@ -360,7 +360,6 @@ int8_t write(struct FAT32DriverRequest request){
     int empty_cluster = 0; 
     /**
      * kalo misalkan empty cluster belum sepenuhnya terisi dan current cluster tidak melebihi dari size cluster map
-     * 
     */
     while(empty_cluster < alloc_cluster && curr_cluster < CLUSTER_MAP_SIZE){
         /**bagian ini memastikan cluster block kosong atau tidak sehingga bisa diisi
@@ -368,8 +367,7 @@ int8_t write(struct FAT32DriverRequest request){
          */
         uint32_t is_cluster_empty = fat32_driver_state.fat_table.cluster_map[curr_cluster];
         if(is_cluster_empty == FAT32_FAT_EMPTY_ENTRY){
-            empty_clusters[empty_cluster] = curr_cluster;
-            empty_cluster++;
+            empty_clusters[empty_cluster++] = curr_cluster;
         }
         curr_cluster++;
     }   
@@ -380,6 +378,24 @@ int8_t write(struct FAT32DriverRequest request){
     if(empty_cluster < alloc_cluster){
         return -1;
     }
+
+    /**
+     * menulis ke dalam direktori
+    */
+    struct FAT32DirectoryEntry *dir_entry = &fat32_driver_state.dir_table_buf.table[idx_empty_entry];
+    dir_entry->filesize = filesize; 
+    //bagian ini masukin atribut folder atau file
+    if(isFolder){dir_entry->attribute = 0;}
+    else dir_entry->attribute = ATTR_SUBDIRECTORY;
+    //karena udah keisi otomatis gak mungkin kosong dong
+    dir_entry->user_attribute = UATTR_NOT_EMPTY;
+    /**
+     * untuk bagian cluster kita ambil dari empty_clusters yang udah kita isi 
+     * masing-masing clusternya
+    */
+    dir_entry->cluster_low = (uint8_t) empty_clusters[0] & 0xFFFF; //ekstrak bit-bit yang ada
+    dir_entry->cluster_high = (uint8_t) (empty_clusters[0] >> 16) & 0xFFFF; //ekstrak bit-bit yang ada
+    
 }
 
 int8_t delete(struct FAT32DriverRequest request){
