@@ -191,6 +191,9 @@ void initialize_filesystem_fat32(void){
 }
 
 bool cmp_string_with_fixed_length(const char *a, const char *b, int l){
+    if (a == NULL && b == NULL){
+        return true;
+    }
     if (a == NULL || b == NULL){
         return false;
     }
@@ -297,6 +300,30 @@ int8_t read(struct FAT32DriverRequest request){
 }
 
 int8_t write(struct FAT32DriverRequest request){
+    bool isParentValid = get_dir_table_from_cluster(request.parent_cluster_number, &fat32_driver_state.dir_table_buf);
+    if (!isParentValid){
+        return -1;
+    }
+
+    bool found = false;
+    int i;
+
+    //Iterasi setiap file dalam directoryTable parent
+    for (i=0; i<TOTAL_DIRECTORY_ENTRY; i++){
+        if (fat32_driver_state.dir_table_buf.table[i].user_attribute != UATTR_NOT_EMPTY
+        && cmp_string_with_fixed_length(fat32_driver_state.dir_table_buf.table[i].name, request.name, 8)
+        && cmp_string_with_fixed_length(fat32_driver_state.dir_table_buf.table[i].ext, request.ext, 3)){
+
+            found = true;
+            break;
+        }
+    }
+
+    //Jika ada file/folder dengan nama sama, return 1
+    if (found) return 1;
+
+    
+
 
 }
 
