@@ -1,4 +1,5 @@
 #include "header/filesystem/fat32.h"
+#include "header/stdlib/string.h"
 #include <stdint.h>
 #include <stdbool.h>
 
@@ -14,12 +15,35 @@ void copyStringWithLength(char* destination, const char* source, size_t length) 
     destination[length] = '\0'; // Null-terminate the destination string
 }
 
+void *my_memcpy(void *dest, const void *src, size_t length) {
+    char *dest_ptr = (char *)dest;
+    const char *src_ptr = (const char *)src;
+
+    for (size_t i = 0; i < length; ++i) {
+        dest_ptr[i] = src_ptr[i];
+    }
+
+    return dest;  // Return a pointer to the destination memory
+}
+
 void my_memset(void *ptr, int value, size_t num) {
     uint8_t *p = (uint8_t *)ptr;
     for (size_t i = 0; i < num; i++) {
         p[i] = (uint8_t)value;
     }
 }
+
+int my_memcmp(const void *ptr1, const void *ptr2, size_t n) {
+    const unsigned char *p1 = ptr1;
+    const unsigned char *p2 = ptr2;
+    for (size_t i = 0; i < n; ++i) {
+        if (p1[i] != p2[i]) {
+            return (p1[i] > p2[i]) - (p1[i] < p2[i]);
+        }
+    }
+    return 0;
+}
+
 const uint8_t fs_signature[BLOCK_SIZE] = {
     'C', 'o', 'u', 'r', 's', 'e', ' ', ' ', ' ', ' ', ' ', ' ', ' ', ' ', ' ',  ' ',
     'D', 'e', 's', 'i', 'g', 'n', 'e', 'd', ' ', 'b', 'y', ' ', ' ', ' ', ' ',  ' ',
@@ -40,6 +64,37 @@ uint32_t cluster_to_lba(uint32_t cluster){
    return cluster * CLUSTER_BLOCK_COUNT;
 }
 
+void init_directory_table(struct FAT32DirectoryTable *dir_table, char *name, uint32_t parent_dir_cluster) {
+    // Calculate the size of a directory entry
+    size_t entry_size = sizeof(struct FAT32DirectoryEntry);
+
+    // Initialize self entry
+    struct FAT32DirectoryEntry self_entry;
+    memset(&self_entry, 0, entry_size); // Initialize with zeros
+    copyStringWithLength(self_entry.name, name, 8); // Copy name (up to 8 characters)
+    self_entry.attribute = ATTR_SUBDIRECTORY;
+    self_entry.user_attribute = UATTR_NOT_EMPTY;
+    self_entry.cluster_low = (uint16_t)parent_dir_cluster;
+    self_entry.cluster_high = (uint16_t)(parent_dir_cluster >> 16);
+
+    // Initialize parent entry
+    struct FAT32DirectoryEntry parent_entry;
+    memset(&parent_entry, 0, entry_size); // Initialize with zeros
+    if (memcmp(name, ".", 4) == 0) {
+        copyStringWithLength(parent_entry.name, ".", 8); // Set name to "."
+        parent_entry.cluster_low = (uint16_t)parent_dir_cluster; // Set to current directory cluster
+        parent_entry.cluster_high = (uint16_t)(parent_dir_cluster >> 16); // For FAT32, consider higher bits of current cluster
+    } else {
+        copyStringWithLength(parent_entry.name, "..", 8); // Set name to ".."
+        parent_entry.attribute = ATTR_SUBDIRECTORY;
+        parent_entry.user_attribute = UATTR_NOT_EMPTY;
+        parent_entry.cluster_low = (uint16_t)(parent_dir_cluster); // Set to parent directory cluster
+        parent_entry.cluster_high = (uint16_t)(parent_dir_cluster >> 16); // For FAT32, consider higher bits of parent cluster
+    }
+
+    memcpy(dir_table, &self_entry, entry_size);
+    memcpy((char *)dir_table + entry_size, &parent_entry, entry_size);
+}
 void read_clusters(void *ptr, uint32_t cluster_number, uint8_t cluster_count){
     /**
      * seperti yang kita tahu dari guide book sebuah "cluster" adalah nama lain dari block memory 
@@ -63,46 +118,6 @@ void write_clusters(const void *ptr, uint32_t cluster_number, uint8_t cluster_co
    write_blocks(ptr, cluster_to_lba(cluster_number), cluster_count * CLUSTER_BLOCK_COUNT);
 }
 
-void create_empty_dir_table(struct FAT32DirectoryTable* dir_table, uint32_t current_dir, uint32_t parent_dir){
-    /**
-     * karena kita melakukan inisiasi pada tabel direktori maka semestinya kita melakukan clearing 
-     * caranya dengan melakukan memset pada dir_table dan mengatur semua nilanya menjadi 0 
-    */
-    my_memset(dir_table, 0, sizeof(struct FAT32DirectoryTable));
-    /**
-     * pada bagian ini akan dibuat parent directory 
-    */
-    struct FAT32DirectoryEntry *current_entry = &(dir_table->table[0]);
-    copyStringWithLength(current_entry->name, ".", 8);
-    current_entry->attribute = ATTR_SUBDIRECTORY;
-    current_entry->user_attribute = UATTR_NOT_EMPTY;
-     /**
-     * bagian ini diambil dari parameter parent_dir
-     * diatur menjadi uint16_t karena parameternya minta begitu 
-     * karena ada low dan high dan parameter dari fungsi ada 16, maka perlu dilakukan operasi shifting 
-     * cluster_low langsung pake aja
-     * cluster_high perlu dishifting ke kanan sebanyak 16 bit.
-    */
-    current_entry->cluster_low = (uint16_t) current_dir;
-    current_entry->cluster_high = (uint16_t) (current_dir >> 16);
-    /**
-     * Pada bagian ini dibuat current directory 
-     * umumnya nama dari directory saat "kita" berada pada direktori tersebut adalah "."
-    */
-    struct FAT32DirectoryEntry *parent_entry = &(dir_table->table[1]);
-    copyStringWithLength(parent_entry->name, "..", 8); // nama file dari dir hanya bisa 8 karakter saja
-    parent_entry->attribute = ATTR_SUBDIRECTORY;
-    parent_entry->user_attribute = UATTR_NOT_EMPTY;
-    /**
-     * bagian ini diambil dari parameter current_dir 
-     * diatur menjadi uint16_t karena parameternya minta begitu 
-     * karena ada low dan high dan parameter dari fungsi ada 16, maka perlu dilakukan operasi shifting 
-     * cluster_low langsung pake aja
-     * cluster_high perlu dishifting ke kanan sebanyak 16 bit.
-    */
-    parent_entry->cluster_low = (uint16_t) parent_dir;
-    parent_entry->cluster_high = (uint16_t) (parent_dir >> 16); 
-}
 
 /**
  * this section using this 
@@ -138,7 +153,8 @@ void create_fat32(void){
     */
     write_clusters(&file_table, FAT_CLUSTER_NUMBER, 1);
     struct FAT32DirectoryTable dir_table; 
-    create_empty_dir_table(&dir_table, ROOT_CLUSTER_NUMBER, ROOT_CLUSTER_NUMBER);
+    // create_empty_dir_table(&dir_table, ROOT_CLUSTER_NUMBER, ROOT_CLUSTER_NUMBER);
+    init_directory_table(&dir_table, ".", ROOT_CLUSTER_NUMBER);
     /**
      * eits, setelah kita bikin harusnya kita buat dia ada isi "awal" dong bukan NULL doang 
     */
@@ -393,11 +409,94 @@ int8_t write(struct FAT32DriverRequest request){
      * untuk bagian cluster kita ambil dari empty_clusters yang udah kita isi 
      * masing-masing clusternya
     */
-    dir_entry->cluster_low = (uint8_t) empty_clusters[0] & 0xFFFF; //ekstrak bit-bit yang ada
-    dir_entry->cluster_high = (uint8_t) (empty_clusters[0] >> 16) & 0xFFFF; //ekstrak bit-bit yang ada
-    
+    dir_entry->cluster_low = (uint8_t) empty_clusters[0]; //ekstrak bit-bit yang ada
+    dir_entry->cluster_high = (uint8_t) (empty_clusters[0] >> 16); //ekstrak bit-bit yang ada
+    //transfer nama dari request ke dir_entry
+    //kalo ini adalah file
+    copyStringWithLength(dir_entry->name, request.name, 8);
+    if(!isFolder){
+        memcpy(dir_entry->ext, request.ext, 3);
+    }
+    write_clusters(&fat32_driver_state.dir_table_buf, request.parent_cluster_number, 1);
+
+
+    /**
+     * kalo misalkan folder kita perlu bikin folder baru?
+     * ini bener atau enggak sih 
+    */
+    struct FAT32DirectoryTable new_table = fat32_driver_state.dir_table_buf;
+    if(isFolder){
+        //membuat folder tabel baru
+        init_directory_table(&new_table, request.name, request.parent_cluster_number);
+        write_clusters(&new_table, empty_clusters[0], alloc_cluster);
+    }
+     
+    // menggunakan linked list 
+    struct ClusterBuffer buffer;
+    for (int i = 0; i < alloc_cluster; i++) {
+        uint32_t next_cluster = empty_clusters[i + 1];
+        if (i + 1 == alloc_cluster) {
+            next_cluster = FAT32_FAT_END_OF_FILE;
+            int current_size = filesize % CLUSTER_SIZE;
+            if (current_size != 0) {
+                memcpy(&buffer, request.buf, current_size);
+                for (int j = current_size; j < CLUSTER_SIZE; ++j)
+                    buffer.buf[j] = 0x0;
+                request.buf = (void *)&buffer;
+            }
+        }
+        uint32_t cluster = empty_clusters[i];
+        write_clusters(request.buf, cluster, 1);
+        request.buf += CLUSTER_SIZE;
+        fat32_driver_state.fat_table.cluster_map[cluster] = next_cluster;
+    }
+    write_clusters(fat32_driver_state.fat_table.cluster_map, FAT_CLUSTER_NUMBER, 1);
+
+
+    return 0; //kasus berhasil 
 }
 
 int8_t delete(struct FAT32DriverRequest request){
 
 }
+
+// void create_empty_dir_table(struct FAT32DirectoryTable* dir_table, uint32_t current_dir, uint32_t parent_dir){
+//     /**
+//      * karena kita melakukan inisiasi pada tabel direktori maka semestinya kita melakukan clearing 
+//      * caranya dengan melakukan memset pada dir_table dan mengatur semua nilanya menjadi 0 
+//     */
+//     memset(dir_table, 0, sizeof(struct FAT32DirectoryTable));
+//     /**
+//      * pada bagian ini akan dibuat parent directory 
+//     */
+//     struct FAT32DirectoryEntry *current_entry = &(dir_table->table[0]);
+//     copyStringWithLength(current_entry->name, ".", 8);
+//     current_entry->attribute = ATTR_SUBDIRECTORY;
+//     current_entry->user_attribute = UATTR_NOT_EMPTY;
+//      /**
+//      * bagian ini diambil dari parameter parent_dir
+//      * diatur menjadi uint16_t karena parameternya minta begitu 
+//      * karena ada low dan high dan parameter dari fungsi ada 16, maka perlu dilakukan operasi shifting 
+//      * cluster_low langsung pake aja
+//      * cluster_high perlu dishifting ke kanan sebanyak 16 bit.
+//     */
+//     current_entry->cluster_low = (uint16_t) current_dir;
+//     current_entry->cluster_high = (uint16_t) (current_dir >> 16);
+//     /**
+//      * Pada bagian ini dibuat current directory 
+//      * umumnya nama dari directory saat "kita" berada pada direktori tersebut adalah "."
+//     */
+//     struct FAT32DirectoryEntry *parent_entry = &(dir_table->table[1]);
+//     copyStringWithLength(parent_entry->name, "..", 8); // nama file dari dir hanya bisa 8 karakter saja
+//     parent_entry->attribute = ATTR_SUBDIRECTORY;
+//     parent_entry->user_attribute = UATTR_NOT_EMPTY;
+//     /**
+//      * bagian ini diambil dari parameter current_dir 
+//      * diatur menjadi uint16_t karena parameternya minta begitu 
+//      * karena ada low dan high dan parameter dari fungsi ada 16, maka perlu dilakukan operasi shifting 
+//      * cluster_low langsung pake aja
+//      * cluster_high perlu dishifting ke kanan sebanyak 16 bit.
+//     */
+//     parent_entry->cluster_low = (uint16_t) parent_dir;
+//     parent_entry->cluster_high = (uint16_t) (parent_dir >> 16); 
+// }
