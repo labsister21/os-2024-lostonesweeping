@@ -20,20 +20,20 @@ void kernel_setup(void) {
     initialize_filesystem_fat32();
 
     // int col = 0;
-    char c[2] = {'1', '2'};
-    struct FAT32DriverRequest r = {
-        .buf = c, 
-        .buffer_size = 2,
-        .ext = {'p', 'd', 'f'},
-        .name = {'c', 'i', 'n'},
-        .parent_cluster_number = ROOT_CLUSTER_NUMBER
-    };
-    write(r);
-    // keyboard_state_activate();
+    // char c[2] = {'1', '2'};
+    // struct FAT32DriverRequest r = {
+    //     .buf = c, 
+    //     .buffer_size = 2,
+    //     .ext = {'p', 'd', 'f'},
+    //     .name =x {'c', 'i', 'n'},
+    //     .parent_cluster_number = ROOT_CLUSTER_NUMBER
+    // };
+    // write(r);
+    keyboard_state_activate();
     while (true){
-        // char c;
-        // get_keyboard_buffer(&c);
-        // // if (c) framebuffer_write(0, col++, c, 0xF, 0);
-        // if (c) framebuffer_place(c);
+        char c;
+        get_keyboard_buffer(&c);
+        // if (c) framebuffer_write(0, col++, c, 0xF, 0);
+        if (c) framebuffer_place(c);
     }
 }
