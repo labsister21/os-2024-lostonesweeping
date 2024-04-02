@@ -8,6 +8,7 @@
 #include "header/driver/keyboard.h"
 #include "header/driver/disk.h"
 #include "header/filesystem/fat32.h"
+#include "header/stdlib/string.h"
 
 
 void kernel_setup(void) {
@@ -19,17 +20,38 @@ void kernel_setup(void) {
     framebuffer_set_cursor(0, 0);
     initialize_filesystem_fat32();
 
-    char c[2] = {'1', '2'};
+    char c[5] = {'a', 'k', 'u','O','X'};
+    char c2[5];
     struct FAT32DriverRequest r = {
         .buf = c, 
-        .buffer_size = 2,
+        .buffer_size = 5,
         .ext = {'p', 'd', 'f'},
-        .name = {'c', 'i', 'n'},
+        .name = {'a', 'k', 'u', 'g', 'i', 'l', 'a'},
         .parent_cluster_number = ROOT_CLUSTER_NUMBER
     };
-    
+  
+
     write(r);
-    // keyboard_state_activate();
+    // struct FAT32DriverRequest r2 = {
+    //     .ext = {'p', 'd', 'f'},
+    //     .name = {'a', 'k', 'u', 'g', 'i', 'l', 'a'},
+    //     .parent_cluster_number = ROOT_CLUSTER_NUMBER 
+    // };
+    // char c2[5];
+    // read(r2);
+    // memcpy(c2, r2.buf, 5);
+    struct FAT32DriverRequest r2 = {
+        .buffer_size = 5,
+        .ext = {'p', 'd', 'f'},
+        .name = {'a', 'k', 'u', 'g', 'i', 'l', 'a'},
+        .parent_cluster_number = ROOT_CLUSTER_NUMBER
+    };
+    read(r2);
+    framebuffer_place(c2[0]);
+    framebuffer_place(c2[1]);
+    framebuffer_place(c2[2]);
+    framebuffer_place(c2[3]);
+    framebuffer_place(c2[4]);
     while (true){
         // char c;
         // get_keyboard_buffer(&c);
