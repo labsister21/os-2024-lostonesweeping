@@ -47,11 +47,10 @@ void *memmove(void *dest, const void *src, size_t n) {
 
 void copyStringWithLength(char* destination, const char* source, int length) {
     int i = 0;
-	while (i < length - 1 && source[i] != '\0') {
+	while (i < length && source[i] != '\0') {
 		destination[i] = source[i];
 		++i;
 	}
-	destination[i] = '\0';
 }
 
 void *my_memcpy(void *dest, const void *src, size_t length) {
@@ -83,16 +82,28 @@ int my_memcmp(const void *ptr1, const void *ptr2, size_t n) {
     return 0;
 }
 
-int strcmp(char *str1, char *str2) {
-	int i = 0;
-	while(true){
-		if (str1[i] < str2[i]) return -1;
-		else if (str1[i] > str2[i]) return 1;
-		else if (str1[i] == '\0' && str2[i] == '\0') break;
-		else if (str1[i] == '\0' && str2[i] != '\0') return -1;
-		else if (str1[i] != '\0' && str2[i] == '\0') return 1;
-		++i;
-	}
+int strcmp(char *str1, char *str2, int length) {
+    int i = 0;
+    while (i < length && str1[i] != '\0' && str2[i] != '\0') {
+        if (str1[i] != str2[i]) {
+            return 1;
+        }
+        ++i;
+    }
 
-	return 0;
+    if ((str1[i] == '\0' && str2[i] == '\0') || i == length) {
+        return 0;
+    } else {
+        return -1;
+    }
+}
+
+bool cmp_string_with_fixed_length(const char *a, const char *b, int l){
+    int i;
+    for (i=0; i<l; i++){
+        if (a[i] != b[i]){
+            return false;
+        }
+    }
+    return true;
 }

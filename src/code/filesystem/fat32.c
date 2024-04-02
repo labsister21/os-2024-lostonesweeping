@@ -167,24 +167,16 @@ void initialize_filesystem_fat32(void){
     }
 }
 
-bool cmp_string_with_fixed_length(const char *a, const char *b, int l){
-    int i;
-    for (i=0; i<l; i++){
-        if (a[i] != b[i]){
-            return false;
-        }
-    }
-    return true;
-}
+
 
 bool get_dir_table_from_cluster(uint32_t cluster, struct FAT32DirectoryTable *dir_entry) {
     if (fat32_driver_state.fat_table.cluster_map[cluster] !=
             FAT32_FAT_END_OF_FILE)
         return false;
     read_clusters(dir_entry, cluster, 1);
-    if (strcmp(dir_entry->table[0].name, ".") == 0 &&
+    if (strcmp(dir_entry->table[0].name, ".", 8) == 0 &&
             dir_entry->table[0].attribute == ATTR_SUBDIRECTORY &&
-            strcmp(dir_entry->table[1].name, "..") == 0 &&
+            strcmp(dir_entry->table[1].name, "..", 8) == 0 &&
             dir_entry->table[1].attribute == ATTR_SUBDIRECTORY)
         return true;
     return false;
@@ -246,8 +238,8 @@ int8_t read(struct FAT32DriverRequest request){
 
     for (i=0; i<TOTAL_DIRECTORY_ENTRY; i++){
         if (fat32_driver_state.dir_table_buf.table[i].user_attribute == UATTR_NOT_EMPTY
-        && strcmp(fat32_driver_state.dir_table_buf.table[i].name, request.name) == 0
-        && cmp_string_with_fixed_length(fat32_driver_state.dir_table_buf.table[i].ext, request.ext, 3)){
+        && strcmp(fat32_driver_state.dir_table_buf.table[i].name, request.name, 8) == 0
+        && strcmp(fat32_driver_state.dir_table_buf.table[i].ext, request.ext, 3) == 0){
             if(fat32_driver_state.dir_table_buf.table[i].attribute == ATTR_SUBDIRECTORY){ //Bukan sebuah file
                 return 1;
             }
@@ -296,8 +288,8 @@ int8_t write(struct FAT32DriverRequest request){
     for(i=0; i<TOTAL_DIRECTORY_ENTRY; i++){
 
         if( fat32_driver_state.dir_table_buf.table[i].user_attribute == UATTR_NOT_EMPTY
-        && strcmp(fat32_driver_state.dir_table_buf.table[i].name, request.name) == 0
-        && (isFolder || cmp_string_with_fixed_length(fat32_driver_state.dir_table_buf.table[i].ext, request.ext, 3))
+        && strcmp(fat32_driver_state.dir_table_buf.table[i].name, request.name, 8) == 0
+        && (isFolder || strcmp(fat32_driver_state.dir_table_buf.table[i].ext, request.ext, 3) == 0)
         ){
             found = true;
             break;

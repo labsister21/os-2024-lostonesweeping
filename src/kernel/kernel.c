@@ -21,23 +21,35 @@ void kernel_setup(void) {
     initialize_filesystem_fat32();
 
     char c[5] = {'a', 'k', 'u','O','X'};
-    // char c2[5];
-    struct FAT32DriverRequest r = {
-        .buf = c, 
+    struct FAT32DriverRequest r3 = {
+        .buf = c,
         .buffer_size = 5,
-        .ext = {'p', 'd', 'f'},
-        .name = {'a', 'k', 'u', 'g', 'i', 'l', 'a'},
+        .ext = {'t', 'x', 'a'},
+        .name = {'a', 'k', 'u', 'G', 'i', 'l', 'a', 'h'},
         .parent_cluster_number = ROOT_CLUSTER_NUMBER
     };
 
-    write(r);
+    write(r3);
     struct FAT32DriverRequest r2 = {
         .buffer_size = 5,
-        .ext = {'p', 'd', 'f'},
-        .name = {'a', 'k', 'u', 'g', 'i', 'l', 'a'},
+        .ext = {'t', 'x', 'a'},
+        .name = {'a', 'k', 'u', 'G', 'i', 'l', 'a', 'h'},
         .parent_cluster_number = ROOT_CLUSTER_NUMBER
     };
-    read(r2);
+
+    uint8_t fo = read(r2);
+    if(fo == 0){
+        framebuffer_place('n');
+        framebuffer_place('n');
+        framebuffer_place('n');
+
+    }
+    else{
+        framebuffer_place('n');
+        framebuffer_place('0');
+        framebuffer_place('t');
+    }
+
     while (true){
         // char c;
         // get_keyboard_buffer(&c);
