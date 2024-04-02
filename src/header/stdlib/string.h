@@ -52,4 +52,15 @@ int memcmp(const void *s1, const void *s2, size_t n);
 */
 void *memmove(void *dest, const void *src, size_t n);
 
+int strcmp(char *str1, char *str2);
+
+int my_memcmp(const void *ptr1, const void *ptr2, size_t n);
+
+void my_memset(void *ptr, int value, size_t num);
+
+void *my_memcpy(void *dest, const void *src, size_t length);
+
+void copyStringWithLength(char* destination, const char* source, int length);
+
+
 #endif

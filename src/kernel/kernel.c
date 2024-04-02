@@ -21,7 +21,7 @@ void kernel_setup(void) {
     initialize_filesystem_fat32();
 
     char c[5] = {'a', 'k', 'u','O','X'};
-    char c2[5];
+    // char c2[5];
     struct FAT32DriverRequest r = {
         .buf = c, 
         .buffer_size = 5,
@@ -29,17 +29,8 @@ void kernel_setup(void) {
         .name = {'a', 'k', 'u', 'g', 'i', 'l', 'a'},
         .parent_cluster_number = ROOT_CLUSTER_NUMBER
     };
-  
 
     write(r);
-    // struct FAT32DriverRequest r2 = {
-    //     .ext = {'p', 'd', 'f'},
-    //     .name = {'a', 'k', 'u', 'g', 'i', 'l', 'a'},
-    //     .parent_cluster_number = ROOT_CLUSTER_NUMBER 
-    // };
-    // char c2[5];
-    // read(r2);
-    // memcpy(c2, r2.buf, 5);
     struct FAT32DriverRequest r2 = {
         .buffer_size = 5,
         .ext = {'p', 'd', 'f'},
@@ -47,11 +38,6 @@ void kernel_setup(void) {
         .parent_cluster_number = ROOT_CLUSTER_NUMBER
     };
     read(r2);
-    framebuffer_place(c2[0]);
-    framebuffer_place(c2[1]);
-    framebuffer_place(c2[2]);
-    framebuffer_place(c2[3]);
-    framebuffer_place(c2[4]);
     while (true){
         // char c;
         // get_keyboard_buffer(&c);
