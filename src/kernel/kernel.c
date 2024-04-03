@@ -25,7 +25,8 @@ void kernel_setup(void) {
     char c[4] = {'b', 'a', 'b', 'i'};
     struct FAT32DriverRequest r1 = {
         .buf = c,
-        .buffer_size = 0,
+        .buffer_size = 4,
+        .ext = {'t', 'x', 't'},
         .name = {'a', 'k', 'u', 'G', 'i', 'l', 'a', 'h'},
         .parent_cluster_number = ROOT_CLUSTER_NUMBER
     };
@@ -43,6 +44,7 @@ void kernel_setup(void) {
     int ress = read(r2);
     char c4 = ress + '0'; 
     framebuffer_place(c4);
+    framebuffer_place('\0');
     framebuffer_place(c2[0]);
     framebuffer_place(c2[1]);
     framebuffer_place(c2[2]);
