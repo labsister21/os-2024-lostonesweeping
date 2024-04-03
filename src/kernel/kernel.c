@@ -22,28 +22,51 @@ void kernel_setup(void) {
 
     
 
-    char c[9000];
-    for (int i=0; i<9000; i++) c[i] = (char) (i % 16);
-    struct FAT32DriverRequest r3 = {
+    char c[4] = {'b', 'a', 'b', 'i'};
+    struct FAT32DriverRequest r1 = {
         .buf = c,
-        .buffer_size = 9000,
-        .ext = {'t', 'x', 'a'},
+        .buffer_size = 0,
         .name = {'a', 'k', 'u', 'G', 'i', 'l', 'a', 'h'},
         .parent_cluster_number = ROOT_CLUSTER_NUMBER
     };
 
-    write(r3);
-    // char c2[5] = {'a', 'k', '-','4','7'};
-    // struct FAT32DriverRequest r2 = {
-    //     .buf = c2,
-    //     .buffer_size = 5,
-    //     .ext = {'t', 'x', 't'},
-    //     .name = {'b', 'u', 'k', 'b', 'e', 'r'},
+    write(r1);
+    //read file
+    char c2[4];
+    struct FAT32DriverRequest r2 = {
+        .buf = c2,
+        .buffer_size = 4,
+        .ext = {'t', 'x', 't'},
+        .name = {'a', 'k', 'u', 'G', 'i', 'l', 'a', 'h'},
+        .parent_cluster_number = ROOT_CLUSTER_NUMBER
+    };
+    int ress = read(r2);
+    char c4 = ress + '0'; 
+    framebuffer_place(c4);
+    framebuffer_place(c2[0]);
+    framebuffer_place(c2[1]);
+    framebuffer_place(c2[2]);
+    framebuffer_place(c2[3]);
+
+    //read folder
+    // char c3[4];
+    // struct FAT32DriverRequest r3 = {
+    //     .buf = c3,
+    //     .buffer_size = 0,
+    //     .name = {'a', 'k', 'u', 'G', 'i', 'l', 'a', 'x'},
     //     .parent_cluster_number = ROOT_CLUSTER_NUMBER
     // };
-    // write(r2);
+    // int ress1 = read(r3); 
+    // char c5 = ress1 +  '0';
+    // framebuffer_place(c5); 
+    // framebuffer_place(c3[0]); 
+    // framebuffer_place(c3[1]); 
+    // framebuffer_place(c3[2]); 
+    // framebuffer_place(c3[3]); 
 
-    // uint8_t fo = read(r2);
+    while(true){
+
+    }
     // if(fo == 0){
     //     framebuffer_place('n');
     //     framebuffer_place('n');

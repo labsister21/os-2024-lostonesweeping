@@ -1,5 +1,6 @@
 #include "header/filesystem/fat32.h"
 #include "header/stdlib/string.h"
+#include "header/text/framebuffer.h"
 #include <stdint.h>
 #include <stdbool.h>
 
@@ -174,11 +175,11 @@ bool get_dir_table_from_cluster(uint32_t cluster, struct FAT32DirectoryTable *di
 int8_t read_directory(struct FAT32DriverRequest request){
     //Asumsi parent merupakan folder valid
     //int8_t parent = fat32_driver_state.fat_table.cluster_map[request.parent_cluster_number];
-
-    // bool isParentValid = get_dir_table_from_cluster(request.parent_cluster_number, &fat32_driver_state.dir_table_buf);
-    // if (!isParentValid){
-    //     return -1;
-    // }
+    struct FAT32DirectoryTable *dir_table = &fat32_driver_state.dir_table_buf;
+    bool isParentValid = get_dir_table_from_cluster(request.parent_cluster_number, dir_table);
+    if (!isParentValid){
+        return -1;
+    }
 
     bool found = false;
     int i;
@@ -202,36 +203,32 @@ int8_t read_directory(struct FAT32DriverRequest request){
     if (!found) return 2;
 
     //Folder terdapat dalam allocationTable
-    uint32_t cluster_number = fat32_driver_state.dir_table_buf.table[i].cluster_low + (fat32_driver_state.dir_table_buf.table[i].cluster_high >> 16);
+    uint32_t cluster_number = dir_table->table[i].cluster_low + ((uint16_t)dir_table->table[i].cluster_high >> 16);
     read_clusters(request.buf, cluster_number, 1);
 
     return 0;
 }
 
 int8_t read(struct FAT32DriverRequest request){
-    //Asumsi parent merupakan folder valid
-    //int8_t parent = fat32_driver_state.fat_table.cluster_map[request.parent_cluster_number];
-
-    // bool isParentValid = get_dir_table_from_cluster(request.parent_cluster_number, &fat32_driver_state.dir_table_buf);
-    // if (!isParentValid){
-    //     return -1;
-    // }
-
+    struct FAT32DirectoryTable *dir_table = &fat32_driver_state.dir_table_buf; 
+    bool isParentValid = get_dir_table_from_cluster(request.parent_cluster_number, dir_table);
+    if (!isParentValid){
+        return -1;
+    }
     bool found = false;
     int i;
     int idx;
-    // int j = 0;
+    int j = 0;
 
-    //Iterasi setiap file dalam directoryTable parent
-
+    read_clusters(dir_table, request.parent_cluster_number, 1);
     for (i=0; i<TOTAL_DIRECTORY_ENTRY; i++){
-        if (fat32_driver_state.dir_table_buf.table[i].user_attribute == UATTR_NOT_EMPTY
-        && strcmp(fat32_driver_state.dir_table_buf.table[i].name, request.name, 8) == 0
-        && strcmp(fat32_driver_state.dir_table_buf.table[i].ext, request.ext, 3) == 0){
-            if(fat32_driver_state.dir_table_buf.table[i].attribute == ATTR_SUBDIRECTORY){ //Bukan sebuah file
+        if (dir_table->table[i].user_attribute == UATTR_NOT_EMPTY
+        && strcmp(dir_table->table[i].name, request.name, 8) == 0
+        && strcmp(dir_table->table[i].ext, request.ext, 3) == 0){
+            if(dir_table->table[i].attribute == ATTR_SUBDIRECTORY){ //Bukan sebuah file
                 return 1;
             }
-            if(request.buffer_size < fat32_driver_state.dir_table_buf.table[i].filesize){ //Ukuran request tidak cukup
+            if(request.buffer_size < dir_table->table[i].filesize){ //Ukuran request tidak cukup
                 return -1;
             }
             found = true;
@@ -243,12 +240,13 @@ int8_t read(struct FAT32DriverRequest request){
     //Jika file tidak tertemu, return 2
     if(!found) return 2;
     //file ketemu
-    uint32_t cluster_number = fat32_driver_state.dir_table_buf.table[idx].cluster_low + (((uint32_t)fat32_driver_state.dir_table_buf.table[idx].cluster_high) >> 16);
-    void *ptr = &request.buf;
+    struct FAT32FileAllocationTable *fat_table = &fat32_driver_state.fat_table;
+    read_clusters(fat_table, FAT_CLUSTER_NUMBER, 1);
+    uint32_t cluster_number = dir_table->table[idx].cluster_low + (((uint32_t)dir_table->table[idx].cluster_high) >> 16);
     while (cluster_number != FAT32_FAT_END_OF_FILE){
-        read_clusters(ptr, cluster_number, 1);
-        cluster_number = fat32_driver_state.fat_table.cluster_map[cluster_number];
-        ptr += CLUSTER_SIZE;
+        read_clusters(request.buf+CLUSTER_SIZE*j, cluster_number, 1);
+        cluster_number = fat_table->cluster_map[cluster_number];
+        j++;
     }
     //file ketemu
     return 0;
