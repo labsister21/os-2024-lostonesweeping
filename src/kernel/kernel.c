@@ -20,35 +20,45 @@ void kernel_setup(void) {
     framebuffer_set_cursor(0, 0);
     initialize_filesystem_fat32();
 
-    
-
-    char c[4] = {'b', 'a', 'b', 'i'};
+    struct FAT32DirectoryTable t;
     struct FAT32DriverRequest r1 = {
-        .buf = c,
-        .buffer_size = 4,
-        .ext = {'t', 'x', 't'},
-        .name = {'a', 'k', 'u', 'G', 'i', 'l', 'a', 'h'},
-        .parent_cluster_number = ROOT_CLUSTER_NUMBER
+        .buf = &t,
+        .buffer_size = 0,
+        .parent_cluster_number = ROOT_CLUSTER_NUMBER,
+        .name = {'f','o','l','d','e','r','1'},
+        .ext = {}
     };
+    read_directory(r1);
 
-    write(r1);
-    //read file
-    char c2[4];
-    struct FAT32DriverRequest r2 = {
-        .buf = c2,
-        .buffer_size = 4,
-        .ext = {'t', 'x', 't'},
-        .name = {'a', 'k', 'u', 'G', 'i', 'l', 'a', 'h'},
-        .parent_cluster_number = ROOT_CLUSTER_NUMBER
-    };
-    int ress = read(r2);
-    char c4 = ress + '0'; 
-    framebuffer_place(c4);
     framebuffer_place('\0');
-    framebuffer_place(c2[0]);
-    framebuffer_place(c2[1]);
-    framebuffer_place(c2[2]);
-    framebuffer_place(c2[3]);
+
+    // char c[4] = {'b', 'a', 'b', 'i'};
+    // struct FAT32DriverRequest r1 = {
+    //     .buf = c,
+    //     .buffer_size = 4,
+    //     .ext = {'t', 'x', 't'},
+    //     .name = {'a', 'k', 'u', 'G', 'i', 'l', 'a', 'h'},
+    //     .parent_cluster_number = ROOT_CLUSTER_NUMBER
+    // };
+
+    // write(r1);
+    // //read file
+    // char c2[4];
+    // struct FAT32DriverRequest r2 = {
+    //     .buf = c2,
+    //     .buffer_size = 4,
+    //     .ext = {'t', 'x', 't'},
+    //     .name = {'a', 'k', 'u', 'G', 'i', 'l', 'a', 'h'},
+    //     .parent_cluster_number = ROOT_CLUSTER_NUMBER
+    // };
+    // int ress = read(r2);
+    // char c4 = ress + '0'; 
+    // framebuffer_place(c4);
+    // framebuffer_place('\0');
+    // framebuffer_place(c2[0]);
+    // framebuffer_place(c2[1]);
+    // framebuffer_place(c2[2]);
+    // framebuffer_place(c2[3]);
 
     //read folder
     // char c3[4];

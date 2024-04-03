@@ -186,12 +186,12 @@ int8_t read_directory(struct FAT32DriverRequest request){
 
     //Iterasi setiap file dalam directoryTable parent
     for (i=0; i<TOTAL_DIRECTORY_ENTRY; i++){
-        if (fat32_driver_state.dir_table_buf.table[i].user_attribute != UATTR_NOT_EMPTY
-        && cmp_string_with_fixed_length(fat32_driver_state.dir_table_buf.table[i].name, request.name, 8)){
-            if(fat32_driver_state.dir_table_buf.table[i].attribute == ATTR_SUBDIRECTORY){ //Bukan sebuah folder
+        if (dir_table->table[i].user_attribute != UATTR_NOT_EMPTY
+        && strcmp(dir_table->table[i].name, request.name, 8)){
+            if(dir_table->table[i].attribute != ATTR_SUBDIRECTORY){ //Bukan sebuah folder
                 return 1;
             }
-            if(request.buffer_size < fat32_driver_state.dir_table_buf.table[i].filesize){ //Ukuran request tidak cukup
+            if(request.buffer_size < dir_table->table[i].filesize){ //Ukuran request tidak cukup
                 return -1;
             }
             found = true;
@@ -270,7 +270,6 @@ int8_t write(struct FAT32DriverRequest request){
      * pada bagian kita memastikan folder atau file yang dicari 
      * berada dalam direktori parent tidak ada. 
     */
-
 
     for(i=0; i<TOTAL_DIRECTORY_ENTRY; i++){
 
