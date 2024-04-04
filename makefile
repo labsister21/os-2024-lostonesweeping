@@ -12,7 +12,7 @@ SOURCE_FOLDER_STDLIB = src/stdlib
 SOURCE_FOLDER_KERNEL = src/kernel
 SOURCE_FOLDER_ASM = src/asm
 OUTPUT_FOLDER = bin
-ISO_NAME      = os2024
+ISO_NAME      = OS2024
 
 # Flags
 WARNING_CFLAG = -Wall -Wextra -Werror
