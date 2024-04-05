@@ -20,17 +20,28 @@ void kernel_setup(void) {
     framebuffer_set_cursor(0, 0);
     initialize_filesystem_fat32();
 
-    struct FAT32DirectoryTable t;
+    // struct ClusterBuffer t;
     struct FAT32DriverRequest r1 = {
-        .buf = &t,
-        .buffer_size = 0,
+        // .buf = &t,
+        // .buffer_size = 9000,
         .parent_cluster_number = ROOT_CLUSTER_NUMBER,
-        .name = {'f','o','l','d','e','r','1'},
+        .name = "kano",
         .ext = {}
     };
-    read_directory(r1);
+    // int test = read(r1);
+    int test = delete(r1);
 
-    framebuffer_place('\0');
+    framebuffer_place(test);
+
+    struct ClusterBuffer t;
+    struct FAT32DriverRequest r2 = {
+        .buf = &t,
+        .buffer_size = 9000,
+        .parent_cluster_number = ROOT_CLUSTER_NUMBER,
+        .name = "kano",
+        .ext = {}
+    };
+    test = read(r2);
 
     // char c[4] = {'b', 'a', 'b', 'i'};
     // struct FAT32DriverRequest r1 = {
