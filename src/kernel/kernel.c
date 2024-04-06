@@ -20,92 +20,10 @@ void kernel_setup(void) {
     framebuffer_set_cursor(0, 0);
     initialize_filesystem_fat32();
 
-    // struct ClusterBuffer t;
-    struct FAT32DriverRequest r1 = {
-        // .buf = &t,
-        // .buffer_size = 9000,
-        .parent_cluster_number = ROOT_CLUSTER_NUMBER,
-        .name = "kano",
-        .ext = {}
-    };
-    // int test = read(r1);
-    int test = delete(r1);
-
-    framebuffer_place(test);
-
-    struct ClusterBuffer t;
-    struct FAT32DriverRequest r2 = {
-        .buf = &t,
-        .buffer_size = 9000,
-        .parent_cluster_number = ROOT_CLUSTER_NUMBER,
-        .name = "kano",
-        .ext = {}
-    };
-    test = read(r2);
-
-    // char c[4] = {'b', 'a', 'b', 'i'};
-    // struct FAT32DriverRequest r1 = {
-    //     .buf = c,
-    //     .buffer_size = 4,
-    //     .ext = {'t', 'x', 't'},
-    //     .name = {'a', 'k', 'u', 'G', 'i', 'l', 'a', 'h'},
-    //     .parent_cluster_number = ROOT_CLUSTER_NUMBER
-    // };
-
-    // write(r1);
-    // //read file
-    // char c2[4];
-    // struct FAT32DriverRequest r2 = {
-    //     .buf = c2,
-    //     .buffer_size = 4,
-    //     .ext = {'t', 'x', 't'},
-    //     .name = {'a', 'k', 'u', 'G', 'i', 'l', 'a', 'h'},
-    //     .parent_cluster_number = ROOT_CLUSTER_NUMBER
-    // };
-    // int ress = read(r2);
-    // char c4 = ress + '0'; 
-    // framebuffer_place(c4);
-    // framebuffer_place('\0');
-    // framebuffer_place(c2[0]);
-    // framebuffer_place(c2[1]);
-    // framebuffer_place(c2[2]);
-    // framebuffer_place(c2[3]);
-
-    //read folder
-    // char c3[4];
-    // struct FAT32DriverRequest r3 = {
-    //     .buf = c3,
-    //     .buffer_size = 0,
-    //     .name = {'a', 'k', 'u', 'G', 'i', 'l', 'a', 'x'},
-    //     .parent_cluster_number = ROOT_CLUSTER_NUMBER
-    // };
-    // int ress1 = read(r3); 
-    // char c5 = ress1 +  '0';
-    // framebuffer_place(c5); 
-    // framebuffer_place(c3[0]); 
-    // framebuffer_place(c3[1]); 
-    // framebuffer_place(c3[2]); 
-    // framebuffer_place(c3[3]); 
-
-    while(true){
-
+    keyboard_state_activate();
+    while (true){
+        char c;
+        get_keyboard_buffer(&c);
+        if (c) framebuffer_place(c);
     }
-    // if(fo == 0){
-    //     framebuffer_place('n');
-    //     framebuffer_place('n');
-    //     framebuffer_place('n');
-
-    // }
-    // else{
-    //     framebuffer_place('n');
-    //     framebuffer_place('0');
-    //     framebuffer_place('t');
-    // }
-
-    // while (true){
-    //     // char c;
-    //     // get_keyboard_buffer(&c);
-    //     // if (c) framebuffer_write(0, col++, c, 0xF, 0);
-    //     // if (c) framebuffer_place(c);
-    // }
 }
