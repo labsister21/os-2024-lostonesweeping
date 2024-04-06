@@ -1,6 +1,20 @@
 {
     "debug.onTaskErrors": "debugAnyway",
     "files.associations": {
-        "kernel-entrypoint.h": "c"
+        "kernel-entrypoint.h": "c",
+        "portio.h": "c",
+        "gdt.h": "c",
+        "framebuffer.h": "c",
+        "interrupt.h": "c",
+        "idt.h": "c",
+        "string.h": "c",
+        "keyboard.h": "c",
+        "stdint.h": "c",
+        "disk.h": "c",
+        "stdbool.h": "c",
+        "fat32.h": "c",
+        "stddef.h": "c",
+        "stdalign.h": "c"
     },
+    "C_Cpp.default.compilerPath": "C:\\msys64\\mingw64\\bin\\gcc.exe",
 }
