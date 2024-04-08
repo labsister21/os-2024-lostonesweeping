@@ -55,7 +55,7 @@ struct PageDirectoryEntry {
     uint16_t ignored        : 3; // Ignored
     uint16_t pat            : 1; // PAT
     uint16_t higher_address : 8; // Bits 39:32 of address
-    uint16_t reserved       : 1; // Reserved bit
+    uint16_t reserved_2     : 1; // Reserved bit
     uint16_t lower_address  : 10; // Bits 31:22 of address 
 } __attribute__((packed));
 

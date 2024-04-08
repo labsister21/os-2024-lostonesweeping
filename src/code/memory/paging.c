@@ -46,30 +46,17 @@ __attribute__((aligned(0x1000))) struct PageDirectory _paging_kernel_page_direct
 // /* --- Memory Management --- */
 // // TODO: Implement
 // bool paging_allocate_check(uint32_t amount) {
-//     // TODO: Check whether requested amount is available
-//     return true;
+//     // Check whether requested amount is available
+
 // }
 
 
 // bool paging_allocate_user_page_frame(struct PageDirectory *page_dir, void *virtual_addr) {
-//     /*
-//      * TODO: Find free physical frame and map virtual frame into it
-//      * - Find free physical frame in page_manager_state.page_frame_map[] using any strategies
-//      * - Mark page_manager_state.page_frame_map[]
-//      * - Update page directory with user flags:
-//      *     > present bit    true
-//      *     > write bit      true
-//      *     > user bit       true
-//      *     > pagesize 4 mb  true
-//      */ 
-//     return true;
+//     // Find free physical frame and map virtual frame into it
+
 // }
 
 // bool paging_free_user_page_frame(struct PageDirectory *page_dir, void *virtual_addr) {
-//     /* 
-//      * TODO: Deallocate a physical frame from respective virtual address
-//      * - Use the page_dir.table values to check mapped physical frame
-//      * - Remove the entry by setting it into 0
-//      */
-//     return true;
+//     // Deallocate a physical frame from respective virtual address
+
 // }
