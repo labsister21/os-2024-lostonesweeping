@@ -83,4 +83,11 @@ iso: kernel
 	rm -r $(OUTPUT_FOLDER)/iso/
 	@echo succesfully linked files
 
+inserter:
+	@$(CC) -Wno-builtin-declaration-mismatch -g -I$(SOURCE_FOLDER) \
+		$(SOURCE_FOLDER)/stdlib/string.c \
+		$(SOURCE_FOLDER_CODE)/filesystem/fat32.c \
+		$(SOURCE_FOLDER_CODE)/external/external-inserter.c \
+		-o $(OUTPUT_FOLDER)/inserter
+
 .PHONY: all
