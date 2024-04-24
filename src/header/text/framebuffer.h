@@ -5,7 +5,7 @@
 #include <stdbool.h>
 #include <stddef.h>
 
-#define FRAMEBUFFER_MEMORY_OFFSET ((uint8_t*) 0xB8000)
+#define FRAMEBUFFER_MEMORY_OFFSET ((uint8_t*) 0xC00B8000)
 #define BASE_MEMORY_OFFSET 0xB8000
 #define BUFFER_WIDTH 80
 #define BUFFER_HEIGHT 50
