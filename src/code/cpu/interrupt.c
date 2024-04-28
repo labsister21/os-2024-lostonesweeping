@@ -50,7 +50,7 @@ void main_interrupt_handler(struct InterruptFrame frame) {
 }
 
 struct TSSEntry _interrupt_tss_entry = {
-    .ss0  = GDT_KERNEL_DATA_SEGMENT_SELECTOR,
+    .ss0  = SELECTOR_INTERRUPT,
 };
 
 void set_tss_kernel_current_stack(void) {

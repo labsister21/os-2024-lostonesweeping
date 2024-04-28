@@ -60,6 +60,9 @@
 #define IRQ_PRIMARY_ATA  14
 #define IRQ_SECOND_ATA   15
 
+//
+#define SELECTOR_INTERRUPT 0x10
+
 
 /**
  * CPURegister, store CPU registers values.
