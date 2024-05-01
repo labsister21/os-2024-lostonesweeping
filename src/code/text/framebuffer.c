@@ -71,7 +71,7 @@ void framebuffer_newline(void){
     );
 }
 
-void framebuffer_place(char c){
+void framebuffer_put(char c){
     if(c == '\b') framebuffer_clear_delete();
     else if(c == '\n') framebuffer_newline();
     else{

@@ -2,7 +2,6 @@
 #define _GDT_H
 
 #include <stdint.h>
-#include "interrupt.h"
 
 // Some GDT Constant
 #define GDT_MAX_ENTRY_COUNT 32

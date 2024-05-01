@@ -1,5 +1,5 @@
 #include "../../header/cpu/gdt.h"
-
+#include "../../header/cpu/interrupt.h"
 /**
  * global_descriptor_table, predefined GDT.
  * Initial SegmentDescriptor already set properly according to Intel Manual & OSDev.

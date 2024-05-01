@@ -1,7 +1,9 @@
 #include "../../header/cpu/portio.h"
 #include "../../header/cpu/interrupt.h"
 #include "../../header/driver/keyboard.h"
+#include "../../header/text/framebuffer.h"
 #include "../../header/filesystem/fat32.h"
+#include "../../header/cpu/gdt.h"
 
 void activate_keyboard_interrupt(void) {
     out(PIC1_DATA, in(PIC1_DATA) & ~(1 << IRQ_KEYBOARD));
@@ -50,7 +52,7 @@ void main_interrupt_handler(struct InterruptFrame frame) {
 }
 
 struct TSSEntry _interrupt_tss_entry = {
-    .ss0  = SELECTOR_INTERRUPT,
+    .ss0  = GDT_KERNEL_DATA_SEGMENT_SELECTOR,
 };
 
 void set_tss_kernel_current_stack(void) {
@@ -72,11 +74,7 @@ void syscall(struct InterruptFrame frame) {
             get_keyboard_buffer((char*) frame.cpu.general.ebx);
             break;
         case 6:
-            puts(
-                (char*) frame.cpu.general.ebx, 
-                frame.cpu.general.ecx, 
-                frame.cpu.general.edx
-            ); // Assuming puts() exist in kernel
+            framebuffer_put((char) frame.cpu.general.ebx);
             break;
         case 7: 
             keyboard_state_activate();
