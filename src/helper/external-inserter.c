@@ -30,6 +30,32 @@ void write_blocks(const void *ptr, uint32_t logical_block_address, uint8_t block
     }
 }
 
+char* get_file_extension(const char* s){
+    char *ext;
+    for (int i=0; i<8; i++){
+        if (s[i] == '.'){
+            ext[0] = s[i+1];
+            ext[1] = s[i+2];
+            ext[2] = s[i+3];
+            return ext;
+        }
+    }
+    return "\0\0\0";
+}
+
+char* get_cutted_file_name(const char* s){
+    char *s2;
+    copyStringWithLength(s2, s, 8);
+    bool cut = false;
+    for (int i=0; i<8; i++){
+        if (s2[i] == '.' || cut){
+            s2[i] = '\0';
+            cut = true;
+        }
+    }
+    return s2;
+}
+
 int main(int argc, char *argv[]) {
     if (argc < 4) {
         fprintf(stderr, "inserter: ./inserter <file to insert> <parent cluster index> <storage>\n");
@@ -62,11 +88,14 @@ int main(int argc, char *argv[]) {
     initialize_filesystem_fat32();
     struct FAT32DriverRequest request = {
         .buf         = file_buffer,
-        .ext         = "\0\0\0",
         .buffer_size = filesize,
     };
     sscanf(argv[2], "%u",  &request.parent_cluster_number);
-    sscanf(argv[1], "%8s", request.name);
+    sscanf(get_file_extension(argv[1]), "%3s", request.ext);
+    sscanf(get_cutted_file_name(argv[1]), "%8s", request.name);
+
+    printf("Taken filename + ext : %s.%s\n",  request.name, request.ext);
+
     int retcode = write(request);
     switch (retcode) {
         case 0:  puts("Write success"); break;
