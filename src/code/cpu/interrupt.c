@@ -63,7 +63,7 @@ void set_tss_kernel_current_stack(void) {
     _interrupt_tss_entry.esp0 = stack_ptr + 8; 
 }
 
-void syscall(struct InterruptFrame frame) {
+void syscallHandler(struct InterruptFrame frame) {
     switch (frame.cpu.general.eax) {
         case 0:
             *((int8_t*) frame.cpu.general.ecx) = read(
