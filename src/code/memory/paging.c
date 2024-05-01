@@ -56,7 +56,6 @@ bool paging_allocate_user_page_frame(struct PageDirectory *page_dir, void *virtu
     if(page_manager_state.free_page_frame_count == 0){
         return false;
     }
-    int i = 0;
 
     for (uint32_t i = 0; i < PAGE_ENTRY_COUNT; ++i) {
         if (!page_manager_state.page_frame_map[i]) {
