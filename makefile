@@ -91,20 +91,20 @@ inserter:
 		-o $(OUTPUT_FOLDER)/inserter
 
 user-shell:
-	@$(ASM) $(AFLAGS) $(SOURCE_FOLDER_CODE)/crt0.s -o crt0.o
-	@$(CC)  $(CFLAGS) -fno-pie $(SOURCE_FOLDER_CODE)/user-shell.c -o user-shell.o
-	@$(CC)  $(CFLAGS) -fno-pie $(SOURCE_FOLDER)/stdlib/string.c -o string.o
+	@$(ASM) $(AFLAGS) $(SOURCE_FOLDER_ASM)/crt0.s -o $(OUTPUT_FOLDER)/crt0.o
+	@$(CC) $(CFLAGS) -fno-pie $(SOURCE_FOLDER_CODE)/usershell/user-shell.c -o $(OUTPUT_FOLDER)/user-shell.o
+	@$(CC) $(CFLAGS) -fno-pie $(SOURCE_FOLDER)/stdlib/string.c -o $(OUTPUT_FOLDER)/string.o
 	@$(LIN) -T $(SOURCE_FOLDER)/user-linker.ld -melf_i386 --oformat=binary \
-		$(SOURCE_FOLDER_ASM)/crt0.o user-shell.o -o $(OUTPUT_FOLDER)/shell
+		$(OUTPUT_FOLDER)/crt0.o $(OUTPUT_FOLDER)/user-shell.o -o $(OUTPUT_FOLDER)/shell
 	@echo Linking object shell object files and generate flat binary...
 	@$(LIN) -T $(SOURCE_FOLDER)/user-linker.ld -melf_i386 --oformat=elf32-i386 \
-		$(SOURCE_FOLDER_ASM)/crt0.o user-shell.o string.o -o $(OUTPUT_FOLDER)/shell_elf
+		$(OUTPUT_FOLDER)/crt0.o user-shell.o string.o -o $(OUTPUT_FOLDER)/shell_elf
 	@echo Linking object shell object files and generate ELF32 for debugging...
 	@size --target=binary $(OUTPUT_FOLDER)/shell
 	@rm -f *.o
 
 insert-shell: inserter user-shell
 	@echo Inserting shell into root directory...
-		@cd $(OUTPUT_FOLDER); ./inserter shell 2 $(DISK_NAME).bin
+	@cd $(OUTPUT_FOLDER); ./inserter shell 2 $(DISK_NAME).bin
 
 .PHONY: all
