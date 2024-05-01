@@ -5,7 +5,7 @@ SECTIONS {
     
     .text ALIGN(4):
     {
-        crt0.o(.text)  /* Put the entrypoint in the front of executable */
+        bin/crt0.o(.text)  /* Put the entrypoint in the front of executable */
         *(.text)
     }
 
