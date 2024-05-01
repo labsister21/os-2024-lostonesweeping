@@ -36,7 +36,7 @@ OBJS_KERNEL := $(patsubst $(SOURCE_FOLDER)/kernel/%.c, $(OUTPUT_FOLDER)/%.o, $(S
 ASM_OBJS := $(patsubst $(SOURCE_FOLDER_ASM)/%.s, $(OUTPUT_FOLDER)/%.o, $(ASM_SRCS))
 OBJS := $(patsubst $(SOURCE_FOLDER)/code/%.c, $(OUTPUT_FOLDER)/%.o, $(OBJS_CODE))
 
-$(shell mkdir -p $(dir $(OBJS)))
+# $(shell mkdir -p $(dir $(OBJS)))
 
 $(OUTPUT_FOLDER)/%.o: $(SOURCE_FOLDER)/code/%.c
 	$(CC) $(CFLAGS) -c $< -o $@
@@ -87,7 +87,7 @@ inserter:
 	@$(CC) -Wno-builtin-declaration-mismatch -g -I$(SOURCE_FOLDER) \
 		$(SOURCE_FOLDER)/stdlib/string.c \
 		$(SOURCE_FOLDER_CODE)/filesystem/fat32.c \
-		$(SOURCE_FOLDER_CODE)/external/external-inserter.c \
+		$(SOURCE_FOLDER)/helper/external-inserter.c \
 		-o $(OUTPUT_FOLDER)/inserter
 
 user-shell:
@@ -98,7 +98,7 @@ user-shell:
 		$(OUTPUT_FOLDER)/crt0.o $(OUTPUT_FOLDER)/user-shell.o -o $(OUTPUT_FOLDER)/shell
 	@echo Linking object shell object files and generate flat binary...
 	@$(LIN) -T $(SOURCE_FOLDER)/user-linker.ld -melf_i386 --oformat=elf32-i386 \
-		$(OUTPUT_FOLDER)/crt0.o user-shell.o string.o -o $(OUTPUT_FOLDER)/shell_elf
+		$(OUTPUT_FOLDER)/crt0.o $(OUTPUT_FOLDER)/user-shell.o $(OUTPUT_FOLDER)/string.o -o $(OUTPUT_FOLDER)/shell_elf
 	@echo Linking object shell object files and generate ELF32 for debugging...
 	@size --target=binary $(OUTPUT_FOLDER)/shell
 	@rm -f *.o
