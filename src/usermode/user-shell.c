@@ -1,6 +1,7 @@
 #include <stdint.h>
 #include "header/filesystem/fat32.h"
 #include "header/stdlib/string.h"
+#include "header/driver/keyboard.h"
 // #include "./user-shell.h"
 
 void syscall(uint32_t eax, uint32_t ebx, uint32_t ecx, uint32_t edx) {
@@ -12,6 +13,7 @@ void syscall(uint32_t eax, uint32_t ebx, uint32_t ecx, uint32_t edx) {
     //        so it need to be the last one to mov
     __asm__ volatile("int $0x30");
 }
+
 
 int main(void) {
     struct ClusterBuffer      cl[2]   = {0};
@@ -25,22 +27,18 @@ int main(void) {
     int32_t retcode;
     syscall(0, (uint32_t) &request, (uint32_t) &retcode, 0);
     if (retcode == 0){
-        syscall(6, (uint32_t) 'a', 4, 0xF);
-        syscall(6, (uint32_t) 'k', 4, 0xF);
-        syscall(6, (uint32_t) 'u', 4, 0xF);
-        syscall(6, (uint32_t) 'g', 4, 0xF);
-        syscall(6, (uint32_t) 'i', 4, 0xF);
-        syscall(6, (uint32_t) 'l', 4, 0xF);
-        syscall(6, (uint32_t) 'a', 4, 0xF);
+        // syscall(5, (uint32_t) 'a', 0, 0xF);
+        syscall(6, (uint32_t) "LostOnesWeeping-user: ", 22, 0xF);
     }
+
+    // char buf;
 
     char buf;
     syscall(7, 0, 0, 0);
     while (true) {
-        syscall(4, (uint32_t) &buf, 0, 0);
-        syscall(5, (uint32_t) &buf, 0xF, 0);
+        syscall(4, (uint32_t) &buf, 0, 0xF);
+        syscall(5, (uint32_t) buf, 0, 0xF);
     }
-
     return 0;
 }
 
