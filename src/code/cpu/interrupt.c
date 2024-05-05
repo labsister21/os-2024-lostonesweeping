@@ -99,6 +99,21 @@ void syscall(struct InterruptFrame frame) {
         case 8: 
             keyboard_state_deactivate();
             break;
+
+        case 10: //get_prompt
+            char *ptr= (char*) frame.cpu.general.ebx; 
+            get_keyboard_buffer(ptr);
+            break;
+        
+        case 11: //prevent deleting? 
+            int i = 0;
+            char *str = (char *)frame.cpu.general.ebx;
+            while (str[i] != '\0') {
+                framebuffer_put(str[i]);
+                ++i;
+            }
+            break;
+            
     }
 }
 
