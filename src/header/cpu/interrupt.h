@@ -12,6 +12,9 @@
 #define PIC1_OFFSET          0x20
 #define PIC2_OFFSET          0x28
 
+// PRIVILEGE 
+#define SYSCALL_CALL 0x30
+
 // PIC ports
 #define PIC1                 0x20
 #define PIC2                 0xA0

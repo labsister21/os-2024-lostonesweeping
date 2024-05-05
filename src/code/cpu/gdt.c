@@ -28,9 +28,11 @@ static struct GlobalDescriptorTable global_descriptor_table = {
         {
             .segment_low = 0xFFFF, 
             .segment_high = 0xF, 
+
             .base_low = 0, 
             .base_mid = 0, 
             .base_high = 0,
+
             .type_bit = 0xA, 
             .non_system = 1, 
             .privillege_bit = 0, 
@@ -76,9 +78,11 @@ static struct GlobalDescriptorTable global_descriptor_table = {
         {
             .segment_low = 0xFFFF,
             .segment_high = 0xF,
+
             .base_low = 0, 
             .base_mid = 0,
             .base_high = 0,
+            
             .type_bit = 0x2, 
             .non_system = 1, 
             .privillege_bit = 0x3, 
@@ -88,15 +92,16 @@ static struct GlobalDescriptorTable global_descriptor_table = {
             .granularity_bit = 1,
             .available_bit = 0
         },
+
         // TSS Entry
         {
-            .segment_low       = sizeof(struct TSSEntry),
             .segment_high      = (sizeof(struct TSSEntry) & (0xF << 16)) >> 16,
+            .segment_low       = sizeof(struct TSSEntry),
             .base_low          = 0,
             .base_mid          = 0,
             .base_high         = 0,
-            .type_bit          = 0x9,
             .non_system        = 0,    // S bit
+            .type_bit          = 0x9,
             .privillege_bit    = 0,    // DPL
             .present_bit       = 1,    // P bit
             .code_segment_bit  = 0,    // L bit
