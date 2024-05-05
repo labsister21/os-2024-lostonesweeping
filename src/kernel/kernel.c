@@ -45,6 +45,16 @@ void kernel_setup(void) {
     paging_allocate_user_page_frame(&_paging_kernel_page_directory, (uint8_t*) 0);
 
     // Write shell into memory
+    // struct FAT32DriverRequest request1 = {
+    //     .buf                   = (uint8_t*) 0,
+    //     .name                  = "shell",
+    //     .ext                   = "\0\0\0",
+    //     .parent_cluster_number = ROOT_CLUSTER_NUMBER,
+    //     .buffer_size           = 0x864, 
+    // };
+    // write(request1);
+
+    // uint8_t buf[4096];
     struct FAT32DriverRequest request = {
         .buf                   = (uint8_t*) 0,
         .name                  = "shell",

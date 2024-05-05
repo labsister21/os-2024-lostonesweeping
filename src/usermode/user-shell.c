@@ -31,24 +31,24 @@ void syscall(uint32_t eax, uint32_t ebx, uint32_t ecx, uint32_t edx) {
 // // 	syscall(5, (uint32_t) 'J', 0, 0xF);
 // // }
 
-// void ls() {
-// 	for (int i = 0; i < TOTAL_DIRECTORY_ENTRY; ++i) {
-// 		struct FAT32DirectoryEntry *entry = &state.curr_dir.table[i];
-// 		if (entry->user_attribute != UATTR_NOT_EMPTY) continue;
-//         syscall(6, (uint32_t) entry->name, strlen(entry->name), 0);
-// 		if (entry->attribute != ATTR_SUBDIRECTORY){
-//             syscall(6, (uint32_t) entry->ext, strlen(entry->ext), 0);
-//         } 
-// 		syscall(5, (uint32_t)' ', 0, 0);
-// 	}
-// }
+void ls() {
+	for (int i = 0; i < TOTAL_DIRECTORY_ENTRY; ++i) {
+		struct FAT32DirectoryEntry *entry = &state.curr_dir.table[i];
+		if (entry->user_attribute != UATTR_NOT_EMPTY) continue;
+        syscall(6, (uint32_t) entry->name, strlen(entry->name), 0);
+		if (entry->attribute != ATTR_SUBDIRECTORY){
+            syscall(6, (uint32_t) entry->ext, strlen(entry->ext), 0);
+        } 
+		syscall(5, (uint32_t)' ', 0, 0);
+	}
+}
 
 void run_prompt() {
     // char *token = strtok(state.prompt, ' ');
 
     // if (token != NULL) {
     //     if (strcmp(token, "ls", 2) == 0) {
-            syscall(6, (uint32_t) "OKE", 3, 0);
+            syscall(6, (uint32_t) "OKE", strlen("OKE"), 0);
             // ls();
     //     }
     // }
@@ -74,21 +74,19 @@ void get_prompt(){
 
 
 int main(void) {
+    int32_t retcode;
     struct ClusterBuffer      cl[2]   = {0};
     struct FAT32DriverRequest request = {
         .buf                   = &cl,
         .name                  = "shell",
         .ext                   = "\0\0\0",
         .parent_cluster_number = ROOT_CLUSTER_NUMBER,
-        .buffer_size           = CLUSTER_SIZE,
+        .buffer_size           = CLUSTER_SIZE*2,
     };
-    int32_t retcode;
     syscall(0, (uint32_t) &request, (uint32_t) &retcode, 0);
-    if (retcode == 0){
-        // syscall(5, (uint32_t) 'a', 0, 0xF);
-        syscall(6, (uint32_t) "LostOnesWeeping-user", 20, 0xF);
-    }
 
+
+    syscall(6, (uint32_t) "LostOnesWeeping-user", 20, 0xF);
     syscall(7, 0, 0, 0);
     while (true) {
         syscall(6, (uint32_t)"> ", 2, 0);

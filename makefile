@@ -104,7 +104,7 @@ user-shell:
 	@size --target=binary $(OUTPUT_FOLDER)/shell
 	@rm -f *.o
 
-insert-shell: disk inserter user-shell
+insert-shell: inserter user-shell
 	@echo Inserting shell into root directory...
 	@cd $(OUTPUT_FOLDER); ./inserter shell 2 $(DISK_NAME).bin
 
