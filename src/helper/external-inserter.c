@@ -67,7 +67,6 @@ int main(int argc, char *argv[]) {
     };
     sscanf(argv[2], "%u",  &request.parent_cluster_number);
     sscanf(argv[1], "%8s", request.name);
-    sscanf(argv[0], "%3s", request.ext);
     int retcode = write(request);
     switch (retcode) {
         case 0:  puts("Write success"); break;

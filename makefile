@@ -96,7 +96,7 @@ user-shell:
 	@$(CC) $(CFLAGS) -fno-pie $(SOURCE_FOLDER_USER)/user-shell.c -o $(OUTPUT_FOLDER)/user-shell.o
 	@$(CC) $(CFLAGS) -fno-pie $(SOURCE_FOLDER)/stdlib/string.c -o $(OUTPUT_FOLDER)/string.o
 	@$(LIN) -T $(SOURCE_FOLDER_USER)/user-linker.ld -melf_i386 --oformat=binary \
-		$(OUTPUT_FOLDER)/crt0.o $(OUTPUT_FOLDER)/user-shell.o -o $(OUTPUT_FOLDER)/shell
+		$(OUTPUT_FOLDER)/crt0.o $(OUTPUT_FOLDER)/user-shell.o $(OUTPUT_FOLDER)/string.o -o $(OUTPUT_FOLDER)/shell
 	@echo Linking object shell object files and generate flat binary...
 	@$(LIN) -T $(SOURCE_FOLDER_USER)/user-linker.ld -melf_i386 --oformat=elf32-i386 \
 		$(OUTPUT_FOLDER)/crt0.o $(OUTPUT_FOLDER)/user-shell.o $(OUTPUT_FOLDER)/string.o -o $(OUTPUT_FOLDER)/shell_elf
@@ -106,6 +106,7 @@ user-shell:
 
 insert-shell: inserter user-shell
 	@echo Inserting shell into root directory...
-	@cd $(OUTPUT_FOLDER); ./inserter shell 2 $(DISK_NAME).bin
+	@cd $(OUTPUT_FOLDER); sudo ./inserter shell 2 $(DISK_NAME).bin
+	@cd $(OUTPUT_FOLDER); sudo ./inserter shell 2 $(DISK_NAME).bin
 
 .PHONY: all
