@@ -59,20 +59,61 @@ void pic_remap(void) {
 */
 void syscall(struct InterruptFrame frame) {
     switch (frame.cpu.general.eax) {
-        case 0:
+        case 0: //READ
             *((int8_t*) frame.cpu.general.ecx) = read(
                 *(struct FAT32DriverRequest*) frame.cpu.general.ebx
             );
             break;
-        case 4:
+        case 1: //READ Directory 
+            *((int8_t *)frame.cpu.general.ecx) =  read_directory(*(struct FAT32DriverRequest*)frame.cpu.general.ebx);
+            break;
+
+        case 2: //write 
+            *((int8_t *)frame.cpu.general.ecx) = write(*(struct FAT32DriverRequest *)frame.cpu.general.ebx);
+            break;
+        case 3: //delete
+            *((int8_t *)frame.cpu.general.ecx) = delete(*(struct FAT32DriverRequest *)frame.cpu.general.ebx);
+		    break;
+        case 4: 
+        /**
+         * TODO:
+        */
             get_keyboard_buffer((char*) frame.cpu.general.ebx);
             break;
-        case 6:
-            framebuffer_put((char) frame.cpu.general.ebx);
+        case 5: //char put
+            if((char) frame.cpu.general.ebx){
+                framebuffer_put((char) frame.cpu.general.ebx); 
+            }
+            break;
+        case 6: { //chars puts
+            int i = frame.cpu.general.ecx;
+		    char *str = (char *)frame.cpu.general.ebx;
+		    for(int j = 0; j < i; j++){
+                framebuffer_put(str[j]);
+            }
+        }
             break;
         case 7: 
             keyboard_state_activate();
             break;
+        case 8: 
+            keyboard_state_deactivate();
+            break;
+
+        case 10: //get_prompt
+            char *ptr= (char*) frame.cpu.general.ebx; 
+            get_keyboard_buffer(ptr);
+            break;
+        
+        case 11: //prevent deleting? 
+            int i = 0;
+            char *str = (char *)frame.cpu.general.ebx;
+            while (str[i] != '\0') {
+                framebuffer_put(str[i]);
+                ++i;
+            }
+            break;
+            
     }
 }
 

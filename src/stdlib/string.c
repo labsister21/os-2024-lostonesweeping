@@ -107,3 +107,14 @@ bool cmp_string_with_fixed_length(const char *a, const char *b, int l){
     }
     return true;
 }
+
+size_t strlen(const char *str) {
+    size_t length = 0;
+    
+    // Iterate over the string until the null terminator is found
+    while (str[length] != '\0') {
+        length++;
+    }
+    
+    return length;
+}
