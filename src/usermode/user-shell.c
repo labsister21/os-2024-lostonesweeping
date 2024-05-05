@@ -32,6 +32,7 @@ void syscall(uint32_t eax, uint32_t ebx, uint32_t ecx, uint32_t edx) {
 // // }
 
 void ls() {
+    // syscall(6, (uint32_t)"HORE", 4, 0);
 	for (int i = 0; i < TOTAL_DIRECTORY_ENTRY; ++i) {
 		struct FAT32DirectoryEntry *entry = &state.curr_dir.table[i];
 		if (entry->user_attribute != UATTR_NOT_EMPTY) continue;
@@ -49,7 +50,7 @@ void run_prompt() {
     // if (token != NULL) {
     //     if (strcmp(token, "ls", 2) == 0) {
             syscall(6, (uint32_t) "OKE", strlen("OKE"), 0);
-            // ls();
+            ls();
     //     }
     // }
     state.prompt[state.prompt_size] = '\0';
