@@ -1,6 +1,8 @@
 #include <stdint.h>
-#include "../../header/filesystem/fat32.h"
+#include "header/filesystem/fat32.h"
+#include "header/stdlib/string.h"
 
+#define MAX_PROMPT 512
 void syscall(uint32_t eax, uint32_t ebx, uint32_t ecx, uint32_t edx) {
     __asm__ volatile("mov %0, %%ebx" : /* <Empty> */ : "r"(ebx));
     __asm__ volatile("mov %0, %%ecx" : /* <Empty> */ : "r"(ecx));
@@ -11,8 +13,17 @@ void syscall(uint32_t eax, uint32_t ebx, uint32_t ecx, uint32_t edx) {
     __asm__ volatile("int $0x30");
 }
 
-
 int main(void) {
+    char buf[16]; 
+    // return 0; 
+    // framebuffer_put('a');
+    // framebuffer_put('a');
+    // framebuffer_put('a');
+    // framebuffer_put('a');
+    // framebuffer_put('a');
+    // framebuffer_put('a');
+    // framebuffer_put('a');
+    // framebuffer_put('a');
     struct ClusterBuffer      cl[2]   = {0};
     struct FAT32DriverRequest request = {
         .buf                   = &cl,
@@ -26,7 +37,6 @@ int main(void) {
     if (retcode == 0)
         syscall(6, (uint32_t) "owo\n", 4, 0xF);
 
-    char buf;
     syscall(7, 0, 0, 0);
     while (true) {
         syscall(4, (uint32_t) &buf, 0, 0);
@@ -35,3 +45,4 @@ int main(void) {
 
     return 0;
 }
+

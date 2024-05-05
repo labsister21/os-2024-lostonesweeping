@@ -78,7 +78,6 @@ bool paging_free_user_page_frame(struct PageDirectory *page_dir, void *virtual_a
     uint32_t page_index = ((uint32_t)virtual_addr >> 22) & 0x3FF;
     uint32_t physical_addr = (page_dir->table[page_index].lower_address << 22);
     uint32_t frame_index = physical_addr / PAGE_FRAME_SIZE;
-    
     if (page_manager_state.page_frame_map[frame_index]) {
         page_manager_state.page_frame_map[frame_index] = false;
         page_manager_state.free_page_frame_count++;

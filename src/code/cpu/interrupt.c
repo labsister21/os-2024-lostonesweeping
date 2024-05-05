@@ -63,7 +63,22 @@ void set_tss_kernel_current_stack(void) {
     _interrupt_tss_entry.esp0 = stack_ptr + 8; 
 }
 
-void syscallHandler(struct InterruptFrame frame) {
+
+/**'
+ * case 0: read 
+ * case 1: read directory
+ * case 2: write 
+ * case 3: delete 
+ * case 4: get_char 
+ * case 5: put_char
+ * case 6: framebuffer_put_char 
+ * case 7: framebuffer_put_chars
+ * case 8: 
+ * case 9: framebuffer_clear 
+ * case 10: framebuffer_cursor 
+ * case 11: time
+*/
+void syscall(struct InterruptFrame frame) {
     switch (frame.cpu.general.eax) {
         case 0:
             *((int8_t*) frame.cpu.general.ecx) = read(
