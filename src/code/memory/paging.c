@@ -66,6 +66,7 @@ bool paging_allocate_user_page_frame(struct PageDirectory *page_dir, void *virtu
                 .present_bit = 1,
                 .write_bit = 1,
                 .use_pagesize_4_mb = 1,
+                .user_supervisor = 1,
             };
             update_page_directory_entry(page_dir, physical_addr, virtual_addr, flag);
             return true;

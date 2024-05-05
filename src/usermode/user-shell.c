@@ -1,6 +1,7 @@
 #include <stdint.h>
 #include "header/filesystem/fat32.h"
 #include "header/stdlib/string.h"
+// #include "./user-shell.h"
 
 void syscall(uint32_t eax, uint32_t ebx, uint32_t ecx, uint32_t edx) {
     __asm__ volatile("mov %0, %%ebx" : /* <Empty> */ : "r"(ebx));
@@ -23,8 +24,15 @@ int main(void) {
     };
     int32_t retcode;
     syscall(0, (uint32_t) &request, (uint32_t) &retcode, 0);
-    if (retcode == 0)
-        syscall(6, (uint32_t) "owo\n", 4, 0xF);
+    if (retcode == 0){
+        syscall(6, (uint32_t) 'a', 4, 0xF);
+        syscall(6, (uint32_t) 'k', 4, 0xF);
+        syscall(6, (uint32_t) 'u', 4, 0xF);
+        syscall(6, (uint32_t) 'g', 4, 0xF);
+        syscall(6, (uint32_t) 'i', 4, 0xF);
+        syscall(6, (uint32_t) 'l', 4, 0xF);
+        syscall(6, (uint32_t) 'a', 4, 0xF);
+    }
 
     char buf;
     syscall(7, 0, 0, 0);

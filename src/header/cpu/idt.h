@@ -34,7 +34,7 @@ extern struct IDTR _idt_idtr;
  */
 struct IDTGate {
     // First 32-bit (Bit 0 to 31)
-    uint16_t offset_low;
+uint16_t offset_low;
     uint16_t segment;  
 
     //second 32-bit (bit 32 to 63)
