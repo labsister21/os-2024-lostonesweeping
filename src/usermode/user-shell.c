@@ -4,6 +4,18 @@
 #include "header/driver/keyboard.h"
 // #include "./user-shell.h"
 
+#define READ 0 
+#define READ_DIRECTORY 1 
+#define WRITE 2 
+#define DELETE 3
+#define PUT_CHAR 5 
+#define PUT_CHARS 6 
+#define ACTIVATE_KEYBOARD 7 
+#define DEACTIVATE_KEYBOARD 8 
+#define GET_PROMPT 10 
+
+
+
 
 #define MAX_PROMPT 512 //gada perintah yang melebihi ini
 
@@ -32,7 +44,6 @@ void syscall(uint32_t eax, uint32_t ebx, uint32_t ecx, uint32_t edx) {
 // // }
 
 void ls() {
-    // syscall(6, (uint32_t)"HORE", 4, 0);
 	for (int i = 0; i < TOTAL_DIRECTORY_ENTRY; ++i) {
 		struct FAT32DirectoryEntry *entry = &state.curr_dir.table[i];
 		if (entry->user_attribute != UATTR_NOT_EMPTY) continue;
@@ -45,14 +56,14 @@ void ls() {
 }
 
 void run_prompt() {
-    // char *token = strtok(state.prompt, ' ');
+    char *token = my_strtok(state.prompt, ' ');
 
-    // if (token != NULL) {
-    //     if (strcmp(token, "ls", 2) == 0) {
+    if (token != NULL) {
+        if (strcmp(token, "ls", 2) == 0) {
             syscall(6, (uint32_t) "OKE", strlen("OKE"), 0);
             ls();
-    //     }
-    // }
+        }
+    }
     state.prompt[state.prompt_size] = '\0';
 }
 
@@ -62,9 +73,9 @@ void get_prompt(){
     while(1){
         char c = '\0'; 
         while(c == '\0'){
-            syscall(10, (uint32_t) &c, 0, 0);
+            syscall(GET_PROMPT, (uint32_t) &c, 0, 0);
         }
-        syscall(5, (uint32_t)c, 0, 0xF);
+        syscall(PUT_CHAR, (uint32_t)c, 0, 0xF);
         if(c == '\n' || state.prompt_size + 1 >= MAX_PROMPT){
             break;
         }
