@@ -111,9 +111,16 @@ void syscall(struct InterruptFrame frame) {
             int i = 0;
             char *str = (char *)frame.cpu.general.ebx;
             while (str[i] != '\0') {
-                framebuffer_put(str[i]);
-                ++i;
+                if(str[i] != '\b'){
+                    framebuffer_put(str[i]);
+                    ++i;
+                }else{
+                    framebuffer_clear_delete();
+                }
             }
+            break;
+        case 12: 
+            framebuffer_clear_delete();
             break;
             
     }

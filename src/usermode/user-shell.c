@@ -84,11 +84,18 @@ void get_prompt(){
         while(c == '\0'){
             syscall(GET_PROMPT, (uint32_t) &c, 0, 0);
         }
-        syscall(PUT_CHAR, (uint32_t)c, 0, 0xF);
-        if(c == '\n' || state.prompt_size + 1 >= MAX_PROMPT){
-            break;
+        if(c == '\b'){
+            if(state.prompt_size > 0){
+                state.prompt[state.prompt_size--] = c;
+                syscall(12, (uint32_t)' ', 0, 0xF);
+            }
+        }else{
+            syscall(PUT_CHAR, (uint32_t)c, 0, 0xF);
+            if(c == '\n' || state.prompt_size + 1 >= MAX_PROMPT){
+                break;
+            }
+            state.prompt[state.prompt_size++] = c;
         }
-        state.prompt[state.prompt_size++] = c;
     }
     state.prompt[state.prompt_size] = '\0';
 }
