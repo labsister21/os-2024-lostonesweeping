@@ -38,10 +38,10 @@ void syscall(uint32_t eax, uint32_t ebx, uint32_t ecx, uint32_t edx) {
 }
 
 
-// // void clear() {
-// // 	syscall(5, (uint32_t) '\e', 0, 0xF);
-// // 	syscall(5, (uint32_t) 'J', 0, 0xF);
-// // }
+void clear() {
+	syscall(PUT_CHAR, (uint32_t) '\e', 0, 0xF);
+	syscall(PUT_CHAR, (uint32_t) 'J', 0, 0xF);
+}
 
 void ls() {
 	for (int i = 0; i < TOTAL_DIRECTORY_ENTRY; ++i) {
@@ -57,14 +57,23 @@ void ls() {
 
 void run_prompt() {
     char *token = my_strtok(state.prompt, ' ');
-
     if (token != NULL) {
+        bool isClear = strcmp(token, "clear", 5) == 0;
+        if(isClear) clear();
         if (strcmp(token, "ls", 2) == 0) {
             syscall(6, (uint32_t) "OKE", strlen("OKE"), 0);
-            ls();
         }
+        else if(strcmp(token, "mkdir", 5) == 0){
+            syscall(6, (uint32_t) "OKE", strlen("OKE"), 0);
+        }
+        else{
+            syscall(6, (uint32_t) "Gada perintahnya lmao", strlen("Gada perintahnya lmao"), 0);
+        }
+        if(!isClear) syscall(PUT_CHAR, (uint32_t)'\n', 0, 0xF);
+        
     }
-    state.prompt[state.prompt_size] = '\0';
+
+
 }
 
 //buat nulis di shell
@@ -97,11 +106,9 @@ int main(void) {
     };
     syscall(0, (uint32_t) &request, (uint32_t) &retcode, 0);
 
-
-    syscall(6, (uint32_t) "LostOnesWeeping-user", 20, 0xF);
     syscall(7, 0, 0, 0);
     while (true) {
-        syscall(6, (uint32_t)"> ", 2, 0);
+        syscall(6, (uint32_t)"LostOnesWeeping> ", 17, 0);
         get_prompt();
         run_prompt();
     }

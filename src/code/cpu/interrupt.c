@@ -4,6 +4,7 @@
 #include "../../header/text/framebuffer.h"
 #include "../../header/filesystem/fat32.h"
 #include "../../header/cpu/gdt.h"
+#include "../../header/text/terminaltext.h"
 
 void activate_keyboard_interrupt(void) {
     out(PIC1_DATA, in(PIC1_DATA) & ~(1 << IRQ_KEYBOARD));
@@ -82,7 +83,8 @@ void syscall(struct InterruptFrame frame) {
             break;
         case 5: //char put
             if((char) frame.cpu.general.ebx){
-                framebuffer_put((char) frame.cpu.general.ebx); 
+                fputc((char)frame.cpu.general.ebx);
+                // framebuffer_put((char) frame.cpu.general.ebx); 
             }
             break;
         case 6: { //chars puts
