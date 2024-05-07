@@ -66,6 +66,7 @@ void copyStringWithLength(char* destination, const char* source, int length);
 
 bool cmp_string_with_fixed_length(const char *a, const char *b, int l);
 
+char *my_strtok(char *str, char delim);
 
 size_t strlen(const char *str);
 

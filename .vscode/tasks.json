@@ -53,6 +53,6 @@
                 "kind": "build",
                 "isDefault": true
             }
-        },        
+        },
     ],
 }

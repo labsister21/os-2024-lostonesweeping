@@ -64,10 +64,12 @@ void framebuffer_clear_delete(void){
 
 void framebuffer_newline(void){
     framebuffer_state.row++;
-    framebuffer_state.col = 0;
+    if(framebuffer_state.row == BUFFER_HEIGHT){
+        framebuffer_state.row = 0;
+    }
     framebuffer_set_cursor(
         framebuffer_state.row, 
-        framebuffer_state.col
+        0
     );
 }
 

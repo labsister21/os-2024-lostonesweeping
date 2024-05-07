@@ -259,7 +259,7 @@ int8_t write(struct FAT32DriverRequest request){
     struct FAT32DirectoryTable dir_table;
     bool isParentValid = get_dir_table_from_cluster(request.parent_cluster_number, &dir_table);
     if (!isParentValid){
-        return -1;
+        return 2;
     }
 
     bool found = false;
@@ -349,8 +349,6 @@ int8_t write(struct FAT32DriverRequest request){
     //bagian ini masukin atribut folder atau file
     if(!isFolder){
         dir_entry->attribute = 0;
-        int bruh = 0; 
-        bruh += 1;     
     }
     else dir_entry->attribute = ATTR_SUBDIRECTORY;
     //karena udah keisi otomatis gak mungkin kosong dong
@@ -375,7 +373,7 @@ int8_t write(struct FAT32DriverRequest request){
      * ini bener atau enggak sih 
     */
     struct FAT32DirectoryTable new_table;
-    void *ptr = &request.buf;
+    void *ptr = request.buf;
     if(isFolder){
         //membuat folder tabel baru
         init_directory_table(&new_table, request.name, request.parent_cluster_number);
@@ -385,25 +383,30 @@ int8_t write(struct FAT32DriverRequest request){
      
     // menggunakan linked list 
     for (int i = 0; i < alloc_cluster; i++) {
-        struct ClusterBuffer buffer;
-        uint32_t next_cluster = empty_clusters[i + 1];
+        uint32_t cluster = empty_clusters[i];   
+        uint32_t next_cluster;
         if (i + 1 == alloc_cluster) {
+            struct ClusterBuffer buffer;
             next_cluster = FAT32_FAT_END_OF_FILE;
             int current_size = filesize % CLUSTER_SIZE;
             if (current_size != 0) {
-                memcpy(&buffer, request.buf, current_size);
-                for (int j = current_size; j < CLUSTER_SIZE; ++j)
-                    buffer.buf[j] = 0x0;
+                memcpy(&buffer, ptr, current_size);
+                memset(&buffer.buf[current_size], 0x00, CLUSTER_SIZE - current_size);
+                // for (int j = current_size; j < CLUSTER_SIZE; ++j)
+                //     buffer.buf[j] = 0x0;
                 // request.buf = (void *)&buffer;
                 ptr = (void *)&buffer;
             }
         }
-        uint32_t cluster = empty_clusters[i];
+        else{
+            next_cluster = empty_clusters[i + 1];
+        }
         write_clusters(ptr, cluster, 1);
         ptr += CLUSTER_SIZE;
         fat32_driver_state.fat_table.cluster_map[cluster] = next_cluster;
     }
     write_clusters(fat32_driver_state.fat_table.cluster_map, FAT_CLUSTER_NUMBER, 1);
+
     return 0; //kasus berhasil 
 }
 
