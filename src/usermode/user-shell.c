@@ -27,9 +27,7 @@ struct ShellState {
 	int prompt_size;
 };
 
-struct ShellState state = {
-    .current_directory = ROOT_CLUSTER_NUMBER,
-};
+struct ShellState state = {};
 
 void syscall(uint32_t eax, uint32_t ebx, uint32_t ecx, uint32_t edx) {
     __asm__ volatile("mov %0, %%ebx" : /* <Empty> */ : "r"(ebx));
@@ -134,13 +132,25 @@ void refresh_dir() {
 void cd() {
     char* dir = my_strtok(NULL, '/');  // Parse the next token using '/'
     uint32_t search_directory_number = state.current_directory;
-
+    
     if (dir == NULL) {
+        return;  // No directory specified
+    }
+
+    if (strcmp(dir, "..", 2) == 0) {
+        // Move to the parent directory
+        uint32_t parent_cluster = state.curr_dir.table[0].cluster_low +
+                                  ((uint32_t)state.curr_dir.table[0].cluster_high << 16);
+        search_directory_number = parent_cluster;
+        updateDirectoryTable(search_directory_number);
+        state.current_directory = search_directory_number;
+        syscall(PUT_CHAR, (uint32_t)state.current_directory + '0', 0, 0);
+        syscall(PUT_CHARS, (uint32_t)state.curr_dir.table->name, 8, 0);
         return;
     }
 
     if (isPathAbsolute(dir, '/')) {
-        search_directory_number = ROOT_CLUSTER_NUMBER;  
+        search_directory_number = ROOT_CLUSTER_NUMBER;  // Absolute path
     }
 
     while (dir != NULL) {
@@ -194,7 +204,7 @@ void mkdir() {
     syscall(PUT_CHAR, (uint32_t)'\n', 0, 0);
 	struct FAT32DriverRequest req = {
         .name = {0},
-        .buf = NULL,
+        .buf = &state.curr_dir,
         .buffer_size = 0,
 	    .parent_cluster_number = state.current_directory,
     };
@@ -271,7 +281,6 @@ void run_prompt() {
             ls();
         }
         else if(strcmp(token, "mkdir", 5) == 0){
-            // syscall(6, (uint32_t) "OKE", strlen("OKE"), 0);
             mkdir();
         }
         else if(strcmp(token, "rm", 2) == 0){
@@ -350,7 +359,7 @@ int main(void) {
     };
 
     syscall(READ_DIRECTORY, (uint32_t)&req, (uint32_t)&ret, 0);
-
+    state.current_directory = ROOT_CLUSTER_NUMBER;
     syscall(ACTIVATE_KEYBOARD, 0, 0, 0);
     while (true) {
         syscall(PUT_CHARS, (uint32_t)"LostOnesWeeping:", 16, 0);
