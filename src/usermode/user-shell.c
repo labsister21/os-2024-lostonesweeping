@@ -38,6 +38,45 @@ void syscall(uint32_t eax, uint32_t ebx, uint32_t ecx, uint32_t edx) {
 }
 
 
+void extractBaseName(const char *filename, char *basename) {
+    int j;
+    int len = strlen(filename);
+    for (j = 0; j < len; j++) {
+        if(filename[j] != '.') basename[j] = filename[j];
+        else break;
+    }
+    basename[j] = '\0';
+}
+
+void extractExtension(const char *filename, char *extension) {
+    int i, j;
+    int len = strlen(filename);
+    int dot_found = -1;
+
+    // Find the position of the last '.' character in the filename
+    for (i = len - 1; i >= 0; i--) {
+        if (filename[i] == '.') {
+            dot_found = i;
+            break;
+        }
+    }
+
+    int z = 0;
+    if (dot_found != -1) {
+        // Copy characters from the position after '.' to the end of the string
+        for (j = i + 1; j < len; j++) {
+            extension[z++] = filename[j];
+        }
+    } else {
+        // If no '.' found, return an empty string for extension
+        extension[0] = '\0';
+    }
+}
+
+
+
+
+
 void clear() {
 	syscall(PUT_CHAR, (uint32_t) '\e', 0, 0xF);
 	syscall(PUT_CHAR, (uint32_t) 'J', 0, 0xF);
@@ -86,6 +125,60 @@ void mkdir() {
 	refresh_dir();
 }
 
+void rm(){
+    /**
+     * TODO: INI BELUM REMOVE PAKE PATH dahlah gelap
+    */
+    char *dir; 
+    char name[8]; 
+    char ext[3]; 
+
+    dir = my_strtok(NULL, '\0'); 
+    	struct FAT32DriverRequest req = {
+        .name = {0},
+        .ext = {0},
+        .buf = NULL,
+        .buffer_size = 0,
+	    .parent_cluster_number = (state.curr_dir.table[0].cluster_low) + (((uint32_t) state.curr_dir.table[0].cluster_high) >> 16),
+        
+    };
+    extractBaseName(dir, name);
+    extractExtension(dir, ext);
+
+    copyStringWithLength(req.name, name, 8);
+    copyStringWithLength(req.ext, ext, 3);
+    
+    // syscall(PUT_CHARS, (uint32_t)req.name, strlen(req.name), 0);
+    // syscall(PUT_CHARS, (uint32_t)req.ext, strlen(req.ext), 0);
+    int8_t ret;
+    syscall(DELETE, (uint32_t)&req, (uint32_t)&ret, 0); 
+    refresh_dir();
+}
+
+
+
+void test() {
+    char *c1 = my_strtok(NULL, ' ');  // Get the first token
+    char *c2 = my_strtok(NULL, ' ');  // Get the second token
+    char *c3 = my_strtok(NULL, '\0');  // Get the second token
+
+    if (c1 != NULL && c2 != NULL && c3 != NULL) {
+        // Print the first token
+        syscall(PUT_CHARS, (uint32_t)c1, strlen(c1), 0);
+        syscall(PUT_CHAR, (uint32_t)' ', 0, 0);  // Print a space between tokens
+
+        // Print the second token
+        syscall(PUT_CHARS, (uint32_t)c2, strlen(c2), 0);
+        syscall(PUT_CHAR, (uint32_t)' ', 0, 0);  // Print a newline
+
+        syscall(PUT_CHARS, (uint32_t)c3, strlen(c3), 0);
+        syscall(PUT_CHAR, (uint32_t)'\n', 0, 0);  // Print a newline
+    } else {
+        syscall(6, (uint32_t)"Invalid usage of 'test' command", 30, 0);
+        syscall(PUT_CHAR, (uint32_t)'\n', 0, 0);  // Print a newline
+    }
+}
+
 void run_prompt() {
     char *token = my_strtok(state.prompt, ' ');
     if (token != NULL) {
@@ -97,6 +190,12 @@ void run_prompt() {
         else if(strcmp(token, "mkdir", 5) == 0){
             // syscall(6, (uint32_t) "OKE", strlen("OKE"), 0);
             mkdir();
+        }
+        else if(strcmp(token, "rm", 2) == 0){
+            rm();
+        }
+        else if(strcmp(token, "test", 4) == 0){
+            test();
         }
         else{
             syscall(6, (uint32_t) "Gada perintahnya lmao", strlen("Gada perintahnya lmao"), 0);
