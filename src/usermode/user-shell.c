@@ -21,8 +21,8 @@
 #define MAX_PROMPT 512 //gada perintah yang melebihi ini
 
 struct ShellState {
-    uint32_t current_directory;
 	struct FAT32DirectoryTable curr_dir;
+    uint32_t current_directory;
 	char prompt[MAX_PROMPT];
 	int prompt_size;
 };
@@ -88,7 +88,6 @@ void extractExtension(const char *filename, char *extension) {
     int len = strlen(filename);
     int dot_found = -1;
 
-    // Find the position of the last '.' character in the filename
     for (i = len - 1; i >= 0; i--) {
         if (filename[i] == '.') {
             dot_found = i;
@@ -98,26 +97,21 @@ void extractExtension(const char *filename, char *extension) {
 
     int z = 0;
     if (dot_found != -1) {
-        // Copy characters from the position after '.' to the end of the string
         for (j = i + 1; j < len; j++) {
             extension[z++] = filename[j];
         }
     } else {
-        // If no '.' found, return an empty string for extension
         extension[0] = '\0';
     }
 }
-
-
-
-
 
 void clear() {
 	syscall(PUT_CHAR, (uint32_t) '\e', 0, 0xF);
 	syscall(PUT_CHAR, (uint32_t) 'J', 0, 0xF);
 }
 
-void refresh_dir() {
+void refresh_dir(){
+    // syscall(PUT_CHAR, (uint32_t)state.current_directory + '0', 0, 0);
 	struct FAT32DriverRequest req = {
         .name = {0},
         .buf = &state.curr_dir,
@@ -126,6 +120,7 @@ void refresh_dir() {
     };
 	int8_t ret;
     copyStringWithLength(req.name, state.curr_dir.table->name, 8);
+    syscall(PUT_CHARS, (uint32_t)state.curr_dir.table->name, strlen(state.curr_dir.table->name), 0);   
 	syscall(READ_DIRECTORY, (uint32_t)&req, (uint32_t)&ret, 0);
 }
 
@@ -144,7 +139,6 @@ void cd() {
         search_directory_number = parent_cluster;
         updateDirectoryTable(search_directory_number);
         state.current_directory = search_directory_number;
-        syscall(PUT_CHAR, (uint32_t)state.current_directory + '0', 0, 0);
         syscall(PUT_CHARS, (uint32_t)state.curr_dir.table->name, 8, 0);
         return;
     }
@@ -175,12 +169,9 @@ void cd() {
 
     // Update the current directory in the shell state
     state.current_directory = search_directory_number;
+    syscall(CHANGE_DIR, (uint32_t)state.curr_dir.table->name, 0, 0);
     updateDirectoryTable(state.current_directory);
-    syscall(PUT_CHAR, (uint32_t)state.current_directory + '0', 0, 0);
-    syscall(PUT_CHARS, (uint32_t)state.curr_dir.table->name, 8, 0);
 }
-
-
 
 void ls() {
 	for (int i = 0; i < TOTAL_DIRECTORY_ENTRY; ++i) {
@@ -200,8 +191,6 @@ void ls() {
 void mkdir() {
 	char *dir;
 	dir = my_strtok(NULL, '\0');
-    syscall(PUT_CHAR, (uint32_t)state.current_directory + '0', 0, 0);
-    syscall(PUT_CHAR, (uint32_t)'\n', 0, 0);
 	struct FAT32DriverRequest req = {
         .name = {0},
         .buf = &state.curr_dir,
@@ -211,10 +200,7 @@ void mkdir() {
     copyStringWithLength(req.name, dir, 8);
 	int8_t ret;
     syscall(WRITE, (uint32_t)&req, (uint32_t)&ret, 0);
-    syscall(PUT_CHAR, (uint32_t)(ret + '0'), 0, 0);
-    syscall(PUT_CHAR, (uint32_t)'\n', 0, 0);
-    syscall(PUT_CHAR, (uint32_t)state.current_directory + '0', 0, 0);
-    syscall(PUT_CHAR, (uint32_t)'\n', 0, 0);
+    syscall(PUT_CHAR, (uint32_t)ret + '0', 0, 0);
 	refresh_dir();
 }
 
@@ -340,7 +326,7 @@ int main(void) {
 	copyStringWithLength(req2.name, "dir", 8);
     syscall(WRITE, (uint32_t)&req2, (uint32_t)&ret2, 0);
 
-    
+
     struct FAT32DriverRequest reqfile = {
         .buf = &a,
         .name = "mbuh",
@@ -361,9 +347,11 @@ int main(void) {
     syscall(READ_DIRECTORY, (uint32_t)&req, (uint32_t)&ret, 0);
     state.current_directory = ROOT_CLUSTER_NUMBER;
     syscall(ACTIVATE_KEYBOARD, 0, 0, 0);
+
     while (true) {
         syscall(PUT_CHARS, (uint32_t)"LostOnesWeeping:", 16, 0);
         syscall(PUT_CHARS, (uint32_t)state.curr_dir.table->name, strlen(state.curr_dir.table->name), 0);
+        syscall(PUT_CHAR, (uint32_t)state.current_directory + '0', 0, 0);
         syscall(PUT_CHARS, (uint32_t)"> ", 2, 0);
         get_prompt();
         run_prompt();

@@ -6,6 +6,12 @@
 
 static struct FAT32DriverState fat32_driver_state = {0};
 
+char *curr_dir = "root";
+
+void change_curr_dir(char* dest, int dest_size) {
+    copyStringWithLength(dest, curr_dir, dest_size - 1);
+}
+
 const uint8_t fs_signature[BLOCK_SIZE] = {
     'C', 'o', 'u', 'r', 's', 'e', ' ', ' ', ' ', ' ', ' ', ' ', ' ', ' ', ' ',  ' ',
     'D', 'e', 's', 'i', 'g', 'n', 'e', 'd', ' ', 'b', 'y', ' ', ' ', ' ', ' ',  ' ',
@@ -173,8 +179,9 @@ bool get_dir_table_from_cluster(uint32_t cluster, struct FAT32DirectoryTable *di
     read_clusters(dir_entry, cluster, 1);
     // if (strcmp(dir_entry->table[1].name, "..", 8) == 0 &&
     //         dir_entry->table[1].attribute == ATTR_SUBDIRECTORY &&
-        if(dir_entry->table[0].attribute == ATTR_SUBDIRECTORY)
-            return true;
+        if(strcmp(dir_entry->table[0].name, curr_dir, 8) == 0 &&
+            dir_entry->table[0].attribute == ATTR_SUBDIRECTORY)
+        return true;
     return false;
 }
 
