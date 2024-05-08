@@ -173,9 +173,8 @@ bool get_dir_table_from_cluster(uint32_t cluster, struct FAT32DirectoryTable *di
     read_clusters(dir_entry, cluster, 1);
     // if (strcmp(dir_entry->table[1].name, "..", 8) == 0 &&
     //         dir_entry->table[1].attribute == ATTR_SUBDIRECTORY &&
-        if(strcmp(dir_entry->table[0].name, "root", 8) == 0 &&
-            dir_entry->table[0].attribute == ATTR_SUBDIRECTORY)
-        return true;
+        if(dir_entry->table[0].attribute == ATTR_SUBDIRECTORY)
+            return true;
     return false;
 }
 

@@ -13,6 +13,7 @@
 #define ACTIVATE_KEYBOARD 7 
 #define DEACTIVATE_KEYBOARD 8 
 #define GET_PROMPT 10 
+#define CHANGE_DIR 13
 
 
 
@@ -20,12 +21,15 @@
 #define MAX_PROMPT 512 //gada perintah yang melebihi ini
 
 struct ShellState {
+    uint32_t current_directory;
 	struct FAT32DirectoryTable curr_dir;
 	char prompt[MAX_PROMPT];
 	int prompt_size;
 };
 
-struct ShellState state = {};
+struct ShellState state = {
+    .current_directory = ROOT_CLUSTER_NUMBER,
+};
 
 void syscall(uint32_t eax, uint32_t ebx, uint32_t ecx, uint32_t edx) {
     __asm__ volatile("mov %0, %%ebx" : /* <Empty> */ : "r"(ebx));
@@ -37,6 +41,39 @@ void syscall(uint32_t eax, uint32_t ebx, uint32_t ecx, uint32_t edx) {
     __asm__ volatile("int $0x30");
 }
 
+bool isPathAbsolute(char *args_val, char delim) {
+    // Extract the first token from args_val using my_strtok
+    char *token = my_strtok(args_val, delim);
+
+    // Check if the extracted token is not NULL and represents an absolute path ("/")
+    if (token != NULL && strcmp(token, "/", 1) == 0) {
+        return true; // It's an absolute path
+    } else {
+        return false; // It's not an absolute path
+    }
+}
+
+int findEntryName(char* name) {
+    int result = -1;
+
+    int i = 1;
+    bool found = false;
+    while (i < 64 && !found) {
+        if (memcmp(state.curr_dir.table[i].name, name, 8) == 0 && 
+            state.curr_dir.table[i].user_attribute == UATTR_NOT_EMPTY) {
+            result = i;
+            found = true;
+        }
+        else {
+            i++;
+        }
+    }
+    return result;
+}
+
+void updateDirectoryTable(uint32_t cluster_number) {
+    syscall(CHANGE_DIR, (uint32_t)&state.curr_dir, cluster_number, 0x0);
+}
 
 void extractBaseName(const char *filename, char *basename) {
     int j;
@@ -84,14 +121,56 @@ void clear() {
 
 void refresh_dir() {
 	struct FAT32DriverRequest req = {
-        .parent_cluster_number = (state.curr_dir.table[0].cluster_low) + (((uint32_t) state.curr_dir.table[0].cluster_high) >> 16),
-        .buffer_size = 0,
+        .name = {0},
         .buf = &state.curr_dir,
-        .name = "root",
+        .buffer_size = 0,
+        .parent_cluster_number = state.current_directory,
     };
 	int8_t ret;
+    copyStringWithLength(req.name, state.curr_dir.table->name, 8);
 	syscall(READ_DIRECTORY, (uint32_t)&req, (uint32_t)&ret, 0);
 }
+
+void cd() {
+    char* dir = my_strtok(NULL, '/');  // Parse the next token using '/'
+    uint32_t search_directory_number = state.current_directory;
+
+    if (dir == NULL) {
+        return;
+    }
+
+    if (isPathAbsolute(dir, '/')) {
+        search_directory_number = ROOT_CLUSTER_NUMBER;  
+    }
+
+    while (dir != NULL) {
+        updateDirectoryTable(search_directory_number);  
+
+        char name[8];  
+        copyStringWithLength(name, dir, 8);
+
+        int entry_index = findEntryName(name);  
+
+        if (entry_index == -1 || state.curr_dir.table[entry_index].attribute != ATTR_SUBDIRECTORY) {
+            syscall(6, (uint32_t) "cd: Invalid directory path", strlen("cd: Invalid directory path"), 0);
+            syscall(5, (uint32_t) '\n', 0, 0);
+            return;
+        }
+
+        // Update the search_directory_number to the found directory
+        search_directory_number = (uint32_t)((state.curr_dir.table[entry_index].cluster_high << 16) | state.curr_dir.table[entry_index].cluster_low);
+
+        dir = my_strtok(NULL, '/');  // Get the next token
+    }
+
+    // Update the current directory in the shell state
+    state.current_directory = search_directory_number;
+    updateDirectoryTable(state.current_directory);
+    syscall(PUT_CHAR, (uint32_t)state.current_directory + '0', 0, 0);
+    syscall(PUT_CHARS, (uint32_t)state.curr_dir.table->name, 8, 0);
+}
+
+
 
 void ls() {
 	for (int i = 0; i < TOTAL_DIRECTORY_ENTRY; ++i) {
@@ -111,17 +190,21 @@ void ls() {
 void mkdir() {
 	char *dir;
 	dir = my_strtok(NULL, '\0');
+    syscall(PUT_CHAR, (uint32_t)state.current_directory + '0', 0, 0);
+    syscall(PUT_CHAR, (uint32_t)'\n', 0, 0);
 	struct FAT32DriverRequest req = {
         .name = {0},
         .buf = NULL,
         .buffer_size = 0,
-	    .parent_cluster_number = (state.curr_dir.table[0].cluster_low) + (((uint32_t) state.curr_dir.table[0].cluster_high) >> 16),
-        
+	    .parent_cluster_number = state.current_directory,
     };
     copyStringWithLength(req.name, dir, 8);
 	int8_t ret;
     syscall(WRITE, (uint32_t)&req, (uint32_t)&ret, 0);
-    // syscall(PUT_CHAR, (uint32_t)(ret + '0'), 0, 0);
+    syscall(PUT_CHAR, (uint32_t)(ret + '0'), 0, 0);
+    syscall(PUT_CHAR, (uint32_t)'\n', 0, 0);
+    syscall(PUT_CHAR, (uint32_t)state.current_directory + '0', 0, 0);
+    syscall(PUT_CHAR, (uint32_t)'\n', 0, 0);
 	refresh_dir();
 }
 
@@ -196,6 +279,9 @@ void run_prompt() {
         }
         else if(strcmp(token, "test", 4) == 0){
             test();
+        } 
+        else if(strcmp(token, "cd", 2) == 0){
+            cd();
         }
         else{
             syscall(6, (uint32_t) "Gada perintahnya lmao", strlen("Gada perintahnya lmao"), 0);
@@ -265,9 +351,11 @@ int main(void) {
 
     syscall(READ_DIRECTORY, (uint32_t)&req, (uint32_t)&ret, 0);
 
-    syscall(7, 0, 0, 0);
+    syscall(ACTIVATE_KEYBOARD, 0, 0, 0);
     while (true) {
-        syscall(6, (uint32_t)"LostOnesWeeping> ", 17, 0);
+        syscall(PUT_CHARS, (uint32_t)"LostOnesWeeping:", 16, 0);
+        syscall(PUT_CHARS, (uint32_t)state.curr_dir.table->name, strlen(state.curr_dir.table->name), 0);
+        syscall(PUT_CHARS, (uint32_t)"> ", 2, 0);
         get_prompt();
         run_prompt();
     }
