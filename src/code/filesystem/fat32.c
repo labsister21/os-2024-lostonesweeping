@@ -4,7 +4,7 @@
 #include <stdint.h>
 #include <stdbool.h>
 
-static struct FAT32DriverState fat32_driver_state;
+static struct FAT32DriverState fat32_driver_state = {0};
 
 const uint8_t fs_signature[BLOCK_SIZE] = {
     'C', 'o', 'u', 'r', 's', 'e', ' ', ' ', ' ', ' ', ' ', ' ', ' ', ' ', ' ',  ' ',
@@ -154,7 +154,17 @@ void initialize_filesystem_fat32(void){
         read_clusters(&fat32_driver_state.dir_table_buf, ROOT_CLUSTER_NUMBER, 1);
 }
 
-
+int32_t driver_dir_table_linear_scan(char name[8], char ext[3], bool find_empty) {
+    for (uint32_t i = 0; i < TOTAL_DIRECTORY_ENTRY; i++) {
+        struct FAT32DirectoryEntry entry = fat32_driver_state.dir_table_buf.table[i];
+        bool is_entry_not_empty          = (entry.user_attribute & UATTR_NOT_EMPTY);
+        bool search_and_found_empty      = find_empty && !is_entry_not_empty;
+        bool name_match                  = is_entry_not_empty && !memcmp(entry.name, name, 8) && !memcmp(entry.ext, ext, 3);
+        if (search_and_found_empty || name_match)
+            return i;
+    }
+    return -1;
+}
 
 bool get_dir_table_from_cluster(uint32_t cluster, struct FAT32DirectoryTable *dir_entry) {
     if (fat32_driver_state.fat_table.cluster_map[cluster] !=
@@ -180,29 +190,34 @@ int8_t read_directory(struct FAT32DriverRequest request){
         return -1;
     }
 
-    bool found = false;
-    int i;
+    // bool found = false;
+    // int i;
 
-    //Iterasi setiap file dalam directoryTable parent
-    for (i=0; i<TOTAL_DIRECTORY_ENTRY; i++){
-        if (dir_table->table[i].user_attribute != UATTR_NOT_EMPTY
-        && strcmp(dir_table->table[i].name, request.name, 8)){
-            if(dir_table->table[i].attribute != ATTR_SUBDIRECTORY){ //Bukan sebuah folder
-                return 1;
-            }
-            if(request.buffer_size < dir_table->table[i].filesize){ //Ukuran request tidak cukup
-                return -1;
-            }
-            found = true;
-            break;
-        }
+    int32_t entry_index = driver_dir_table_linear_scan(request.name, "\0\0\0", false);
+    if(entry_index == -1){
+        return 2;
     }
 
-    //Jika file tidak tertemu, return 2
-    if (!found) return 2;
+    if(dir_table->table[entry_index].attribute != ATTR_SUBDIRECTORY){
+        return 1;
+    }
+    //Iterasi setiap file dalam directoryTable parent
+    // for (i=0; i<TOTAL_DIRECTORY_ENTRY; i++){
+    //     if (dir_table->table[i].user_attribute != UATTR_NOT_EMPTY
+    //     && strcmp(dir_table->table[i].name, request.name, 8)){
+    //         if(dir_table->table[i].attribute != ATTR_SUBDIRECTORY){ //Bukan sebuah folder
+    //             return 1;
+    //         }
+    //         found = true;
+    //         break;
+    //     }
+    // }
+
+    // //Jika file tidak tertemu, return 2
+    // if (!found) return 2;
 
     //Folder terdapat dalam allocationTable
-    uint32_t cluster_number = dir_table->table[i].cluster_low + ((uint16_t)dir_table->table[i].cluster_high >> 16);
+    uint32_t cluster_number = dir_table->table[entry_index].cluster_low + ((uint16_t)dir_table->table[entry_index].cluster_high >> 16);
     read_clusters(request.buf, cluster_number, 1);
 
     return 0;
