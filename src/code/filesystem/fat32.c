@@ -38,12 +38,12 @@ void init_directory_table(struct FAT32DirectoryTable *dir_table, char *name, uin
     self_entry->cluster_high = (uint16_t)(parent_dir_cluster >> 16);
 
     // Initialize parent entry
-    struct FAT32DirectoryEntry *parent_entry = &(dir_table->table[1]);
-    copyStringWithLength(parent_entry->name, "..", 8); 
-    parent_entry->attribute = ATTR_SUBDIRECTORY;
-    parent_entry->user_attribute = UATTR_NOT_EMPTY;
-    parent_entry->cluster_low = (uint16_t)parent_dir_cluster; // Set to current directory cluster
-    parent_entry->cluster_high = (uint16_t)(parent_dir_cluster >> 16); // For FAT32, consider higher bits of current cluster
+    // struct FAT32DirectoryEntry *parent_entry = &(dir_table->table[1]);
+    // copyStringWithLength(parent_entry->name, "..", 8); 
+    // parent_entry->attribute = ATTR_SUBDIRECTORY;
+    // parent_entry->user_attribute = UATTR_NOT_EMPTY;
+    // parent_entry->cluster_low = (uint16_t)parent_dir_cluster; // Set to current directory cluster
+    // parent_entry->cluster_high = (uint16_t)(parent_dir_cluster >> 16); // For FAT32, consider higher bits of current cluster
 }
 void read_clusters(void *ptr, uint32_t cluster_number, uint8_t cluster_count){
     /**
@@ -104,7 +104,7 @@ void create_fat32(void){
     write_clusters(&file_table, FAT_CLUSTER_NUMBER, 1);
     struct FAT32DirectoryTable *dir_table = &(fat32_driver_state.dir_table_buf); 
     // create_empty_dir_table(&dir_table, ROOT_CLUSTER_NUMBER, ROOT_CLUSTER_NUMBER);
-    init_directory_table(dir_table, ".", ROOT_CLUSTER_NUMBER);
+    init_directory_table(dir_table, "root", ROOT_CLUSTER_NUMBER);
     /**
      * eits, setelah kita bikin harusnya kita buat dia ada isi "awal" dong bukan NULL doang 
     */
@@ -161,9 +161,10 @@ bool get_dir_table_from_cluster(uint32_t cluster, struct FAT32DirectoryTable *di
             FAT32_FAT_END_OF_FILE)
         return false;
     read_clusters(dir_entry, cluster, 1);
-    if (strcmp(dir_entry->table[1].name, "..", 8) == 0 &&
-            dir_entry->table[1].attribute == ATTR_SUBDIRECTORY &&
-            strcmp(dir_entry->table[0].name, ".", 8) == 0 &&
+    // if (strcmp(dir_entry->table[1].name, "..", 8) == 0 &&
+    //         dir_entry->table[1].attribute == ATTR_SUBDIRECTORY &&
+            
+        if(strcmp(dir_entry->table[0].name, "root", 8) == 0 &&
             dir_entry->table[0].attribute == ATTR_SUBDIRECTORY)
         return true;
     return false;
