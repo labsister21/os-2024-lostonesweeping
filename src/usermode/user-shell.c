@@ -50,6 +50,7 @@ void ls() {
             if (entry->user_attribute != UATTR_NOT_EMPTY) continue;
             syscall(6, (uint32_t) entry->name, strlen(entry->name), 0);
             if (entry->attribute != ATTR_SUBDIRECTORY){
+                if(strlen(entry->ext) != 0 ) syscall(5, (uint32_t) '.', 0, 0);
                 syscall(6, (uint32_t) entry->ext, strlen(entry->ext), 0);
             } 
             syscall(5, (uint32_t)' ', 0, 0);
@@ -106,19 +107,34 @@ void get_prompt(){
 int main(void) {
 	int8_t ret;
     int8_t ret2;
+    char a[10];
+    for(int i = 0; i < 20; i++){
+        a[i] = 'A';
+    }
     struct FAT32DriverRequest req2;
 	req2.parent_cluster_number = ROOT_CLUSTER_NUMBER;
 	req2.buffer_size = 0;
 	copyStringWithLength(req2.name, "dir", 8);
     syscall(WRITE, (uint32_t)&req2, (uint32_t)&ret2, 0);
 
+    
+    struct FAT32DriverRequest reqfile = {
+        .buf = &a,
+        .name = "mbuh",
+        .ext = "txt",
+        .parent_cluster_number = ROOT_CLUSTER_NUMBER, 
+        .buffer_size = 20, 
+    };
+    syscall(WRITE, (uint32_t)&reqfile, (uint32_t)&ret2, 0);
 
-	struct FAT32DriverRequest req = {
+
+    struct FAT32DriverRequest req = {
         .buf = &state.curr_dir,
-        .name = ".",
+        .name = "root",
         .parent_cluster_number = ROOT_CLUSTER_NUMBER, 
         .buffer_size = 0, 
     };
+
     syscall(READ_DIRECTORY, (uint32_t)&req, (uint32_t)&ret, 0);
 
     syscall(7, 0, 0, 0);
