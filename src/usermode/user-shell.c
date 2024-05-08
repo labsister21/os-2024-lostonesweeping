@@ -43,6 +43,17 @@ void clear() {
 	syscall(PUT_CHAR, (uint32_t) 'J', 0, 0xF);
 }
 
+void refresh_dir() {
+	struct FAT32DriverRequest req = {
+        .parent_cluster_number = (state.curr_dir.table[0].cluster_low) + (((uint32_t) state.curr_dir.table[0].cluster_high) >> 16),
+        .buffer_size = 0,
+        .buf = &state.curr_dir,
+        .name = "root",
+    };
+	int8_t ret;
+	syscall(READ_DIRECTORY, (uint32_t)&req, (uint32_t)&ret, 0);
+}
+
 void ls() {
 	for (int i = 0; i < TOTAL_DIRECTORY_ENTRY; ++i) {
 		struct FAT32DirectoryEntry *entry = &state.curr_dir.table[i];
@@ -58,6 +69,23 @@ void ls() {
 	}
 }
 
+void mkdir() {
+	char *dir;
+	dir = my_strtok(NULL, '\0');
+	struct FAT32DriverRequest req = {
+        .name = {0},
+        .buf = NULL,
+        .buffer_size = 0,
+	    .parent_cluster_number = (state.curr_dir.table[0].cluster_low) + (((uint32_t) state.curr_dir.table[0].cluster_high) >> 16),
+        
+    };
+    copyStringWithLength(req.name, dir, 8);
+	int8_t ret;
+    syscall(WRITE, (uint32_t)&req, (uint32_t)&ret, 0);
+    // syscall(PUT_CHAR, (uint32_t)(ret + '0'), 0, 0);
+	refresh_dir();
+}
+
 void run_prompt() {
     char *token = my_strtok(state.prompt, ' ');
     if (token != NULL) {
@@ -67,7 +95,8 @@ void run_prompt() {
             ls();
         }
         else if(strcmp(token, "mkdir", 5) == 0){
-            syscall(6, (uint32_t) "OKE", strlen("OKE"), 0);
+            // syscall(6, (uint32_t) "OKE", strlen("OKE"), 0);
+            mkdir();
         }
         else{
             syscall(6, (uint32_t) "Gada perintahnya lmao", strlen("Gada perintahnya lmao"), 0);
