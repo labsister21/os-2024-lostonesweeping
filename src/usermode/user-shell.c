@@ -46,12 +46,14 @@ void clear() {
 void ls() {
 	for (int i = 0; i < TOTAL_DIRECTORY_ENTRY; ++i) {
 		struct FAT32DirectoryEntry *entry = &state.curr_dir.table[i];
-		if (entry->user_attribute != UATTR_NOT_EMPTY) continue;
-        syscall(6, (uint32_t) entry->name, strlen(entry->name), 0);
-		if (entry->attribute != ATTR_SUBDIRECTORY){
-            syscall(6, (uint32_t) entry->ext, strlen(entry->ext), 0);
-        } 
-		syscall(5, (uint32_t)' ', 0, 0);
+        if(entry->name != state.curr_dir.table->name){
+            if (entry->user_attribute != UATTR_NOT_EMPTY) continue;
+            syscall(6, (uint32_t) entry->name, strlen(entry->name), 0);
+            if (entry->attribute != ATTR_SUBDIRECTORY){
+                syscall(6, (uint32_t) entry->ext, strlen(entry->ext), 0);
+            } 
+            syscall(5, (uint32_t)' ', 0, 0);
+        }
 	}
 }
 
@@ -61,7 +63,7 @@ void run_prompt() {
         bool isClear = strcmp(token, "clear", 5) == 0;
         if(isClear) clear();
         if (strcmp(token, "ls", 2) == 0) {
-            syscall(6, (uint32_t) "OKE", strlen("OKE"), 0);
+            ls();
         }
         else if(strcmp(token, "mkdir", 5) == 0){
             syscall(6, (uint32_t) "OKE", strlen("OKE"), 0);
@@ -102,16 +104,22 @@ void get_prompt(){
 
 
 int main(void) {
-    int32_t retcode;
-    struct ClusterBuffer      cl[2]   = {0};
-    struct FAT32DriverRequest request = {
-        .buf                   = &cl,
-        .name                  = "shell",
-        .ext                   = "\0\0\0",
-        .parent_cluster_number = ROOT_CLUSTER_NUMBER,
-        .buffer_size           = CLUSTER_SIZE*2,
+	int8_t ret;
+    int8_t ret2;
+    struct FAT32DriverRequest req2;
+	req2.parent_cluster_number = ROOT_CLUSTER_NUMBER;
+	req2.buffer_size = 0;
+	copyStringWithLength(req2.name, "dir", 8);
+    syscall(WRITE, (uint32_t)&req2, (uint32_t)&ret2, 0);
+
+
+	struct FAT32DriverRequest req = {
+        .buf = &state.curr_dir,
+        .name = ".",
+        .parent_cluster_number = ROOT_CLUSTER_NUMBER, 
+        .buffer_size = 0, 
     };
-    syscall(0, (uint32_t) &request, (uint32_t) &retcode, 0);
+    syscall(READ_DIRECTORY, (uint32_t)&req, (uint32_t)&ret, 0);
 
     syscall(7, 0, 0, 0);
     while (true) {

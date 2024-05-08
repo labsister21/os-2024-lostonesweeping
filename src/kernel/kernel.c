@@ -70,6 +70,17 @@ void kernel_setup(void) {
     //     if(c)framebuffer_put(c);
     // }
     // Set TSS $esp pointer and jump into shell 
+    // char b;
+	// struct FAT32DriverRequest req = {
+    //     .buf = &b,
+    //     .name = "root",
+    //     .parent_cluster_number = ROOT_CLUSTER_NUMBER, 
+    //     .buffer_size = 0, 
+    // };
+    // write(req);
+    // framebuffer_put('Z');
+    // read_directory(req);
+    // framebuffer_put('X');
     set_tss_kernel_current_stack();
     kernel_execute_user_program((uint8_t*) 0);
 
