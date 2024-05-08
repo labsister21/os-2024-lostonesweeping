@@ -252,7 +252,4 @@ int8_t delete(struct FAT32DriverRequest request);
 //Prekondisi: Kedua char* berukuran l
 bool cmp_string_with_fixed_length(const char *a, const char *b, int l);
 
-
-void change_curr_dir(char* dest, int size);
-
 #endif

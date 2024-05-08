@@ -126,10 +126,14 @@ void syscall(struct InterruptFrame frame) {
             read_clusters((struct FAT32DirectoryTable*) frame.cpu.general.ebx, frame.cpu.general.ecx, 1);
             break;
 
-        case 14: 
-            char *dest = (char *)frame.cpu.general.ebx;
-            change_curr_dir(dest, 8);
-            break;
+        // case 14: 
+        //     char *dest = (char *)frame.cpu.general.ebx;
+        //     change_curr_dir(dest, 8);
+        //     int a = 0;
+        //     while(dest[a] != '\0'){
+        //         framebuffer_put(dest[a++]);
+        //     }
+        //     break;
     }
 }
 

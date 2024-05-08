@@ -27,7 +27,8 @@ struct ShellState {
 	int prompt_size;
 };
 
-struct ShellState state = {};
+struct ShellState state = {
+};
 
 void syscall(uint32_t eax, uint32_t ebx, uint32_t ecx, uint32_t edx) {
     __asm__ volatile("mov %0, %%ebx" : /* <Empty> */ : "r"(ebx));
@@ -169,8 +170,9 @@ void cd() {
 
     // Update the current directory in the shell state
     state.current_directory = search_directory_number;
-    syscall(CHANGE_DIR, (uint32_t)state.curr_dir.table->name, 0, 0);
     updateDirectoryTable(state.current_directory);
+    syscall(14, (uint32_t)state.curr_dir.table->name, 0, 0);
+    syscall(PUT_CHARS, (uint32_t)state.curr_dir.table->name, strlen(state.curr_dir.table->name), 0);
 }
 
 void ls() {
@@ -191,9 +193,10 @@ void ls() {
 void mkdir() {
 	char *dir;
 	dir = my_strtok(NULL, '\0');
+    char a;
 	struct FAT32DriverRequest req = {
         .name = {0},
-        .buf = &state.curr_dir,
+        .buf = &a,
         .buffer_size = 0,
 	    .parent_cluster_number = state.current_directory,
     };
@@ -201,6 +204,7 @@ void mkdir() {
 	int8_t ret;
     syscall(WRITE, (uint32_t)&req, (uint32_t)&ret, 0);
     syscall(PUT_CHAR, (uint32_t)ret + '0', 0, 0);
+    syscall(PUT_CHAR, (uint32_t)'\n', 0, 0);
 	refresh_dir();
 }
 
@@ -315,31 +319,10 @@ void get_prompt(){
 
 int main(void) {
 	int8_t ret;
-    int8_t ret2;
-    char a[10];
-    for(int i = 0; i < 20; i++){
-        a[i] = 'A';
-    }
-    struct FAT32DriverRequest req2;
-	req2.parent_cluster_number = ROOT_CLUSTER_NUMBER;
-	req2.buffer_size = 0;
-	copyStringWithLength(req2.name, "dir", 8);
-    syscall(WRITE, (uint32_t)&req2, (uint32_t)&ret2, 0);
-
-
-    struct FAT32DriverRequest reqfile = {
-        .buf = &a,
-        .name = "mbuh",
-        .ext = "txt",
-        .parent_cluster_number = ROOT_CLUSTER_NUMBER, 
-        .buffer_size = 20, 
-    };
-    syscall(WRITE, (uint32_t)&reqfile, (uint32_t)&ret2, 0);
-
 
     struct FAT32DriverRequest req = {
         .buf = &state.curr_dir,
-        .name = "root",
+        .name = "root\0\0\0\0",
         .parent_cluster_number = ROOT_CLUSTER_NUMBER, 
         .buffer_size = 0, 
     };
