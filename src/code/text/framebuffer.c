@@ -64,34 +64,52 @@ void framebuffer_clear_delete(void){
 
 void framebuffer_newline(void){
     framebuffer_state.row++;
-    framebuffer_state.col = 0;
+    if(framebuffer_state.row == BUFFER_HEIGHT){
+        framebuffer_state.row = 0;
+    }
     framebuffer_set_cursor(
         framebuffer_state.row, 
-        framebuffer_state.col
+        0
     );
 }
 
-void framebuffer_put(char c){
-    if(c == '\b') framebuffer_clear_delete();
-    else if(c == '\n') framebuffer_newline();
-    else{
-        framebuffer_write(
-            framebuffer_state.row, 
-            framebuffer_state.col, 
-            c, 
-            framebuffer_state.fg, 
-            framebuffer_state.bg
-        );
-        framebuffer_set_cursor(framebuffer_state.row, framebuffer_state.col);
+void framebuffer_move_cursor(enum FramebufferCursorMove direction, int count) {
+	int next_row = framebuffer_state.row;
+	int next_col = framebuffer_state.col;
+	switch (direction) {
+	case UP: {
+		next_row -= count;
+	} break;
+	case DOWN: {
+		next_row += count;
+	} break;
+	case LEFT: {
+		next_col -= count;
+	} break;
+	case RIGHT: {
+		next_col += count;
+	} break;
+	}
+	framebuffer_set_cursor(next_row, next_col);
+};
 
-        framebuffer_state.col += 1;
-        if (framebuffer_state.col == BUFFER_WIDTH) {
-            framebuffer_state.col = 0;
-            framebuffer_state.row += 1;
-            if (framebuffer_state.row == BUFFER_HEIGHT) {
-                framebuffer_state.row = 0;
-            }
-        }
+void framebuffer_put(char c){
+    framebuffer_write(
+        framebuffer_state.row, 
+        framebuffer_state.col, 
+        c, 
+        framebuffer_state.fg, 
+        framebuffer_state.bg
+    );
+
+    framebuffer_set_cursor(framebuffer_state.row, framebuffer_state.col);
+    framebuffer_state.col += 1;
+    if (framebuffer_state.col == BUFFER_WIDTH) {
+        framebuffer_state.col = 0;
+        framebuffer_state.row += 1;
+    }
+    if (framebuffer_state.row == BUFFER_HEIGHT) {
+        framebuffer_state.row = 0;
     }
 }
 

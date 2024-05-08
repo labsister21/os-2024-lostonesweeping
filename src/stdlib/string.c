@@ -107,3 +107,39 @@ bool cmp_string_with_fixed_length(const char *a, const char *b, int l){
     }
     return true;
 }
+
+
+char *my_strtok(char *str, char delim){
+    static char *current_str;
+	static int i;
+	if (str != NULL) {
+		i = 0;
+		current_str = str;
+	}
+
+	while (current_str[i] != '\0' && current_str[i] == delim) {
+        ++i;
+    }
+
+	int start = i;
+	if (current_str[i] == '\0'){
+        return NULL;
+    }
+	while (current_str[i] != '\0' && current_str[i] != delim){
+		++i;
+    }
+	current_str[i] = '\0';
+	++i;
+	return &current_str[start];
+}
+
+size_t strlen(const char *str) {
+    size_t length = 0;
+    
+    // Iterate over the string until the null terminator is found
+    while (str[length] != '\0') {
+        length++;
+    }
+    
+    return length;
+}

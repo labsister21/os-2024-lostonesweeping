@@ -50,6 +50,8 @@ int memcmp(const void *s1, const void *s2, size_t n);
  * 
  * @return Pointer dest
 */
+
+
 void *memmove(void *dest, const void *src, size_t n);
 
 int strcmp(char *str1, char *str2, int length);
@@ -63,5 +65,9 @@ void *my_memcpy(void *dest, const void *src, size_t length);
 void copyStringWithLength(char* destination, const char* source, int length);
 
 bool cmp_string_with_fixed_length(const char *a, const char *b, int l);
+
+char *my_strtok(char *str, char delim);
+
+size_t strlen(const char *str);
 
 #endif

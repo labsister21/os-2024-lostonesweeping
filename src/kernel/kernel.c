@@ -34,9 +34,10 @@ void kernel_setup(void) {
     pic_remap();
     initialize_idt();
     activate_keyboard_interrupt();
+    initialize_filesystem_fat32();
     framebuffer_clear();
     framebuffer_set_cursor(0, 0);
-    initialize_filesystem_fat32();
+
     gdt_install_tss();
     set_tss_register();
 
@@ -44,6 +45,16 @@ void kernel_setup(void) {
     paging_allocate_user_page_frame(&_paging_kernel_page_directory, (uint8_t*) 0);
 
     // Write shell into memory
+    // struct FAT32DriverRequest request1 = {
+    //     .buf                   = (uint8_t*) 0,
+    //     .name                  = "shell",
+    //     .ext                   = "\0\0\0",
+    //     .parent_cluster_number = ROOT_CLUSTER_NUMBER,
+    //     .buffer_size           = 0x864, 
+    // };
+    // write(request1);
+
+    // uint8_t buf[4096];
     struct FAT32DriverRequest request = {
         .buf                   = (uint8_t*) 0,
         .name                  = "shell",
@@ -52,7 +63,12 @@ void kernel_setup(void) {
         .buffer_size           = 0x100000,
     };
     read(request);
-
+    // keyboard_state_activate();
+    // while(true){
+    //     char c;
+    //     get_keyboard_buffer(&c);
+    //     if(c)framebuffer_put(c);
+    // }
     // Set TSS $esp pointer and jump into shell 
     set_tss_kernel_current_stack();
     kernel_execute_user_program((uint8_t*) 0);

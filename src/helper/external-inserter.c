@@ -86,6 +86,7 @@ int main(int argc, char *argv[]) {
 
     // FAT32 operations
     initialize_filesystem_fat32();
+
     struct FAT32DriverRequest request = {
         .buf         = file_buffer,
         .buffer_size = filesize,
