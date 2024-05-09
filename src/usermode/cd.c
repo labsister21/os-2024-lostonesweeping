@@ -2,22 +2,28 @@
 #include "user-shell.h"
 #include "util.h"
 
+
 void cd(char* dir) {
     uint32_t search_directory_number = state.current_directory;
-
+    // put_chars(dir);
     if (dir == NULL) {
         return;  // No directory specified
     }
 
-    char* token = my_strtok(dir, '/');  // Tokenize the path
-    while (token != NULL) {
+    char directories[10][8]; 
+    int num_dir; 
+
+    extractDirectories(dir, directories, &num_dir);
+    int i = 0;
+    for(int j = 0; j < num_dir; j++){
+        put_chars(directories[j]);
+        put_char('\n');
+    }
+    while (i < num_dir) {
         updateDirectoryTable(search_directory_number);  
 
-        char name[8];
-        copyStringWithLength(name, token, 8);
 
-        int entry_index = findEntryName(name);  
-
+        int entry_index = findEntryName(directories[i]);  
         if (entry_index == -1 || state.curr_dir.table[entry_index].attribute != ATTR_SUBDIRECTORY) {
             syscall(6, (uint32_t) "cd: Invalid directory path", strlen("cd: Invalid directory path"), 0);
             syscall(5, (uint32_t) '\n', 0, 0);
@@ -26,8 +32,8 @@ void cd(char* dir) {
 
         // Update the search_directory_number to the found directory
         search_directory_number = (uint32_t)((state.curr_dir.table[entry_index].cluster_high >> 16) | state.curr_dir.table[entry_index].cluster_low);
-
-        token = my_strtok(NULL, '/');  // Get the next token
+        put_char('\n');
+        i++;
     }
 
     // Update the current directory in the shell state
@@ -35,10 +41,5 @@ void cd(char* dir) {
     state.current_directory_name = state.curr_dir.table->name;
     updateDirectoryTable(state.current_directory);
 
-    // Print the current directory name to the shell
-    put_char('\n');
-    // put_chars(state.curr_dir.table->name);
-    // put_char(state.current_directory);
-    // sycall(PUT_CHARS, (uint32_t)state.current_directory + '0', 0, 0);
     put_char('\n');
 }

@@ -23,23 +23,6 @@ struct ShellState state = {
 };
 
 
-int findEntryName(char* name) {
-    int result = -1;
-
-    int i = 1;
-    bool found = false;
-    while (i < TOTAL_DIRECTORY_ENTRY && !found) {
-        if (memcmp(state.curr_dir.table[i].name, name, 8) == 0 && 
-            state.curr_dir.table[i].user_attribute == UATTR_NOT_EMPTY) {
-            result = i;
-            found = true;
-        }
-        else {
-            i++;
-        }
-    }
-    return result;
-}
 
 void updateDirectoryTable(uint32_t cluster_number) {
     syscall(CHANGE_DIR, (uint32_t)&state.curr_dir, cluster_number, 0x0);
