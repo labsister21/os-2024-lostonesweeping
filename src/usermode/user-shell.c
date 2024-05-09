@@ -1,31 +1,11 @@
-#include <stdint.h>
-#include "header/filesystem/fat32.h"
-#include "header/stdlib/string.h"
-#include "header/driver/keyboard.h"
-// #include "./user-shell.h"
 
-#define READ 0 
-#define READ_DIRECTORY 1 
-#define WRITE 2 
-#define DELETE 3
-#define PUT_CHAR 5 
-#define PUT_CHARS 6 
-#define ACTIVATE_KEYBOARD 7 
-#define DEACTIVATE_KEYBOARD 8 
-#define GET_PROMPT 10 
-
-
-
-
-#define MAX_PROMPT 512 //gada perintah yang melebihi ini
-
-struct ShellState {
-	struct FAT32DirectoryTable curr_dir;
-	char prompt[MAX_PROMPT];
-	int prompt_size;
-};
-
-struct ShellState state = {};
+#include "./user-shell.h"
+#include "./ls.h"
+#include "./mkdir.h"
+#include "./cd.h"
+#include "./rm.h"
+#include "cat.h"
+#include "util.h"
 
 void syscall(uint32_t eax, uint32_t ebx, uint32_t ecx, uint32_t edx) {
     __asm__ volatile("mov %0, %%ebx" : /* <Empty> */ : "r"(ebx));
@@ -38,55 +18,71 @@ void syscall(uint32_t eax, uint32_t ebx, uint32_t ecx, uint32_t edx) {
 }
 
 
+struct ShellState state = {
+    .current_directory = ROOT_CLUSTER_NUMBER, 
+    .current_directory_name = {'r', 'o', 'o', 't'},
+};
+ 
+void updateDirectoryTable(uint32_t cluster_number) {
+    syscall(CHANGE_DIR, (uint32_t)&state.curr_dir, cluster_number, 0x0);
+}
+
 void clear() {
 	syscall(PUT_CHAR, (uint32_t) '\e', 0, 0xF);
 	syscall(PUT_CHAR, (uint32_t) 'J', 0, 0xF);
 }
 
-void ls() {
-	for (int i = 0; i < TOTAL_DIRECTORY_ENTRY; ++i) {
-		struct FAT32DirectoryEntry *entry = &state.curr_dir.table[i];
-		if (entry->user_attribute != UATTR_NOT_EMPTY) continue;
-        syscall(6, (uint32_t) entry->name, strlen(entry->name), 0);
-		if (entry->attribute != ATTR_SUBDIRECTORY){
-            syscall(6, (uint32_t) entry->ext, strlen(entry->ext), 0);
-        } 
-		syscall(5, (uint32_t)' ', 0, 0);
-	}
+void refresh_dir(){
+   int8_t ret;
+    struct FAT32DriverRequest req={
+        .name = "\0\0\0\0\0\0\0\0",
+        .buffer_size = 0, 
+        .buf = &state.curr_dir,
+        .parent_cluster_number = state.current_directory,
+    };
+    memcpy(req.name, state.current_directory_name, strlen(state.current_directory_name));
+    syscall(READ_DIRECTORY, (uint32_t)&req, (uint32_t)&ret, 0); 
 }
 
 void run_prompt() {
-    char *token = my_strtok(state.prompt, ' ');
-    if (token != NULL) {
-        bool isClear = strcmp(token, "clear", 5) == 0;
-        if(isClear) clear();
-        if (strcmp(token, "ls", 2) == 0) {
-            syscall(6, (uint32_t) "OKE", strlen("OKE"), 0);
-        }
-        else if(strcmp(token, "mkdir", 5) == 0){
-            syscall(6, (uint32_t) "OKE", strlen("OKE"), 0);
-        }
-        else{
-            syscall(6, (uint32_t) "Gada perintahnya lmao", strlen("Gada perintahnya lmao"), 0);
-        }
-        if(!isClear) syscall(PUT_CHAR, (uint32_t)'\n', 0, 0xF);
-        
+    char* token = my_strtok(state.prompt_val, ' ');
+    if(memcmp(token, "ls", 2) == 0){
+        ls();
     }
+    else if(memcmp(token, "mkdir", 5) == 0){
+        char* arg = my_strtok(NULL, '\0');
+        mkdir(arg);
+    }
+    else if(memcmp(token, "cd", 2) == 0){
+        char* arg = my_strtok(NULL, '\0'); 
+        cd(arg);
+    }
+    else if(memcmp(token, "rm", 2) == 0){
+        char* arg = my_strtok(NULL, '\0'); 
+        remove(arg);
+    } 
+    else if(memcmp(token, "cat", 3) == 0){
+        char* arg = my_strtok(NULL, '\0'); 
+        cat(arg);
+    }
+}
 
-
+void clear_prompt() {
+    state.prompt_size = 0;
+    memset(state.prompt_val, 0, MAX_PROMPT);
 }
 
 //buat nulis di shell
 void get_prompt(){
-    state.prompt_size = 0;
+    clear_prompt();
     while(1){
         char c = '\0'; 
         while(c == '\0'){
             syscall(GET_PROMPT, (uint32_t) &c, 0, 0);
         }
         if(c == '\b'){
-            if(state.prompt_size > 0){
-                state.prompt[state.prompt_size--] = c;
+            if(state.prompt_size> 0){
+                state.prompt_val[state.prompt_size--] = c;
                 syscall(12, (uint32_t)' ', 0, 0xF);
             }
         }else{
@@ -94,31 +90,46 @@ void get_prompt(){
             if(c == '\n' || state.prompt_size + 1 >= MAX_PROMPT){
                 break;
             }
-            state.prompt[state.prompt_size++] = c;
+            state.prompt_val[state.prompt_size++] = c;
         }
     }
-    state.prompt[state.prompt_size] = '\0';
+    state.prompt_val[state.prompt_size] = '\0';
 }
 
 
 int main(void) {
-    int32_t retcode;
-    struct ClusterBuffer      cl[2]   = {0};
-    struct FAT32DriverRequest request = {
-        .buf                   = &cl,
-        .name                  = "shell",
-        .ext                   = "\0\0\0",
-        .parent_cluster_number = ROOT_CLUSTER_NUMBER,
-        .buffer_size           = CLUSTER_SIZE*2,
-    };
-    syscall(0, (uint32_t) &request, (uint32_t) &retcode, 0);
+	int8_t ret;
+    // struct FAT32DriverRequest req={
+    //     .name = "root\0\0\0\0",
+    //     .buffer_size = 0, 
+    //     .buf = &state.curr_dir,
+    //     .parent_cluster_number = ROOT_CLUSTER_NUMBER
+    // };
 
-    syscall(7, 0, 0, 0);
+    // syscall(READ_DIRECTORY, (uint32_t)&req, (uint32_t)&ret, 0);
+    state.current_directory = ROOT_CLUSTER_NUMBER;
+    syscall(ACTIVATE_KEYBOARD, 0, 0, 0);
+
+    char bufer[7] = {'a', 'k', 'u', 'g', 'i', 'l', 'a'};
+    struct FAT32DriverRequest req2={
+        .name = "lmao",
+        .ext = "txt",
+        .buffer_size = 10, 
+        .buf = &bufer,
+        .parent_cluster_number = ROOT_CLUSTER_NUMBER
+    };
+
+
+    syscall(WRITE, (uint32_t)&req2, (uint32_t)&ret, 0);
+    refresh_dir();
     while (true) {
-        syscall(6, (uint32_t)"LostOnesWeeping> ", 17, 0);
+        syscall(PUT_CHARS, (uint32_t)"LostOnesWeeping:", 16, 0);
+        print_curr_dir(state.path_to_print, state.current_directory);
+        // put_char(state.current_directory + '0');
+        syscall(PUT_CHARS, (uint32_t)"> ", 2, 0);
         get_prompt();
-        run_prompt();
+        run_prompt(state.prompt_val);
+        refresh_dir();
     }
     return 0;
 }
-

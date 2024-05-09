@@ -3,16 +3,23 @@ ENTRY(_start)
 SECTIONS {
     . = 0x00000000; /* Assuming OS will load this program at virtual address */
     
-    .text ALIGN(4):
+    .text ALIGN(4): 
     {
-        bin/crt0.o(.text)  /* Put the entrypoint in the front of executable */
+        [a-z\/]*crt0.o(.text)  /* Put the entrypoint in the front of executable */
         *(.text)
     }
+
 
     .data ALIGN(4):
     {
         *(.data)
     }
+
+    .bss ALIGN(4): {
+        *(COMMON)
+        *(.bss)
+    }
+
 
     .rodata ALIGN(4):
     {
