@@ -3,13 +3,11 @@
 #include "./util.h"
 
 
-
-
 void ls()
 {
     for (int i = 1; i < 63; i++)
     {
-        if (state.curr_dir.table[i].user_attribute == UATTR_NOT_EMPTY)
+    if (state.curr_dir.table[i].user_attribute == UATTR_NOT_EMPTY)
         {
             if (state.curr_dir.table[i].name[7] != '\0')
             {

@@ -44,24 +44,45 @@ void updateDirectoryTable(uint32_t cluster_number) {
     syscall(CHANGE_DIR, (uint32_t)&state.curr_dir, cluster_number, 0x0);
 }
 
-
 void clear() {
 	syscall(PUT_CHAR, (uint32_t) '\e', 0, 0xF);
 	syscall(PUT_CHAR, (uint32_t) 'J', 0, 0xF);
 }
 
+void refresh_dir(){
+   int8_t ret;
+    struct FAT32DriverRequest req={
+        .name = "\0\0\0\0\0\0\0\0",
+        .buffer_size = 0, 
+        .buf = &state.curr_dir,
+        .parent_cluster_number = state.current_directory
+    };
+    memcpy(req.name, state.curr_dir.table->name, strlen(state.curr_dir.table->name));
+    syscall(READ_DIRECTORY, (uint32_t)&req, (uint32_t)&ret, 0); 
+}
 
 void run_prompt() {
-    syscall(PUT_CHAR, (uint32_t)'\n', 0, 0);
-    char* token = my_strtok(state.prompt_val, '\0');
+    char* token = my_strtok(state.prompt_val, ' ');
     if(memcmp(token, "ls", 2) == 0){
         ls();
     }
+    else if(memcmp(token, "mkdir", 5) == 0){
+        char* arg = my_strtok(NULL, ' ');
+        if(arg != NULL){
+            mkdir(arg);
+        }
+    }
+}
+
+void clear_prompt() {
+    // Reset prompt buffer and size
+    state.prompt_size = 0;
+    memset(state.prompt_val, 0, MAX_PROMPT);
 }
 
 //buat nulis di shell
 void get_prompt(){
-    state.prompt_size = 0;
+    clear_prompt();
     while(1){
         char c = '\0'; 
         while(c == '\0'){
@@ -112,7 +133,7 @@ int main(void) {
         syscall(PUT_CHARS, (uint32_t)"> ", 2, 0);
         get_prompt();
         run_prompt(state.prompt_val);
-
+        refresh_dir();
     }
     return 0;
 }
