@@ -2,6 +2,6 @@
 #ifndef _CD_H_
 #define _CD_H_
 
-void cd();
+void cd(char* dir);
 
 #endif

@@ -68,9 +68,11 @@ void run_prompt() {
     }
     else if(memcmp(token, "mkdir", 5) == 0){
         char* arg = my_strtok(NULL, ' ');
-        if(arg != NULL){
-            mkdir(arg);
-        }
+        mkdir(arg);
+    }
+    else if(memcmp(token, "cd", 2) == 0){
+        char* arg = my_strtok(NULL, ' '); 
+        cd(arg);
     }
 }
 
