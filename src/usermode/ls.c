@@ -5,20 +5,13 @@
 
 void ls()
 {
-    for (int i = 1; i < TOTAL_DIRECTORY_ENTRY; i++)
+    for (int i = 1; i < 63; i++)
     {
     if (state.curr_dir.table[i].user_attribute == UATTR_NOT_EMPTY)
         {
             if(state.curr_dir.table[i].name != state.current_directory_name){
                 if(state.curr_dir.table[i].name != state.current_directory_name){
-                    if (state.curr_dir.table[i].name[7] != '\0')
-                        {
-                            put_chars(state.curr_dir.table[i].name);
-                        }
-                        else
-                        {
-                            put_chars(state.curr_dir.table[i].name);
-                        }
+                        put_chars(state.curr_dir.table[i].name);
                         if (state.curr_dir.table[i].attribute != ATTR_SUBDIRECTORY && strlen(state.curr_dir.table[i].ext) != 0)
                         {
                             put_chars("." );
@@ -29,22 +22,15 @@ void ls()
             }
         }
     }
-    if (state.curr_dir.table[TOTAL_DIRECTORY_ENTRY].user_attribute == UATTR_NOT_EMPTY)
+    if (state.curr_dir.table[63].user_attribute == UATTR_NOT_EMPTY)
     {
-        if(state.curr_dir.table[TOTAL_DIRECTORY_ENTRY].name != state.current_directory_name){
-            if(state.curr_dir.table[TOTAL_DIRECTORY_ENTRY].name != state.current_directory_name){
-                if (state.curr_dir.table[TOTAL_DIRECTORY_ENTRY].name[7] != '\0')
-                {
-                    put_chars(state.curr_dir.table[TOTAL_DIRECTORY_ENTRY].name);
-                }
-                else
-                {
-                    put_chars(state.curr_dir.table[TOTAL_DIRECTORY_ENTRY].name);
-                }
-                if (state.curr_dir.table[TOTAL_DIRECTORY_ENTRY].attribute != ATTR_SUBDIRECTORY && strlen(state.curr_dir.table[63].ext) != 0)
+        if(state.curr_dir.table[63].name != state.current_directory_name){
+            if(state.curr_dir.table[63].name != state.current_directory_name){
+                put_chars(state.curr_dir.table[63].name);
+                if (state.curr_dir.table[63].attribute != ATTR_SUBDIRECTORY && strlen(state.curr_dir.table[63].ext) != 0)
                 {
                     put_chars(".");
-                    put_chars(state.curr_dir.table[TOTAL_DIRECTORY_ENTRY].ext);
+                    put_chars(state.curr_dir.table[63].ext);
                 }
                 put_char('\n');
             }

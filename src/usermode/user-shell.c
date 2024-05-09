@@ -133,7 +133,7 @@ int main(void) {
     while (true) {
         syscall(PUT_CHARS, (uint32_t)"LostOnesWeeping:", 16, 0);
         print_curr_dir(state.path_to_print, state.current_directory);
-        put_char(state.current_directory + '0');
+        // put_char(state.current_directory + '0');
         syscall(PUT_CHARS, (uint32_t)"> ", 2, 0);
         get_prompt();
         run_prompt(state.prompt_val);
