@@ -15,9 +15,6 @@
 #define GET_PROMPT 10 
 #define CHANGE_DIR 13
 
-
-
-
 #define MAX_PROMPT 512 //gada perintah yang melebihi ini
 
 struct ShellState {
@@ -112,7 +109,6 @@ void clear() {
 }
 
 void refresh_dir(){
-    // syscall(PUT_CHAR, (uint32_t)state.current_directory + '0', 0, 0);
 	struct FAT32DriverRequest req = {
         .name = {0},
         .buf = &state.curr_dir,
@@ -129,26 +125,25 @@ void cd() {
     char* dir = my_strtok(NULL, '/');  // Parse the next token using '/'
     uint32_t search_directory_number = state.current_directory;
     
-    if (dir == NULL) {
+    if(dir == NULL){
         return;  // No directory specified
     }
 
     if (strcmp(dir, "..", 2) == 0) {
         // Move to the parent directory
-        uint32_t parent_cluster = state.curr_dir.table[0].cluster_low +
-                                  ((uint32_t)state.curr_dir.table[0].cluster_high << 16);
+        uint32_t parent_cluster = state.curr_dir.table[0].cluster_low + ((uint32_t)state.curr_dir.table[0].cluster_high << 16);
         search_directory_number = parent_cluster;
         updateDirectoryTable(search_directory_number);
-        state.current_directory = search_directory_number;
-        syscall(PUT_CHARS, (uint32_t)state.curr_dir.table->name, 8, 0);
+        state.current_directory = parent_cluster;
+        // syscall(PUT_CHARS, (uint32_t)state.curr_dir.table->name, 8, 0);
         return;
     }
 
-    if (isPathAbsolute(dir, '/')) {
-        search_directory_number = ROOT_CLUSTER_NUMBER;  // Absolute path
-    }
+    // if (isPathAbsolute(dir, '/')) {
+    //     search_directory_number = ROOT_CLUSTER_NUMBER;  // Absolute path
+    // }
 
-    while (dir != NULL) {
+    if(dir != NULL) {
         updateDirectoryTable(search_directory_number);  
 
         char name[8];  
@@ -156,11 +151,11 @@ void cd() {
 
         int entry_index = findEntryName(name);  
 
-        if (entry_index == -1 || state.curr_dir.table[entry_index].attribute != ATTR_SUBDIRECTORY) {
-            syscall(6, (uint32_t) "cd: Invalid directory path", strlen("cd: Invalid directory path"), 0);
-            syscall(5, (uint32_t) '\n', 0, 0);
-            return;
-        }
+        // if (entry_index == -1 || state.curr_dir.table[entry_index].attribute != ATTR_SUBDIRECTORY) {
+        //     syscall(6, (uint32_t) "cd: Invalid directory path", strlen("cd: Invalid directory path"), 0);
+        //     syscall(5, (uint32_t) '\n', 0, 0);
+        //     return;
+        // }
 
         // Update the search_directory_number to the found directory
         search_directory_number = (uint32_t)((state.curr_dir.table[entry_index].cluster_high << 16) | state.curr_dir.table[entry_index].cluster_low);
@@ -171,32 +166,33 @@ void cd() {
     // Update the current directory in the shell state
     state.current_directory = search_directory_number;
     updateDirectoryTable(state.current_directory);
-    syscall(14, (uint32_t)state.curr_dir.table->name, 0, 0);
+    // syscall(14, (uint32_t)state.curr_dir.table->name, 0, 0);
     syscall(PUT_CHARS, (uint32_t)state.curr_dir.table->name, strlen(state.curr_dir.table->name), 0);
 }
 
-void ls() {
-	for (int i = 0; i < TOTAL_DIRECTORY_ENTRY; ++i) {
+void ls(){
+	for (int i = 0; i < TOTAL_DIRECTORY_ENTRY; ++i){
 		struct FAT32DirectoryEntry *entry = &state.curr_dir.table[i];
-        if(entry->name != state.curr_dir.table->name){
-            if (entry->user_attribute != UATTR_NOT_EMPTY) continue;
-            syscall(6, (uint32_t) entry->name, strlen(entry->name), 0);
-            if (entry->attribute != ATTR_SUBDIRECTORY){
-                if(strlen(entry->ext) != 0 ) syscall(5, (uint32_t) '.', 0, 0);
-                syscall(6, (uint32_t) entry->ext, strlen(entry->ext), 0);
-            } 
-            syscall(5, (uint32_t)' ', 0, 0);
-        }
+        // if(state.current_directory == entry->cluster_low + ((uint32_t)entry->cluster_high << 16)){
+            if(entry->name != state.curr_dir.table->name){
+                if (entry->user_attribute != UATTR_NOT_EMPTY) continue;
+                syscall(PUT_CHARS, (uint32_t) entry->name, strlen(entry->name), 0);
+                if (entry->attribute != ATTR_SUBDIRECTORY){
+                    if(strlen(entry->ext) != 0 ) syscall(5, (uint32_t) '.', 0, 0);
+                    syscall(PUT_CHARS, (uint32_t) entry->ext, strlen(entry->ext), 0);
+                } 
+                syscall(PUT_CHAR, (uint32_t)' ', 0, 0);
+            }
+        // }
 	}
 }
 
 void mkdir() {
 	char *dir;
 	dir = my_strtok(NULL, '\0');
-    char a;
 	struct FAT32DriverRequest req = {
         .name = {0},
-        .buf = &a,
+        .buf = &state.curr_dir,
         .buffer_size = 0,
 	    .parent_cluster_number = state.current_directory,
     };
@@ -204,7 +200,7 @@ void mkdir() {
 	int8_t ret;
     syscall(WRITE, (uint32_t)&req, (uint32_t)&ret, 0);
     syscall(PUT_CHAR, (uint32_t)ret + '0', 0, 0);
-    syscall(PUT_CHAR, (uint32_t)'\n', 0, 0);
+    syscall(PUT_CHAR, (uint32_t)' ', 0, 0);
 	refresh_dir();
 }
 
@@ -320,21 +316,20 @@ void get_prompt(){
 int main(void) {
 	int8_t ret;
 
-    struct FAT32DriverRequest req = {
-        .buf = &state.curr_dir,
+    struct FAT32DriverRequest req={
         .name = "root\0\0\0\0",
-        .parent_cluster_number = ROOT_CLUSTER_NUMBER, 
         .buffer_size = 0, 
+        .buf = &state.curr_dir,
+        .parent_cluster_number = ROOT_CLUSTER_NUMBER
     };
 
     syscall(READ_DIRECTORY, (uint32_t)&req, (uint32_t)&ret, 0);
     state.current_directory = ROOT_CLUSTER_NUMBER;
     syscall(ACTIVATE_KEYBOARD, 0, 0, 0);
-
+       
     while (true) {
         syscall(PUT_CHARS, (uint32_t)"LostOnesWeeping:", 16, 0);
         syscall(PUT_CHARS, (uint32_t)state.curr_dir.table->name, strlen(state.curr_dir.table->name), 0);
-        syscall(PUT_CHAR, (uint32_t)state.current_directory + '0', 0, 0);
         syscall(PUT_CHARS, (uint32_t)"> ", 2, 0);
         get_prompt();
         run_prompt();
