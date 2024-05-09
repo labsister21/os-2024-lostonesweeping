@@ -33,6 +33,7 @@
 struct ShellState {
 	struct FAT32DirectoryTable curr_dir;
     uint32_t current_directory;
+	char* current_directory_name;
 	char prompt_val[MAX_PROMPT];
 	int prompt_size;
 	char path_to_print[2048];

@@ -1,6 +1,6 @@
 #include "cd.h"
 #include "user-shell.h"
-
+#include "util.h"
 
 void cd(char* dir) {
     uint32_t search_directory_number = state.current_directory;
@@ -25,15 +25,20 @@ void cd(char* dir) {
         }
 
         // Update the search_directory_number to the found directory
-        search_directory_number = (uint32_t)((state.curr_dir.table[entry_index].cluster_high << 16) | state.curr_dir.table[entry_index].cluster_low);
+        search_directory_number = (uint32_t)((state.curr_dir.table[entry_index].cluster_high >> 16) | state.curr_dir.table[entry_index].cluster_low);
 
         token = my_strtok(NULL, '/');  // Get the next token
     }
 
     // Update the current directory in the shell state
     state.current_directory = search_directory_number;
+    state.current_directory_name = state.curr_dir.table->name;
     updateDirectoryTable(state.current_directory);
 
     // Print the current directory name to the shell
-    syscall(PUT_CHARS, (uint32_t)state.curr_dir.table->name, strlen(state.curr_dir.table->name), 0);
+    put_char('\n');
+    // put_chars(state.curr_dir.table->name);
+    // put_char(state.current_directory);
+    // sycall(PUT_CHARS, (uint32_t)state.current_directory + '0', 0, 0);
+    put_char('\n');
 }

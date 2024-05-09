@@ -3,7 +3,7 @@
 #include "./ls.h"
 #include "./mkdir.h"
 #include "./cd.h"
-#include "./rm.h"
+// #include "./rm.h"
 #include "util.h"
 
 void syscall(uint32_t eax, uint32_t ebx, uint32_t ecx, uint32_t edx) {
@@ -19,6 +19,7 @@ void syscall(uint32_t eax, uint32_t ebx, uint32_t ecx, uint32_t edx) {
 
 struct ShellState state = {
     .current_directory = ROOT_CLUSTER_NUMBER, 
+    .current_directory_name = "root",
 };
 
 
@@ -27,7 +28,7 @@ int findEntryName(char* name) {
 
     int i = 1;
     bool found = false;
-    while (i < 64 && !found) {
+    while (i < TOTAL_DIRECTORY_ENTRY && !found) {
         if (memcmp(state.curr_dir.table[i].name, name, 8) == 0 && 
             state.curr_dir.table[i].user_attribute == UATTR_NOT_EMPTY) {
             result = i;
@@ -54,10 +55,10 @@ void refresh_dir(){
     struct FAT32DriverRequest req={
         .name = "\0\0\0\0\0\0\0\0",
         .buffer_size = 0, 
-        .buf = &state.curr_dir,
+        .buf = &state,
         .parent_cluster_number = state.current_directory
     };
-    memcpy(req.name, state.curr_dir.table->name, strlen(state.curr_dir.table->name));
+    memcpy(req.name, state.current_directory_name, strlen(state.current_directory_name));
     syscall(READ_DIRECTORY, (uint32_t)&req, (uint32_t)&ret, 0); 
 }
 
@@ -67,17 +68,16 @@ void run_prompt() {
         ls();
     }
     else if(memcmp(token, "mkdir", 5) == 0){
-        char* arg = my_strtok(NULL, ' ');
+        char* arg = my_strtok(NULL, '\0');
         mkdir(arg);
     }
     else if(memcmp(token, "cd", 2) == 0){
-        char* arg = my_strtok(NULL, ' '); 
+        char* arg = my_strtok(NULL, '\0'); 
         cd(arg);
     }
 }
 
 void clear_prompt() {
-    // Reset prompt buffer and size
     state.prompt_size = 0;
     memset(state.prompt_val, 0, MAX_PROMPT);
 }
@@ -123,15 +123,17 @@ int main(void) {
     struct FAT32DriverRequest req2={
         .name = "LMAO",
         .buffer_size = 0, 
-        .buf = &state.curr_dir,
+        .buf = 0,
         .parent_cluster_number = ROOT_CLUSTER_NUMBER
     };
 
     syscall(WRITE, (uint32_t)&req2, (uint32_t)&ret, 0);
+    refresh_dir();
 
     while (true) {
         syscall(PUT_CHARS, (uint32_t)"LostOnesWeeping:", 16, 0);
         print_curr_dir(state.path_to_print, state.current_directory);
+        put_char(state.current_directory + '0');
         syscall(PUT_CHARS, (uint32_t)"> ", 2, 0);
         get_prompt();
         run_prompt(state.prompt_val);
