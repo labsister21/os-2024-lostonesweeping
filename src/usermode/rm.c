@@ -3,37 +3,6 @@
 #include "./util.h"
 
 
-void extractBaseName(const char *filename, char *basename) {
-    int j;
-    int len = strlen(filename);
-    for (j = 0; j < len; j++) {
-        if(filename[j] != '.') basename[j] = filename[j];
-        else break;
-    }
-    basename[j] = '\0';
-}
-
-void extractExtension(const char *filename, char *extension) {
-    int i, j;
-    int len = strlen(filename);
-    int dot_found = -1;
-
-    for (i = len - 1; i >= 0; i--) {
-        if (filename[i] == '.') {
-            dot_found = i;
-            break;
-        }
-    }
-
-    int z = 0;
-    if (dot_found != -1) {
-        for (j = i + 1; j < len; j++) {
-            extension[z++] = filename[j];
-        }
-    } else {
-        extension[0] = '\0';
-    }
-}
 
 
 
@@ -47,8 +16,8 @@ void remove(char* target){
     int num_dir; 
 
     extract_dir_rm(target, directories, &num_dir);
-    char* true_target = {0}; 
-    memcpy(true_target, directories[num_dir], 12);
+    char true_target[12] = "\0\0\0\0\0\0\0\0\0\0\0\0"; 
+    memcpy(true_target, directories[num_dir - 1], 12);
 
 
     char name[8]; 

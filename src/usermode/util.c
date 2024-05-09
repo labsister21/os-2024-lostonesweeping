@@ -155,3 +155,37 @@ void put_chars(char* buf){
 bool isPathAbsolute(char* args_val, int (*args_info)[2], int args_pos) {
     return (memcmp(args_val + (*(args_info + args_pos))[0], "/", 1) == 0);
 }
+
+
+void extractBaseName(const char *filename, char *basename) {
+    int j;
+    int len = strlen(filename);
+    for (j = 0; j < len; j++) {
+        if(filename[j] != '.') basename[j] = filename[j];
+        else break;
+    }
+    basename[j] = '\0';
+}
+
+void extractExtension(const char *filename, char *extension) {
+    int i, j;
+    int len = strlen(filename);
+    int dot_found = -1;
+
+    for (i = len - 1; i >= 0; i--) {
+        if (filename[i] == '.') {
+            dot_found = i;
+            break;
+        }
+    }
+
+    int z = 0;
+    if (dot_found != -1) {
+        for (j = i + 1; j < len; j++) {
+            extension[z++] = filename[j];
+        }
+    } else {
+        extension[0] = '\0';
+    }
+}
+

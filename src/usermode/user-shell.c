@@ -4,6 +4,7 @@
 #include "./mkdir.h"
 #include "./cd.h"
 #include "./rm.h"
+#include "cat.h"
 #include "util.h"
 
 void syscall(uint32_t eax, uint32_t ebx, uint32_t ecx, uint32_t edx) {
@@ -19,11 +20,9 @@ void syscall(uint32_t eax, uint32_t ebx, uint32_t ecx, uint32_t edx) {
 
 struct ShellState state = {
     .current_directory = ROOT_CLUSTER_NUMBER, 
-    .current_directory_name = "root",
+    .current_directory_name = {'r', 'o', 'o', 't'},
 };
-
-
-
+ 
 void updateDirectoryTable(uint32_t cluster_number) {
     syscall(CHANGE_DIR, (uint32_t)&state.curr_dir, cluster_number, 0x0);
 }
@@ -38,8 +37,8 @@ void refresh_dir(){
     struct FAT32DriverRequest req={
         .name = "\0\0\0\0\0\0\0\0",
         .buffer_size = 0, 
-        .buf = &state,
-        .parent_cluster_number = state.current_directory
+        .buf = &state.curr_dir,
+        .parent_cluster_number = state.current_directory,
     };
     memcpy(req.name, state.current_directory_name, strlen(state.current_directory_name));
     syscall(READ_DIRECTORY, (uint32_t)&req, (uint32_t)&ret, 0); 
@@ -61,6 +60,10 @@ void run_prompt() {
     else if(memcmp(token, "rm", 2) == 0){
         char* arg = my_strtok(NULL, '\0'); 
         remove(arg);
+    } 
+    else if(memcmp(token, "cat", 3) == 0){
+        char* arg = my_strtok(NULL, '\0'); 
+        cat(arg);
     }
 }
 
@@ -96,28 +99,29 @@ void get_prompt(){
 
 int main(void) {
 	int8_t ret;
-    struct FAT32DriverRequest req={
-        .name = "root\0\0\0\0",
-        .buffer_size = 0, 
-        .buf = &state.curr_dir,
-        .parent_cluster_number = ROOT_CLUSTER_NUMBER
-    };
+    // struct FAT32DriverRequest req={
+    //     .name = "root\0\0\0\0",
+    //     .buffer_size = 0, 
+    //     .buf = &state.curr_dir,
+    //     .parent_cluster_number = ROOT_CLUSTER_NUMBER
+    // };
 
-    syscall(READ_DIRECTORY, (uint32_t)&req, (uint32_t)&ret, 0);
+    // syscall(READ_DIRECTORY, (uint32_t)&req, (uint32_t)&ret, 0);
     state.current_directory = ROOT_CLUSTER_NUMBER;
     syscall(ACTIVATE_KEYBOARD, 0, 0, 0);
-       
+
+    char bufer[7] = {'a', 'k', 'u', 'g', 'i', 'l', 'a'};
     struct FAT32DriverRequest req2={
         .name = "lmao",
         .ext = "txt",
         .buffer_size = 10, 
-        .buf = 0,
+        .buf = &bufer,
         .parent_cluster_number = ROOT_CLUSTER_NUMBER
     };
 
+
     syscall(WRITE, (uint32_t)&req2, (uint32_t)&ret, 0);
     refresh_dir();
-
     while (true) {
         syscall(PUT_CHARS, (uint32_t)"LostOnesWeeping:", 16, 0);
         print_curr_dir(state.path_to_print, state.current_directory);
