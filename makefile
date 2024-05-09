@@ -98,14 +98,17 @@ user-shell:
 	$(CC) $(CFLAGS) -fno-pie -c $(SOURCE_FOLDER_USER)/ls.c -o $(OUTPUT_FOLDER)/ls.o
 	$(CC) $(CFLAGS) -fno-pie -c $(SOURCE_FOLDER_USER)/cd.c -o $(OUTPUT_FOLDER)/cd.o
 	$(CC) $(CFLAGS) -fno-pie -c $(SOURCE_FOLDER)/stdlib/string.c -o $(OUTPUT_FOLDER)/string.o
+	$(CC) $(CFLAGS) -fno-pie -c $(SOURCE_FOLDER_USER)/rm.c -o $(OUTPUT_FOLDER)/rm.o
+	$(CC) $(CFLAGS) -fno-pie -c $(SOURCE_FOLDER_USER)/util.c -o $(OUTPUT_FOLDER)/util.o 
 	$(LIN) -T $(SOURCE_FOLDER_USER)/user-linker.ld -melf_i386 --oformat=binary \
 		$(OUTPUT_FOLDER)/crt0.o $(OUTPUT_FOLDER)/user-shell.o $(OUTPUT_FOLDER)/mkdir.o \
-		$(OUTPUT_FOLDER)/ls.o $(OUTPUT_FOLDER)/cd.o $(OUTPUT_FOLDER)/string.o \
-		-o $(OUTPUT_FOLDER)/shell
+		$(OUTPUT_FOLDER)/ls.o $(OUTPUT_FOLDER)/rm.o $(OUTPUT_FOLDER)/cd.o $(OUTPUT_FOLDER)/string.o \
+		$(OUTPUT_FOLDER)/util.o -o $(OUTPUT_FOLDER)/shell
 	@echo Linking object shell object files and generating flat binary...
 	$(LIN) -T $(SOURCE_FOLDER_USER)/user-linker.ld -melf_i386 --oformat=elf32-i386 \
 		$(OUTPUT_FOLDER)/crt0.o $(OUTPUT_FOLDER)/user-shell.o $(OUTPUT_FOLDER)/mkdir.o \
-		$(OUTPUT_FOLDER)/ls.o $(OUTPUT_FOLDER)/cd.o $(OUTPUT_FOLDER)/string.o \
+		$(OUTPUT_FOLDER)/ls.o $(OUTPUT_FOLDER)/cd.o $(OUTPUT_FOLDER)/rm.o $(OUTPUT_FOLDER)/string.o \
+		$(OUTPUT_FOLDER)/util.o \
 		-o $(OUTPUT_FOLDER)/shell_elf
 	@echo Linking object shell object files and generating ELF32 for debugging...
 	size --target=binary $(OUTPUT_FOLDER)/shell

@@ -3,6 +3,8 @@
 #include "./ls.h"
 #include "./mkdir.h"
 #include "./cd.h"
+#include "./rm.h"
+#include "util.h"
 
 void syscall(uint32_t eax, uint32_t ebx, uint32_t ecx, uint32_t edx) {
     __asm__ volatile("mov %0, %%ebx" : /* <Empty> */ : "r"(ebx));
@@ -14,21 +16,11 @@ void syscall(uint32_t eax, uint32_t ebx, uint32_t ecx, uint32_t edx) {
     __asm__ volatile("int $0x30");
 }
 
+
 struct ShellState state = {
     .current_directory = ROOT_CLUSTER_NUMBER, 
 };
 
-bool isPathAbsolute(char *args_val, char delim) {
-    // Extract the first token from args_val using my_strtok
-    char *token = my_strtok(args_val, delim);
-
-    // Check if the extracted token is not NULL and represents an absolute path ("/")
-    if (token != NULL && strcmp(token, "/", 1) == 0) {
-        return true; // It's an absolute path
-    } else {
-        return false; // It's not an absolute path
-    }
-}
 
 int findEntryName(char* name) {
     int result = -1;
@@ -52,37 +44,6 @@ void updateDirectoryTable(uint32_t cluster_number) {
     syscall(CHANGE_DIR, (uint32_t)&state.curr_dir, cluster_number, 0x0);
 }
 
-void extractBaseName(const char *filename, char *basename) {
-    int j;
-    int len = strlen(filename);
-    for (j = 0; j < len; j++) {
-        if(filename[j] != '.') basename[j] = filename[j];
-        else break;
-    }
-    basename[j] = '\0';
-}
-
-void extractExtension(const char *filename, char *extension) {
-    int i, j;
-    int len = strlen(filename);
-    int dot_found = -1;
-
-    for (i = len - 1; i >= 0; i--) {
-        if (filename[i] == '.') {
-            dot_found = i;
-            break;
-        }
-    }
-
-    int z = 0;
-    if (dot_found != -1) {
-        for (j = i + 1; j < len; j++) {
-            extension[z++] = filename[j];
-        }
-    } else {
-        extension[0] = '\0';
-    }
-}
 
 void clear() {
 	syscall(PUT_CHAR, (uint32_t) '\e', 0, 0xF);
@@ -90,146 +51,12 @@ void clear() {
 }
 
 
-
-void cd(){
-    char* dir = my_strtok(NULL, '/');  // Parse the next token using '/'
-    uint32_t search_directory_number = state.current_directory;
-    
-    if(dir == NULL){
-        return;  // No directory specified
-    }
-
-    if (strcmp(dir, "..", 2) == 0) {
-        // Move to the parent directory
-        uint32_t parent_cluster = state.curr_dir.table[0].cluster_low + ((uint32_t)state.curr_dir.table[0].cluster_high << 16);
-        search_directory_number = parent_cluster;
-        updateDirectoryTable(search_directory_number);
-        state.current_directory = parent_cluster;
-        // syscall(PUT_CHARS, (uint32_t)state.curr_dir.table->name, 8, 0);
-        return;
-    }
-
-    // if (isPathAbsolute(dir, '/')) {
-    //     search_directory_number = ROOT_CLUSTER_NUMBER;  // Absolute path
-    // }
-
-    if(dir != NULL) {
-        updateDirectoryTable(search_directory_number);  
-
-        char name[8];  
-        copyStringWithLength(name, dir, 8);
-
-        int entry_index = findEntryName(name);  
-
-        // if (entry_index == -1 || state.curr_dir.table[entry_index].attribute != ATTR_SUBDIRECTORY) {
-        //     syscall(6, (uint32_t) "cd: Invalid directory path", strlen("cd: Invalid directory path"), 0);
-        //     syscall(5, (uint32_t) '\n', 0, 0);
-        //     return;
-        // }
-
-        // Update the search_directory_number to the found directory
-        if(state.curr_dir.table[entry_index].attribute == ATTR_SUBDIRECTORY){
-            search_directory_number = (uint32_t)((state.curr_dir.table[entry_index].cluster_high << 16) | state.curr_dir.table[entry_index].cluster_low);
-        }
-        else{
-
-        }
-
-        dir = my_strtok(NULL, '/');  // Get the next token
-    }
-
-    // Update the current directory in the shell state
-    state.current_directory = search_directory_number;
-    updateDirectoryTable(state.current_directory);
-    // syscall(14, (uint32_t)state.curr_dir.table->name, 0, 0);
-    syscall(PUT_CHARS, (uint32_t)state.curr_dir.table->name, strlen(state.curr_dir.table->name), 0);
-}
-
-
-
-
-
-void rm(){
-    /**
-     * TODO: INI BELUM REMOVE PAKE PATH dahlah gelap
-    */
-    char *dir; 
-    char name[8]; 
-    char ext[3]; 
-
-    dir = my_strtok(NULL, '\0'); 
-    	struct FAT32DriverRequest req = {
-        .name = {0},
-        .ext = {0},
-        .buf = NULL,
-        .buffer_size = 0,
-	    .parent_cluster_number = (state.curr_dir.table[0].cluster_low) + (((uint32_t) state.curr_dir.table[0].cluster_high) >> 16),
-        
-    };
-    extractBaseName(dir, name);
-    extractExtension(dir, ext);
-
-    copyStringWithLength(req.name, name, 8);
-    copyStringWithLength(req.ext, ext, 3);
-    
-    // syscall(PUT_CHARS, (uint32_t)req.name, strlen(req.name), 0);
-    // syscall(PUT_CHARS, (uint32_t)req.ext, strlen(req.ext), 0);
-    int8_t ret;
-    syscall(DELETE, (uint32_t)&req, (uint32_t)&ret, 0); 
-}
-
-
-
-void test() {
-    char *c1 = my_strtok(NULL, ' ');  // Get the first token
-    char *c2 = my_strtok(NULL, ' ');  // Get the second token
-    char *c3 = my_strtok(NULL, '\0');  // Get the second token
-
-    if (c1 != NULL && c2 != NULL && c3 != NULL) {
-        // Print the first token
-        syscall(PUT_CHARS, (uint32_t)c1, strlen(c1), 0);
-        syscall(PUT_CHAR, (uint32_t)' ', 0, 0);  // Print a space between tokens
-
-        // Print the second token
-        syscall(PUT_CHARS, (uint32_t)c2, strlen(c2), 0);
-        syscall(PUT_CHAR, (uint32_t)' ', 0, 0);  // Print a newline
-
-        syscall(PUT_CHARS, (uint32_t)c3, strlen(c3), 0);
-        syscall(PUT_CHAR, (uint32_t)'\n', 0, 0);  // Print a newline
-    } else {
-        syscall(6, (uint32_t)"Invalid usage of 'test' command", 30, 0);
-        syscall(PUT_CHAR, (uint32_t)'\n', 0, 0);  // Print a newline
-    }
-}
-
 void run_prompt() {
-    char *token = my_strtok(state.prompt, ' ');
-    if (token != NULL) {
-        bool isClear = strcmp(token, "clear", 5) == 0;
-        if(isClear) clear();
-        if (strcmp(token, "ls", 2) == 0) {
-            ls();
-        }
-        else if(strcmp(token, "mkdir", 5) == 0){
-            mkdir();
-        }
-        else if(strcmp(token, "rm", 2) == 0){
-            rm();
-        }
-        else if(strcmp(token, "test", 4) == 0){
-            test();
-        } 
-        else if(strcmp(token, "cd", 2) == 0){
-            cd();
-        }
-        else{
-            syscall(6, (uint32_t) "Gada perintahnya lmao", strlen("Gada perintahnya lmao"), 0);
-        }
-        if(!isClear) syscall(PUT_CHAR, (uint32_t)'\n', 0, 0xF);
-        
+    syscall(PUT_CHAR, (uint32_t)'\n', 0, 0);
+    char* token = my_strtok(state.prompt_val, '\0');
+    if(memcmp(token, "ls", 2) == 0){
+        ls();
     }
-
-
 }
 
 //buat nulis di shell
@@ -241,8 +68,8 @@ void get_prompt(){
             syscall(GET_PROMPT, (uint32_t) &c, 0, 0);
         }
         if(c == '\b'){
-            if(state.prompt_size > 0){
-                state.prompt[state.prompt_size--] = c;
+            if(state.prompt_size> 0){
+                state.prompt_val[state.prompt_size--] = c;
                 syscall(12, (uint32_t)' ', 0, 0xF);
             }
         }else{
@@ -250,16 +77,15 @@ void get_prompt(){
             if(c == '\n' || state.prompt_size + 1 >= MAX_PROMPT){
                 break;
             }
-            state.prompt[state.prompt_size++] = c;
+            state.prompt_val[state.prompt_size++] = c;
         }
     }
-    state.prompt[state.prompt_size] = '\0';
+    state.prompt_val[state.prompt_size] = '\0';
 }
 
 
 int main(void) {
 	int8_t ret;
-
     struct FAT32DriverRequest req={
         .name = "root\0\0\0\0",
         .buffer_size = 0, 
@@ -271,13 +97,22 @@ int main(void) {
     state.current_directory = ROOT_CLUSTER_NUMBER;
     syscall(ACTIVATE_KEYBOARD, 0, 0, 0);
        
+    struct FAT32DriverRequest req2={
+        .name = "LMAO",
+        .buffer_size = 0, 
+        .buf = &state.curr_dir,
+        .parent_cluster_number = ROOT_CLUSTER_NUMBER
+    };
+
+    syscall(WRITE, (uint32_t)&req2, (uint32_t)&ret, 0);
+
     while (true) {
         syscall(PUT_CHARS, (uint32_t)"LostOnesWeeping:", 16, 0);
-        syscall(PUT_CHARS, (uint32_t)state.curr_dir.table->name, strlen(state.curr_dir.table->name), 0);
+        print_curr_dir(state.path_to_print, state.current_directory);
         syscall(PUT_CHARS, (uint32_t)"> ", 2, 0);
         get_prompt();
-        run_prompt();
+        run_prompt(state.prompt_val);
+
     }
     return 0;
 }
-

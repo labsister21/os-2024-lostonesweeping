@@ -18,18 +18,32 @@
 #define CHANGE_DIR 13
 
 
+#define BIOS_LIGHT_GREEN 0b1010
+#define BIOS_GREY        0b0111
+#define BIOS_DARK_GREY   0b1000
+#define BIOS_LIGHT_BLUE  0b1001
+#define BIOS_RED         0b1100
+#define BIOS_BROWN       0b0110
+#define BIOS_WHITE       0b1111
+#define BIOS_BLACK       0b0000
+
+
 #define MAX_PROMPT 512 //gada perintah yang melebihi ini
 
 struct ShellState {
 	struct FAT32DirectoryTable curr_dir;
     uint32_t current_directory;
-	char prompt[MAX_PROMPT];
+	char prompt_val[MAX_PROMPT];
 	int prompt_size;
+	char path_to_print[2048];
 };
 
 extern struct ShellState state;
 
+int findEntryName(char* name);
+
 void syscall(uint32_t eax, uint32_t ebx, uint32_t ecx, uint32_t edx);
 
+void updateDirectoryTable(uint32_t cluster_number);
 
 #endif

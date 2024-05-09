@@ -20,7 +20,9 @@
         "stdio.h": "c",
         "libc-header-start.h": "c",
         "syscall.h": "c",
-        "user-shell.h": "c"
+        "user-shell.h": "c",
+        "ls.h": "c",
+        "util.h": "c"
     },
     "C_Cpp.default.compilerPath": "C:\\msys64\\mingw64\\bin\\gcc.exe",
 }
