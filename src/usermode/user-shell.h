@@ -2,15 +2,34 @@
 #define SYSCALL_H
 
 #include <stdint.h>
+#include "header/filesystem/fat32.h"
+#include "header/stdlib/string.h"
+#include "header/driver/keyboard.h"
 
-void syscall(uint32_t eax, uint32_t ebx, uint32_t ecx, uint32_t edx) {
-    __asm__ volatile("mov %0, %%ebx" : /* <Empty> */ : "r"(ebx));
-    __asm__ volatile("mov %0, %%ecx" : /* <Empty> */ : "r"(ecx));
-    __asm__ volatile("mov %0, %%edx" : /* <Empty> */ : "r"(edx));
-    __asm__ volatile("mov %0, %%eax" : /* <Empty> */ : "r"(eax));
-    // Note : gcc usually use %eax as intermediate register,
-    //        so it need to be the last one to mov
-    __asm__ volatile("int $0x30");
-}
+#define READ 0 
+#define READ_DIRECTORY 1 
+#define WRITE 2 
+#define DELETE 3
+#define PUT_CHAR 5 
+#define PUT_CHARS 6 
+#define ACTIVATE_KEYBOARD 7 
+#define DEACTIVATE_KEYBOARD 8 
+#define GET_PROMPT 10 
+#define CHANGE_DIR 13
+
+
+#define MAX_PROMPT 512 //gada perintah yang melebihi ini
+
+struct ShellState {
+	struct FAT32DirectoryTable curr_dir;
+    uint32_t current_directory;
+	char prompt[MAX_PROMPT];
+	int prompt_size;
+};
+
+extern struct ShellState state;
+
+void syscall(uint32_t eax, uint32_t ebx, uint32_t ecx, uint32_t edx);
+
 
 #endif

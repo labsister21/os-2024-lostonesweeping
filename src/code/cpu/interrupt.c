@@ -123,8 +123,9 @@ void syscall(struct InterruptFrame frame) {
             framebuffer_clear_delete();
             break;
         case 13: 
-            read_clusters((struct FAT32DirectoryTable*) frame.cpu.general.ebx, frame.cpu.general.ecx, 1);
+            read_clusters((struct FAT32DirectoryTable*)frame.cpu.general.ebx, frame.cpu.general.ecx, 1);
             break;
+
 
         // case 14: 
         //     char *dest = (char *)frame.cpu.general.ebx;

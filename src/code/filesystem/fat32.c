@@ -206,7 +206,7 @@ int8_t read_directory(struct FAT32DriverRequest request) {
     }
 
     // Extract cluster number from the directory entry
-    uint32_t cluster_number = entry.cluster_low + ((uint32_t)entry.cluster_high << 16);
+    uint32_t cluster_number = entry.cluster_low + ((uint32_t)entry.cluster_high >> 16);
 
     // Read the cluster content into the provided buffer
     read_clusters(request.buf, cluster_number, 1);

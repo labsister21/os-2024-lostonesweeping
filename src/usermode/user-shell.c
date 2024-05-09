@@ -1,31 +1,8 @@
-#include <stdint.h>
-#include "header/filesystem/fat32.h"
-#include "header/stdlib/string.h"
-#include "header/driver/keyboard.h"
-// #include "./user-shell.h"
 
-#define READ 0 
-#define READ_DIRECTORY 1 
-#define WRITE 2 
-#define DELETE 3
-#define PUT_CHAR 5 
-#define PUT_CHARS 6 
-#define ACTIVATE_KEYBOARD 7 
-#define DEACTIVATE_KEYBOARD 8 
-#define GET_PROMPT 10 
-#define CHANGE_DIR 13
-
-#define MAX_PROMPT 512 //gada perintah yang melebihi ini
-
-struct ShellState {
-	struct FAT32DirectoryTable curr_dir;
-    uint32_t current_directory;
-	char prompt[MAX_PROMPT];
-	int prompt_size;
-};
-
-struct ShellState state = {
-};
+#include "./user-shell.h"
+#include "./ls.h"
+#include "./mkdir.h"
+#include "./cd.h"
 
 void syscall(uint32_t eax, uint32_t ebx, uint32_t ecx, uint32_t edx) {
     __asm__ volatile("mov %0, %%ebx" : /* <Empty> */ : "r"(ebx));
@@ -36,6 +13,10 @@ void syscall(uint32_t eax, uint32_t ebx, uint32_t ecx, uint32_t edx) {
     //        so it need to be the last one to mov
     __asm__ volatile("int $0x30");
 }
+
+struct ShellState state = {
+    .current_directory = ROOT_CLUSTER_NUMBER, 
+};
 
 bool isPathAbsolute(char *args_val, char delim) {
     // Extract the first token from args_val using my_strtok
@@ -108,20 +89,9 @@ void clear() {
 	syscall(PUT_CHAR, (uint32_t) 'J', 0, 0xF);
 }
 
-void refresh_dir(){
-	struct FAT32DriverRequest req = {
-        .name = {0},
-        .buf = &state.curr_dir,
-        .buffer_size = 0,
-        .parent_cluster_number = state.current_directory,
-    };
-	int8_t ret;
-    copyStringWithLength(req.name, state.curr_dir.table->name, 8);
-    syscall(PUT_CHARS, (uint32_t)state.curr_dir.table->name, strlen(state.curr_dir.table->name), 0);   
-	syscall(READ_DIRECTORY, (uint32_t)&req, (uint32_t)&ret, 0);
-}
 
-void cd() {
+
+void cd(){
     char* dir = my_strtok(NULL, '/');  // Parse the next token using '/'
     uint32_t search_directory_number = state.current_directory;
     
@@ -158,7 +128,12 @@ void cd() {
         // }
 
         // Update the search_directory_number to the found directory
-        search_directory_number = (uint32_t)((state.curr_dir.table[entry_index].cluster_high << 16) | state.curr_dir.table[entry_index].cluster_low);
+        if(state.curr_dir.table[entry_index].attribute == ATTR_SUBDIRECTORY){
+            search_directory_number = (uint32_t)((state.curr_dir.table[entry_index].cluster_high << 16) | state.curr_dir.table[entry_index].cluster_low);
+        }
+        else{
+
+        }
 
         dir = my_strtok(NULL, '/');  // Get the next token
     }
@@ -170,39 +145,9 @@ void cd() {
     syscall(PUT_CHARS, (uint32_t)state.curr_dir.table->name, strlen(state.curr_dir.table->name), 0);
 }
 
-void ls(){
-	for (int i = 0; i < TOTAL_DIRECTORY_ENTRY; ++i){
-		struct FAT32DirectoryEntry *entry = &state.curr_dir.table[i];
-        // if(state.current_directory == entry->cluster_low + ((uint32_t)entry->cluster_high << 16)){
-            if(entry->name != state.curr_dir.table->name){
-                if (entry->user_attribute != UATTR_NOT_EMPTY) continue;
-                syscall(PUT_CHARS, (uint32_t) entry->name, strlen(entry->name), 0);
-                if (entry->attribute != ATTR_SUBDIRECTORY){
-                    if(strlen(entry->ext) != 0 ) syscall(5, (uint32_t) '.', 0, 0);
-                    syscall(PUT_CHARS, (uint32_t) entry->ext, strlen(entry->ext), 0);
-                } 
-                syscall(PUT_CHAR, (uint32_t)' ', 0, 0);
-            }
-        // }
-	}
-}
 
-void mkdir() {
-	char *dir;
-	dir = my_strtok(NULL, '\0');
-	struct FAT32DriverRequest req = {
-        .name = {0},
-        .buf = &state.curr_dir,
-        .buffer_size = 0,
-	    .parent_cluster_number = state.current_directory,
-    };
-    copyStringWithLength(req.name, dir, 8);
-	int8_t ret;
-    syscall(WRITE, (uint32_t)&req, (uint32_t)&ret, 0);
-    syscall(PUT_CHAR, (uint32_t)ret + '0', 0, 0);
-    syscall(PUT_CHAR, (uint32_t)' ', 0, 0);
-	refresh_dir();
-}
+
+
 
 void rm(){
     /**
@@ -231,7 +176,6 @@ void rm(){
     // syscall(PUT_CHARS, (uint32_t)req.ext, strlen(req.ext), 0);
     int8_t ret;
     syscall(DELETE, (uint32_t)&req, (uint32_t)&ret, 0); 
-    refresh_dir();
 }
 
 
