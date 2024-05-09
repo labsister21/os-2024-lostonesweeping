@@ -15,10 +15,7 @@ void cd(char* dir) {
 
     extractDirectories(dir, directories, &num_dir);
     int i = 0;
-    for(int j = 0; j < num_dir; j++){
-        put_chars(directories[j]);
-        put_char('\n');
-    }
+
     while (i < num_dir) {
         updateDirectoryTable(search_directory_number);  
 
@@ -28,6 +25,8 @@ void cd(char* dir) {
             syscall(6, (uint32_t) "cd: Invalid directory path", strlen("cd: Invalid directory path"), 0);
             syscall(5, (uint32_t) '\n', 0, 0);
             return;
+
+
         }
 
         // Update the search_directory_number to the found directory

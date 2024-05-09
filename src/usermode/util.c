@@ -61,6 +61,43 @@ void extractDirectories(char* dir, char directories[][8], int* numDirs) {
     *numDirs = index;  // Set the number of extracted directories
 }
 
+void extract_dir_rm(char* dir, char directories[][12], int* numDirs) {
+    if (dir == NULL || directories == NULL || numDirs == NULL) {
+        return;  // Invalid input parameters
+    }
+
+    int len = strlen(dir);
+    if (len == 0) {
+        *numDirs = 0;
+        return;
+    }
+
+    int index = 0;
+    int start = 0;
+    int end = 0;
+
+    // Iterate through the input directory path
+    while (end <= len) {
+        if (dir[end] == '/' || dir[end] == '\0') {
+            // Calculate the length of the directory name
+            int dirLen = end - start;
+
+            // Copy the directory name into the directories array
+            if (dirLen > 0 && index < 10) {
+                memcpy(directories[index], &dir[start], dirLen);
+                directories[index][dirLen] = '\0';  // Null-terminate the string
+                index++;
+            }
+
+            start = end + 1;  // Move start to the next character after '/'
+        }
+        end++;
+    }
+
+    *numDirs = index;  // Set the number of extracted directories
+}
+
+
 void print_curr_dir(char* path_str, uint32_t current_dir) {
     int pathlen = 0;
     int nodecount = 0;

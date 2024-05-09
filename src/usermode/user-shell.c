@@ -3,7 +3,7 @@
 #include "./ls.h"
 #include "./mkdir.h"
 #include "./cd.h"
-// #include "./rm.h"
+#include "./rm.h"
 #include "util.h"
 
 void syscall(uint32_t eax, uint32_t ebx, uint32_t ecx, uint32_t edx) {
@@ -58,6 +58,10 @@ void run_prompt() {
         char* arg = my_strtok(NULL, '\0'); 
         cd(arg);
     }
+    else if(memcmp(token, "rm", 2) == 0){
+        char* arg = my_strtok(NULL, '\0'); 
+        remove(arg);
+    }
 }
 
 void clear_prompt() {
@@ -104,8 +108,9 @@ int main(void) {
     syscall(ACTIVATE_KEYBOARD, 0, 0, 0);
        
     struct FAT32DriverRequest req2={
-        .name = "LMAO",
-        .buffer_size = 0, 
+        .name = "lmao",
+        .ext = "txt",
+        .buffer_size = 10, 
         .buf = 0,
         .parent_cluster_number = ROOT_CLUSTER_NUMBER
     };
