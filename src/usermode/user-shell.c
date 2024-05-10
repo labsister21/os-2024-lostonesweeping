@@ -37,7 +37,7 @@ void refresh_dir(){
     struct FAT32DriverRequest req={
         .name = "\0\0\0\0\0\0\0\0",
         .buffer_size = 0, 
-        .buf = &state.curr_dir.table,
+        .buf = &state.curr_dir,
         .parent_cluster_number = state.current_directory,
     };
     memcpy(req.name, state.current_directory_name, strlen(state.current_directory_name));
@@ -96,11 +96,24 @@ void get_prompt(){
     state.prompt_val[state.prompt_size] = '\0';
 }
 
+void init(){
+    int8_t ret;
+    struct FAT32DriverRequest req = {
+        .name = "root\0\0\0\0",
+        .buffer_size = 0, 
+        .buf = &state.curr_dir, 
+        .parent_cluster_number = ROOT_CLUSTER_NUMBER,
+    };
+    syscall(READ_DIRECTORY, (uint32_t)&req, (uint32_t)&ret, 0);
+
+}
 
 int main(void) {
 	int8_t ret;
     state.current_directory = ROOT_CLUSTER_NUMBER;
     syscall(ACTIVATE_KEYBOARD, 0, 0, 0);
+
+
 
     char bufer[7] = {'a', 'k', 'u', 'g', 'i', 'l', 'a'};
     struct FAT32DriverRequest req2={
@@ -111,17 +124,20 @@ int main(void) {
         .parent_cluster_number = ROOT_CLUSTER_NUMBER
     };
     syscall(WRITE, (uint32_t)&req2, (uint32_t)&ret, 0);
-    refresh_dir();
+
+   
 
 
+
+    init();
     while (true) {
-        refresh_dir();
         syscall(PUT_CHARS, (uint32_t)"LostOnesWeeping:", 16, 0);
         print_curr_dir(state.path_to_print, state.current_directory);
         // put_char(state.current_directory + '0');
         syscall(PUT_CHARS, (uint32_t)"> ", 2, 0);
         get_prompt();
         run_prompt(state.prompt_val);
+        refresh_dir();
     }
     return 0;
 }
