@@ -61,7 +61,7 @@ void extractDirectories(char* dir, char directories[][8], int* numDirs) {
     *numDirs = index;  // Set the number of extracted directories
 }
 
-void extract_dir_rm(char* dir, char directories[][12], int* numDirs) {
+void extract_dir_special(char* dir, char directories[][12], int* numDirs) {
     if (dir == NULL || directories == NULL || numDirs == NULL) {
         return;  // Invalid input parameters
     }

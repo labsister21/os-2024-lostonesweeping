@@ -15,7 +15,7 @@ void remove(char* target){
     char directories[10][12]; 
     int num_dir; 
 
-    extract_dir_rm(target, directories, &num_dir);
+    extract_dir_special(target, directories, &num_dir);
     char true_target[12] = "\0\0\0\0\0\0\0\0\0\0\0\0"; 
     memcpy(true_target, directories[num_dir - 1], 12);
 

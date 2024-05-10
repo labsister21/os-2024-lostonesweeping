@@ -22,8 +22,8 @@ void cd(char* dir) {
 
         int entry_index = findEntryName(directories[i]);  
         if (entry_index == -1 || state.curr_dir.table[entry_index].attribute != ATTR_SUBDIRECTORY) {
-            syscall(6, (uint32_t) "cd: Invalid directory path", strlen("cd: Invalid directory path"), 0);
-            syscall(5, (uint32_t) '\n', 0, 0);
+            syscall(PUT_CHARS, (uint32_t) "cd: Invalid directory path", strlen("cd: Invalid directory path"), 0);
+            syscall(PUT_CHAR, (uint32_t) '\n', 0, 0);
             return;
 
 

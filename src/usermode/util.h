@@ -17,7 +17,7 @@ bool isPathAbsolute(char* prompt_val, int (*prompt_info)[2], int prompt_pos);
 
 void extractDirectories(char* dir, char directories[][8], int* numDirs);
 
-void extract_dir_rm(char* dir, char directories[][12], int* numDirs);
+void extract_dir_special(char* dir, char directories[][12], int* numDirs);
 
 void extractBaseName(const char *filename, char *basename);
 
