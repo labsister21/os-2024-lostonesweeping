@@ -113,8 +113,6 @@ int main(void) {
     state.current_directory = ROOT_CLUSTER_NUMBER;
     syscall(ACTIVATE_KEYBOARD, 0, 0, 0);
 
-
-
     char bufer[7] = {'a', 'k', 'u', 'g', 'i', 'l', 'a'};
     struct FAT32DriverRequest req2={
         .name = "lmao",
