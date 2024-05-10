@@ -129,6 +129,8 @@ void print_curr_dir(char* path_str, uint32_t current_dir) {
         nodecount++;
     }
 
+    updateDirectoryTable(current_dir);
+
     // Iterate back to get the full pathstr
     for (int i = nodecount - 1; i >= 0; i--) {
         for (size_t j = 0; j < strlen(nodeIndex[i]); j++) {
