@@ -76,12 +76,17 @@ void cp(char* src, char* dest, uint32_t curr_pos){
 
     struct ClusterBuffer cl           = {0};
     int retcode_read;
+    int size; 
+    if(file){
+        size = CLUSTER_SIZE; 
+    }else size = 0;
+
     struct FAT32DriverRequest req_read = {
         .buf = &cl,
         .name = "\0\0\0\0\0\0\0\0",
         .ext = "\0\0\0",
 	    .parent_cluster_number = search_source_number,
-        .buffer_size = CLUSTER_SIZE,
+        .buffer_size = size,
     };
     memcpy(req_read.name, name, 8); 
     if(file){
@@ -93,6 +98,14 @@ void cp(char* src, char* dest, uint32_t curr_pos){
         }else{
             read_status = true;
         }
+    }else{
+        syscall(READ_DIRECTORY, (uint32_t)&req_read, (uint32_t)&retcode_read ,0);
+        if(retcode_read != 0){
+            put_chars("Pembacaan folder gagal"); 
+            put_char('\n');
+        }else{
+            read_status = true;
+        } 
     }
 
     if(target_status && src_status && read_status){
@@ -102,7 +115,7 @@ void cp(char* src, char* dest, uint32_t curr_pos){
             .name = "\0\0\0\0\0\0\0\0",
             .ext = "\0\0\0",
             .parent_cluster_number = search_target_number,
-            .buffer_size = CLUSTER_SIZE, 
+            .buffer_size = size, 
         };
         memcpy(req_write.name, name, 8); 
         if(file){
