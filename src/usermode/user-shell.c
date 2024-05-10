@@ -5,6 +5,7 @@
 #include "./cd.h"
 #include "./rm.h"
 #include "cat.h"
+#include "cp.h"
 #include "util.h"
 
 void syscall(uint32_t eax, uint32_t ebx, uint32_t ecx, uint32_t edx) {
@@ -64,6 +65,11 @@ void run_prompt() {
     else if(memcmp(token, "cat", 3) == 0){
         char* arg = my_strtok(NULL, '\0'); 
         cat(arg);
+    }
+    else if(memcmp(token, "cp", 2) == 0){
+        char* arg1 = my_strtok(NULL, ' ');
+        char* arg2 = my_strtok(NULL, '\0'); 
+        cp(arg1, arg2, state.current_directory);
     }
 }
 

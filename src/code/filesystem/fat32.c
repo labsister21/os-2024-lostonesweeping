@@ -248,7 +248,7 @@ int8_t read(struct FAT32DriverRequest request){
     if(!found) return 2;
     //file ketemu
     struct FAT32FileAllocationTable *fat_table = &fat32_driver_state.fat_table;
-    read_clusters(fat_table, FAT_CLUSTER_NUMBER, 1);
+    // read_clusters(fat_table, FAT_CLUSTER_NUMBER, 1);
     uint32_t cluster_number = dir_table->table[idx].cluster_low + (((uint32_t)dir_table->table[idx].cluster_high) >> 16);
     while (cluster_number != FAT32_FAT_END_OF_FILE){
         read_clusters(request.buf+CLUSTER_SIZE*j, cluster_number, 1);
@@ -262,7 +262,7 @@ int8_t read(struct FAT32DriverRequest request){
 
 int8_t write(struct FAT32DriverRequest request){
     //pada bagian isFile mengecek apakah request termasuk ke dalam file atau folder 
-    bool isFolder = (request.buffer_size == 0);
+    bool isFolder = (request.buffer_size == 0 && strlen(request.ext) == 0);
     struct FAT32DirectoryTable dir_table;
     bool isParentValid = get_dir_table_from_cluster(request.parent_cluster_number, &dir_table);
     if (!isParentValid){
@@ -281,8 +281,14 @@ int8_t write(struct FAT32DriverRequest request){
     for(i=0; i<TOTAL_DIRECTORY_ENTRY; i++){
 
         if( fat32_driver_state.dir_table_buf.table[i].user_attribute == UATTR_NOT_EMPTY
-        && strcmp(fat32_driver_state.dir_table_buf.table[i].name, request.name, 8) == 0
-        && (isFolder || strcmp(fat32_driver_state.dir_table_buf.table[i].ext, request.ext, 3) == 0)
+        && 
+        memcmp(fat32_driver_state.dir_table_buf.table[i].name, request.name, 8) == 0
+        && 
+        (isFolder 
+        || memcmp(fat32_driver_state.dir_table_buf.table[i].ext, request.ext, 3) == 0
+        )
+        // && 
+        // (request.parent_cluster_number == (uint32_t)((fat32_driver_state.dir_table_buf.table[i].cluster_high >> 16) | fat32_driver_state.dir_table_buf.table[i].cluster_low ))
         ){
             found = true;
             break;
