@@ -141,19 +141,21 @@ void initialize_filesystem_fat32(void){
      * maka untuk baca kita pake read_cluster();
      * yang dibaca itu struct fat32_driver_state
     */
-        /**
-         * parameter angka 1 maksudnya adalah cluster yang dibaca hanya 1 dalam satu waktu
-         * ada 2 
-         * 1. buat baca cluster map 
-         * artinya kalo passing fat32_driver_state.fat_table.cluster_map kita nyuruh fungsi 
-         * buat baca content dari FAT yang mengandung mapping information cluster
-         * 2. buat baca directory(?) 
-         * artinya kalo passing fat32_driver_state.dir_table_buf.table kita nyuruh fungsi 
-         * buat baca content dari directory table buffer yang mana mengandung 
-         * directories entry
-        */
-        read_clusters(&fat32_driver_state.fat_table, FAT_CLUSTER_NUMBER, 1);
-        read_clusters(&fat32_driver_state.dir_table_buf, ROOT_CLUSTER_NUMBER, 1);
+
+    /**
+     * parameter angka 1 maksudnya adalah cluster yang dibaca hanya 1 dalam satu waktu
+     * ada 2 
+     * 1. buat baca cluster map 
+     * artinya kalo passing fat32_driver_state.fat_table.cluster_map kita nyuruh fungsi 
+     * buat baca content dari FAT yang mengandung mapping information cluster
+     * 2. buat baca directory(?) 
+     * artinya kalo passing fat32_driver_state.dir_table_buf.table kita nyuruh fungsi 
+     * buat baca content dari directory table buffer yang mana mengandung 
+     * directories entry
+    */
+    read_clusters(&fat32_driver_state.fat_table, FAT_CLUSTER_NUMBER, 1);
+    read_clusters(&fat32_driver_state.dir_table_buf, ROOT_CLUSTER_NUMBER, 1);
+
 }
 
 int32_t driver_dir_table_linear_scan(char name[8], char ext[3], bool find_empty) {
