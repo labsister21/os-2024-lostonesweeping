@@ -12,6 +12,14 @@ void cp(char* src, char* dest){
     int num_dir_src; 
     int num_dir_target; 
 
+    // extract path to file 
+
     extract_dir_special(src, num_dir_src, &num_dir_src); 
     extract_dir_special(dest, num_dir_target, &num_dir_target);
+
+    
+
+
+
+
 }
