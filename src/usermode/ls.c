@@ -15,9 +15,8 @@ void ls()
                 put_chars("." );
                 put_chars(state.curr_dir.table[i].ext);
             }
-
+            if (i != TOTAL_DIRECTORY_ENTRY - 1) put_char(' ');
         }
-        if (i == TOTAL_DIRECTORY_ENTRY - 1) put_char(' ');
-        else put_char('\n');
     }
+    put_char('\n');
 }
