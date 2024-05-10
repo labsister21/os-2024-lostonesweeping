@@ -5,35 +5,19 @@
 
 void ls()
 {
-    for (int i = 1; i < 63; i++)
+    for (int i = 1; i < TOTAL_DIRECTORY_ENTRY; i++)
     {
     if (state.curr_dir.table[i].user_attribute == UATTR_NOT_EMPTY)
         {
-            if(state.curr_dir.table[i].name != state.current_directory_name){
-                if(state.curr_dir.table[i].name != state.current_directory_name){
-                        put_chars(state.curr_dir.table[i].name);
-                        if (state.curr_dir.table[i].attribute != ATTR_SUBDIRECTORY && strlen(state.curr_dir.table[i].ext) != 0)
-                        {
-                            put_chars("." );
-                            put_chars(state.curr_dir.table[i].ext);
-                        }
-                    put_char('\n');
-                }
+            put_chars(state.current_directory_name);
+            if (state.curr_dir.table[i].attribute != ATTR_SUBDIRECTORY && strlen(state.curr_dir.table[i].ext) != 0)
+            {
+                put_chars("." );
+                put_chars(state.curr_dir.table[i].ext);
             }
+
         }
-    }
-    if (state.curr_dir.table[63].user_attribute == UATTR_NOT_EMPTY)
-    {
-        if(state.curr_dir.table[63].name != state.current_directory_name){
-            if(state.curr_dir.table[63].name != state.current_directory_name){
-                put_chars(state.curr_dir.table[63].name);
-                if (state.curr_dir.table[63].attribute != ATTR_SUBDIRECTORY && strlen(state.curr_dir.table[63].ext) != 0)
-                {
-                    put_chars(".");
-                    put_chars(state.curr_dir.table[63].ext);
-                }
-                put_char('\n');
-            }
-        }
+        if (i == TOTAL_DIRECTORY_ENTRY - 1) put_char(' ');
+        else put_char('\n');
     }
 }
