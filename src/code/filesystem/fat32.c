@@ -263,8 +263,8 @@ int8_t read(struct FAT32DriverRequest request){
 int8_t write(struct FAT32DriverRequest request){
     //pada bagian isFile mengecek apakah request termasuk ke dalam file atau folder 
     bool isFolder = (request.buffer_size == 0 && strlen(request.ext) == 0);
-    struct FAT32DirectoryTable dir_table;
-    bool isParentValid = get_dir_table_from_cluster(request.parent_cluster_number, &dir_table);
+    struct FAT32DirectoryTable *dir_table = &fat32_driver_state.dir_table_buf; 
+    bool isParentValid = get_dir_table_from_cluster(request.parent_cluster_number, dir_table);
     if (!isParentValid){
         return 2;
     }
