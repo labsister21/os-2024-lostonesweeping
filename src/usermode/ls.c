@@ -9,7 +9,7 @@ void ls()
     {
     if (state.curr_dir.table[i].user_attribute == UATTR_NOT_EMPTY)
         {
-            put_chars(state.current_directory_name);
+            put_chars(state.curr_dir.table[i].name);
             if (state.curr_dir.table[i].attribute != ATTR_SUBDIRECTORY && strlen(state.curr_dir.table[i].ext) != 0)
             {
                 put_chars("." );

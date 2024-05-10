@@ -31,7 +31,6 @@ void cd(char* dir) {
 
         // Update the search_directory_number to the found directory
         search_directory_number = (uint32_t)((state.curr_dir.table[entry_index].cluster_high >> 16) | state.curr_dir.table[entry_index].cluster_low);
-        put_char('\n');
         i++;
     }
 
