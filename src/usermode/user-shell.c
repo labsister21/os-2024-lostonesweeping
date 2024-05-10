@@ -123,9 +123,7 @@ int main(void) {
     };
     syscall(WRITE, (uint32_t)&req2, (uint32_t)&ret, 0);
 
-   
-
-
+    
 
     init();
     while (true) {
