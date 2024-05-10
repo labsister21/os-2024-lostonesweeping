@@ -60,7 +60,7 @@ void run_prompt() {
     }
     else if(memcmp(token, "rm", 2) == 0){
         char* arg = my_strtok(NULL, '\0'); 
-        remove(arg);
+        remove(arg, state.current_directory);
     } 
     else if(memcmp(token, "cat", 3) == 0){
         char* arg = my_strtok(NULL, '\0'); 

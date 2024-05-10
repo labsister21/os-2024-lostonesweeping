@@ -1,3 +1,4 @@
+#include <stdint.h>
 #include "./rm.h"
 #include "./user-shell.h"
 #include "./util.h"
@@ -6,7 +7,7 @@
 
 
 
-void remove(char* target){
+void remove(char* target, uint32_t curr_pos){
     uint32_t search_directory_number = state.current_directory;
     if (target == NULL) {
         return;  
@@ -43,7 +44,7 @@ void remove(char* target){
             put_char('\n');
             i++;
         }
-    }
+    } updateDirectoryTable(curr_pos);
 
     struct FAT32DriverRequest req = {
         .buf = 0,

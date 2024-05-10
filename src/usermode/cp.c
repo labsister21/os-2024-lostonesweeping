@@ -81,7 +81,7 @@ void cp(char* src, char* dest, uint32_t curr_pos){
         .name = "\0\0\0\0\0\0\0\0",
         .ext = "\0\0\0",
 	    .parent_cluster_number = search_source_number,
-        .buffer_size = 4 * CLUSTER_SIZE,
+        .buffer_size = CLUSTER_SIZE,
     };
     memcpy(req_read.name, name, 8); 
     if(file){
@@ -102,7 +102,7 @@ void cp(char* src, char* dest, uint32_t curr_pos){
             .name = "\0\0\0\0\0\0\0\0",
             .ext = "\0\0\0",
             .parent_cluster_number = search_target_number,
-            .buffer_size = 10, 
+            .buffer_size = CLUSTER_SIZE, 
         };
         memcpy(req_write.name, name, 8); 
         if(file){
