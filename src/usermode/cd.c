@@ -37,7 +37,6 @@ void cd(char* dir) {
 
     // Update the current directory in the shell state
     state.current_directory = search_directory_number;
-    memcpy(state.current_directory_name, state.curr_dir.table->name, strlen(state.curr_dir.table->name));
     updateDirectoryTable(search_directory_number);
 
     put_char('\n');

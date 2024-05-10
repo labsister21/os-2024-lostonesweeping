@@ -121,4 +121,6 @@ insert-shell: disk inserter user-shell
 	@echo Inserting shell into root directory...
 	@cd $(OUTPUT_FOLDER); ./inserter shell 2 $(DISK_NAME).bin
 
+restart: clean disk inserter insert-shell
+
 .PHONY: all

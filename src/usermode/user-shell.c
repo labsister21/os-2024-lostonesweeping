@@ -20,7 +20,7 @@ void syscall(uint32_t eax, uint32_t ebx, uint32_t ecx, uint32_t edx) {
 
 struct ShellState state = {
     .current_directory = ROOT_CLUSTER_NUMBER, 
-    .current_directory_name = {'r', 'o', 'o', 't'},
+    .current_directory_name = state.curr_dir.table->name,
 };
  
 void updateDirectoryTable(uint32_t cluster_number) {
@@ -123,13 +123,13 @@ int main(void) {
     syscall(WRITE, (uint32_t)&req2, (uint32_t)&ret, 0);
     refresh_dir();
     while (true) {
+        refresh_dir();
         syscall(PUT_CHARS, (uint32_t)"LostOnesWeeping:", 16, 0);
         print_curr_dir(state.path_to_print, state.current_directory);
         // put_char(state.current_directory + '0');
         syscall(PUT_CHARS, (uint32_t)"> ", 2, 0);
         get_prompt();
         run_prompt(state.prompt_val);
-        refresh_dir();
     }
     return 0;
 }
