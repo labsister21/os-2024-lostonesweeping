@@ -62,8 +62,11 @@ void extract_dir(char* dir, char directories[][12], int* numDirs) {
     *numDirs = index;  // Set the number of extracted directories
 }
 
+void print_curr_dir(struct ShellState s){
+    print_curr_dir_helper(s.path_to_print, s.current_directory);
+}
 
-void print_curr_dir(char* path_str, uint32_t current_dir) {
+void print_curr_dir_helper(char* path_str, uint32_t current_dir) {
     int pathlen = 0;
     int nodecount = 0;
     char nodeIndex [10][64];

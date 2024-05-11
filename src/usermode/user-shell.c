@@ -4,6 +4,7 @@
 #include "./mkdir.h"
 #include "./cd.h"
 #include "./rm.h"
+#include "./find.h"
 #include "cat.h"
 #include "cp.h"
 #include "mv.h"
@@ -76,7 +77,12 @@ void run_prompt() {
         char* arg1 = my_strtok(NULL, ' ');
         char* arg2 = my_strtok(NULL, '\0'); 
         mv(arg1, arg2, state.current_directory);
-    }else{
+    }
+    else if(memcmp(token, "find", 4) == 0){
+        char* arg = my_strtok(NULL, '\0'); 
+        find(arg);
+    }
+    else{
         put_chars("Perintah tidak ada: ", BIOS_RED);
         put_char('\n');
         put_chars("List perintah: ", BIOS_RED);
@@ -159,8 +165,10 @@ int main(void) {
     
     init();
     while (true) {
-        put_chars("LostOnesWeeping:", BIOS_LIGHT_BLUE);
-        print_curr_dir(state.path_to_print, state.current_directory);
+        put_chars("LostOnesWeeping", BIOS_LIGHT_BLUE);
+        put_chars("-IF2230", BIOS_LIGHT_GREEN);
+        put_chars(":", BIOS_LIGHT_BLUE);
+        print_curr_dir(state);
         put_chars("> ", BIOS_GREY);
         get_prompt();
         run_prompt(state.prompt_val);
