@@ -40,40 +40,24 @@ void rename(char* target_name, char* target_ext, char directories_src[][12], int
         /**
          * ini kasus untuk merubah nama file
         */
-        struct FAT32DriverRequest request_read = {
+        struct FAT32DriverRequest request = {
             .buf = &cl,
             .name = "\0\0\0\0\0\0\0",
             .ext = "\0\0\0",
             .parent_cluster_number = search_source_number,
             .buffer_size = CLUSTER_SIZE,
         };
-        memcpy(request_read.name, target_name, 8); 
-        memcpy(request_read.ext, target_ext, 3); 
-        syscall(READ, (uint32_t)&request_read, (uint32_t)&retcode, 0x0);
+        memcpy(request.name, target_name, 8); 
+        memcpy(request.ext, target_ext, 3); 
+        syscall(READ, (uint32_t)&request, (uint32_t)&retcode, 0x0);
 
-        struct FAT32DriverRequest request_write = {
-            .buf = &cl,
-            .name = "\0\0\0\0\0\0\0",
-            .ext = "\0\0\0",
-            .parent_cluster_number = search_source_number,
-            .buffer_size = CLUSTER_SIZE,
-        };  
+        memcpy(request.name, filename_rename, 8); 
+        memcpy(request.ext, fileext_rename, 3); 
+        syscall(WRITE, (uint32_t)&request, (uint32_t)&retcode, 0x0);
 
-        memcpy(request_write.name, filename_rename, 8); 
-        memcpy(request_write.ext, fileext_rename, 3); 
-        syscall(WRITE, (uint32_t)&request_write, (uint32_t)&retcode, 0x0);
-
-        struct FAT32DriverRequest request_delete = {
-            .name = "\0\0\0\0\0\0\0",
-            .ext = "\0\0\0",
-            .buf = &cl,
-            .parent_cluster_number = search_source_number,
-            .buffer_size = 0,
-        }; 
-
-        memcpy(request_delete.name, target_name, 8); 
-        memcpy(request_delete.ext, target_ext, 3);
-        syscall(DELETE, (uint32_t)&request_delete, (uint32_t)&retcode, 0x0);
+        memcpy(request.name, target_name, 8); 
+        memcpy(request.ext, target_ext, 3);
+        syscall(DELETE, (uint32_t)&request, (uint32_t)&retcode, 0x0);
 
         if(retcode == 0){
             put_chars("File berhasil di-rename");
@@ -84,19 +68,20 @@ void rename(char* target_name, char* target_ext, char directories_src[][12], int
         /**
          * ini kasus buat renaming folder;
         */
+       struct ClusterBuffer cf = {0};
         struct FAT32DriverRequest request = {
-            .buf = &cl,
+            .buf = 0,
             .name = "\0\0\0\0\0\0\0",
-            .ext = "\0\0\0",
             .parent_cluster_number = search_source_number,
             .buffer_size = 0,
         };
         memcpy(request.name, target_name, 8); 
-        syscall(READ, (uint32_t)&request, (uint32_t)&retcode, 0x0);
-        syscall(DELETE, (uint32_t)&request, (uint32_t)&retcode, 0x0);
+        syscall(READ_DIRECTORY, (uint32_t)&request, (uint32_t)&retcode, 0x0);
         memcpy(request.name, filename_rename, 8); 
-
         syscall(WRITE, (uint32_t)&request, (uint32_t)&retcode, 0x0);
+        memcpy(request.name, target_name, 8); 
+        syscall(DELETE, (uint32_t)&request, (uint32_t)&retcode, 0x0);
+
         if(retcode == 0){
             put_chars("Folder berhasil di-rename");
         } 
