@@ -165,13 +165,11 @@ int main(void) {
     
     init();
     while (true) {
-        put_chars("LostOnesWeeping:", BIOS_LIGHT_BLUE);
+        put_chars("LostOnesWeeping", BIOS_LIGHT_BLUE);
+        put_chars("-IF2230", BIOS_LIGHT_GREEN);
+        put_chars(":", BIOS_LIGHT_BLUE);
         print_curr_dir(state);
         put_chars("> ", BIOS_GREY);
-        syscall(PUT_CHARS, (uint32_t)"LostOnesWeeping:", 16, 0);
-        print_curr_dir(state);
-        // put_char(state.current_directory + '0');
-        syscall(PUT_CHARS, (uint32_t)"> ", 2, 0);
         get_prompt();
         run_prompt(state.prompt_val);
         refresh_dir();
