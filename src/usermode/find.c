@@ -1,22 +1,9 @@
 #include "./find.h"
 
-void find(char* arg){
-    uint32_t curr_cluster_number = state.current_directory;
-
-    Queue bfs;
-    CreateQueue(&bfs);
-
-    //Initialize Queue with root
-    ElType root = ROOT_CLUSTER_NUMBER;
-    enqueue(&bfs, root);
-
-    while (!isEmpty(bfs)){
-        process(&bfs, arg);
-    }
-
-    //End dirTable with curr_cluster_number before find()
-    updateDirectoryTable(curr_cluster_number);
-}
+#define IDX_HEAD(q) (q).idxHead
+#define IDX_TAIL(q) (q).idxTail
+#define     HEAD(q) (q).buffer[(q).idxHead]
+#define     TAIL(q) (q).buffer[(q).idxTail]
 
 void CreateQueue(Queue *q){
 	IDX_HEAD(*q) = IDX_UNDEF;
@@ -26,16 +13,10 @@ void CreateQueue(Queue *q){
 bool isEmpty(Queue q){
 	return ((IDX_HEAD(q) == IDX_UNDEF) && (IDX_TAIL(q) == IDX_UNDEF));
 }
-/* Mengirim true jika q kosong: lihat definisi di atas */
+
 bool isFull(Queue q){
 	if (IDX_HEAD(q) == 0) return (IDX_TAIL(q) == (CAPACITY-1));
 	else return (IDX_TAIL(q) == (IDX_HEAD(q)-1));
-}
-
-int length(Queue q){
-	if (isEmpty(q)) return 0;
-	else if (IDX_TAIL(q) >= IDX_HEAD(q)) return (IDX_TAIL(q) - IDX_HEAD(q) + 1);
-	else return ((CAPACITY - IDX_HEAD(q)) + IDX_TAIL(q) + 1);
 }
 
 void enqueue(Queue *q, ElType val){
@@ -58,33 +39,68 @@ void dequeue(Queue *q, ElType *val){
 	else{
 		IDX_HEAD(*q) = (IDX_HEAD(*q) + 1) % CAPACITY;
 	}
-	
-
 }
 
-void process(Queue *q, char* findName){
+uint32_t convertToClusterNumber(int i){
+    return (uint32_t) ((state.curr_dir.table[i].cluster_high >> 16) | state.curr_dir.table[i].cluster_low);
+}
+
+void print_find(int i){
+    print_curr_dir(state);
+    put_char('/');
+
+    put_chars(state.curr_dir.table[i].name);
+    if (strlen(state.curr_dir.table[i].ext) != 0 && state.curr_dir.table[i].attribute != ATTR_SUBDIRECTORY){
+        put_char('.');
+        put_chars(state.curr_dir.table[i].ext);
+    }
+    if (state.curr_dir.table[i].attribute == ATTR_SUBDIRECTORY) put_char('/');
+    put_char('\n');
+}
+
+void process_find(Queue *q, char* arg){
     ElType cn;
     dequeue(q, &cn);
+
+    state.current_directory = cn;
     updateDirectoryTable(cn);
 
-    for (int i = 1; i < TOTAL_DIRECTORY_ENTRY; i++){
+    char name[8];
+    char ext[3];
+
+    for (int i = 2; i < TOTAL_DIRECTORY_ENTRY; i++){
         if (state.curr_dir.table[i].user_attribute == UATTR_NOT_EMPTY){
             if (state.curr_dir.table[i].attribute == ATTR_SUBDIRECTORY){
-                cn = convertToClusterNumber(state.curr_dir.table[i].cluster_high, state.curr_dir.table[i].cluster_low);
+                cn = convertToClusterNumber(i);
                 enqueue(q, cn);
             }
-            if (memcmp(state.curr_dir.table[i].name, findName, 8)){ //TODO: Compare ext, and print parents
-                put_chars(findName);
-                if (strlen(state.curr_dir.table[i].ext) != 0 && state.curr_dir.table[i].attribute != ATTR_SUBDIRECTORY){
-                    put_char(".");
-                    put_chars(state.curr_dir.table[i].ext);
-                }
-                put_char("\n");
+            extractBaseName(arg, name);
+            extractExtension(arg, ext);
+            if (memcmp(state.curr_dir.table[i].name, name, 8) == 0 &&
+                (strlen(state.curr_dir.table[i].ext) == 0 || memcmp(state.curr_dir.table[i].ext, ext, 3) == 0)){
+                print_find(i);
             }
         }
     }
 }
 
-uint32_t convertToClusterNumber(uint16_t high, uint16_t low){
-    return (uint32_t) ((high << 16) | low);
+void find(char* arg){
+    uint32_t curr_cluster_number = state.current_directory;
+
+    Queue bfs;
+    CreateQueue(&bfs);
+
+    //Initialize Queue with root
+    ElType root = ROOT_CLUSTER_NUMBER;
+    enqueue(&bfs, root);
+
+    while (!isEmpty(bfs) && !isFull(bfs)){
+        process_find(&bfs, arg);
+    }
+
+    if (isFull(bfs)) put_chars("find selesai karena depth terlalu dalam\n");
+
+    //End dirTable with curr_cluster_number before find()
+    state.current_directory = curr_cluster_number;
+    updateDirectoryTable(curr_cluster_number);
 }

@@ -4,6 +4,7 @@
 #include "./mkdir.h"
 #include "./cd.h"
 #include "./rm.h"
+#include "./find.h"
 #include "cat.h"
 #include "cp.h"
 #include "util.h"
@@ -71,6 +72,10 @@ void run_prompt() {
         char* arg2 = my_strtok(NULL, '\0'); 
         cp(arg1, arg2, state.current_directory);
     }
+    else if(memcmp(token, "find", 4) == 0){
+        char* arg = my_strtok(NULL, '\0'); 
+        find(arg);
+    }
 }
 
 void clear_prompt() {
@@ -134,7 +139,7 @@ int main(void) {
     init();
     while (true) {
         syscall(PUT_CHARS, (uint32_t)"LostOnesWeeping:", 16, 0);
-        print_curr_dir(state.path_to_print, state.current_directory);
+        print_curr_dir(state);
         // put_char(state.current_directory + '0');
         syscall(PUT_CHARS, (uint32_t)"> ", 2, 0);
         get_prompt();

@@ -23,7 +23,8 @@
         "user-shell.h": "c",
         "ls.h": "c",
         "util.h": "c",
-        "find.h": "c"
+        "find.h": "c",
+        "cat.h": "c"
     },
     "C_Cpp.default.compilerPath": "C:\\msys64\\mingw64\\bin\\gcc.exe",
 }
