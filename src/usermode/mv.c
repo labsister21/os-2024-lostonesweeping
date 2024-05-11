@@ -85,7 +85,13 @@ void rename(char* target_name, char* target_ext, char directories_src[][12], int
         if(retcode == 0){
             put_chars("Folder berhasil di-rename");
             put_char('\n');
-        } 
+        } else if (retcode == 1){
+            memcpy(request.name, target_name, 8); 
+            syscall(WRITE, (uint32_t)&request, (uint32_t)&retcode, 0x0);
+            put_chars("Folder sudah ada nama yang sama");
+            put_char('\n');
+
+        }
     }
 }
 
