@@ -110,7 +110,7 @@ void framebuffer_move_cursor(enum FramebufferCursorMove direction, int count) {
 	framebuffer_set_cursor(next_row, next_col);
 };
 
-void framebuffer_put(char c){
+void framebuffer_put(char c, uint8_t color){
      if (framebuffer_state.row == 20) {
         // Scroll up if at bottom row
         framebuffer_scroll_up();
@@ -121,7 +121,7 @@ void framebuffer_put(char c){
         framebuffer_state.row, 
         framebuffer_state.col, 
         c, 
-        framebuffer_state.fg, 
+        color, 
         framebuffer_state.bg
     );
 

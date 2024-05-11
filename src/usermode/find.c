@@ -49,10 +49,10 @@ void print_find(int i){
     print_curr_dir(state);
     put_char('/');
 
-    put_chars(state.curr_dir.table[i].name);
+    put_chars(state.curr_dir.table[i].name, BIOS_LIGHT_GREEN);
     if (strlen(state.curr_dir.table[i].ext) != 0 && state.curr_dir.table[i].attribute != ATTR_SUBDIRECTORY){
         put_char('.');
-        put_chars(state.curr_dir.table[i].ext);
+        put_chars(state.curr_dir.table[i].ext, BIOS_LIGHT_GREEN);
     }
     if (state.curr_dir.table[i].attribute == ATTR_SUBDIRECTORY) put_char('/');
     put_char('\n');
@@ -74,8 +74,8 @@ void process_find(Queue *q, char* arg){
                 cn = convertToClusterNumber(i);
                 enqueue(q, cn);
             }
-            extractBaseName(arg, name);
-            extractExtension(arg, ext);
+            extract_filename(arg, name);
+            extract_file_extension(arg, ext);
             if (memcmp(state.curr_dir.table[i].name, name, 8) == 0 &&
                 (strlen(state.curr_dir.table[i].ext) == 0 || memcmp(state.curr_dir.table[i].ext, ext, 3) == 0)){
                 print_find(i);
@@ -98,7 +98,7 @@ void find(char* arg){
         process_find(&bfs, arg);
     }
 
-    if (isFull(bfs)) put_chars("find selesai karena depth terlalu dalam\n");
+    if (isFull(bfs)) put_chars("find selesai karena depth terlalu dalam\n", BIOS_LIGHT_GREEN);
 
     //End dirTable with curr_cluster_number before find()
     state.current_directory = curr_cluster_number;

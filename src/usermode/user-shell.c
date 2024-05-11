@@ -82,6 +82,28 @@ void run_prompt() {
         char* arg = my_strtok(NULL, '\0'); 
         find(arg);
     }
+    else{
+        put_chars("Perintah tidak ada: ", BIOS_RED);
+        put_char('\n');
+        put_chars("List perintah: ", BIOS_RED);
+        put_char('\n');
+        put_chars("cat", BIOS_RED);
+        put_char('\n');
+        put_chars("find", BIOS_RED);
+        put_char('\n');
+        put_chars("ls", BIOS_RED);
+        put_char('\n');
+        put_chars("mv", BIOS_RED);
+        put_char('\n');
+        put_chars("cp", BIOS_RED);
+        put_char('\n');
+        put_chars("mkdir", BIOS_RED);
+        put_char('\n');
+        put_chars("cd", BIOS_RED);
+        put_char('\n');
+        put_chars("rm", BIOS_RED);
+        put_char('\n');
+    }
 }
 
 void clear_prompt() {
@@ -103,7 +125,7 @@ void get_prompt(){
                 syscall(12, (uint32_t)' ', 0, 0xF);
             }
         }else{
-            syscall(PUT_CHAR, (uint32_t)c, 0, 0xF);
+            syscall(PUT_CHAR, (uint32_t)c, BIOS_GREY, 0xF);
             if(c == '\n' || state.prompt_size + 1 >= MAX_PROMPT){
                 break;
             }
@@ -143,6 +165,9 @@ int main(void) {
     
     init();
     while (true) {
+        put_chars("LostOnesWeeping:", BIOS_LIGHT_BLUE);
+        print_curr_dir(state);
+        put_chars("> ", BIOS_GREY);
         syscall(PUT_CHARS, (uint32_t)"LostOnesWeeping:", 16, 0);
         print_curr_dir(state);
         // put_char(state.current_directory + '0');

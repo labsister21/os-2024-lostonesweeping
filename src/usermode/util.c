@@ -78,7 +78,7 @@ void print_curr_dir_helper(char* path_str, uint32_t current_dir) {
 
     if (current_dir == ROOT_CLUSTER_NUMBER) {
         path_str[pathlen++] = '/';
-        syscall(PUT_CHARS, (uint32_t)path_str, 1, 0);
+        put_chars(path_str, BIOS_LIGHT_BLUE);
         return;
     }
     
@@ -86,11 +86,10 @@ void print_curr_dir_helper(char* path_str, uint32_t current_dir) {
     path_str[pathlen++] = '/';
     while (parent != ROOT_CLUSTER_NUMBER) {
         updateDirectoryTable(parent);
-        parent = (uint32_t) ((state.curr_dir.table[0].cluster_high << 16) | state.curr_dir.table[0].cluster_low);
+        parent = (uint32_t) ((state.curr_dir.table[0].cluster_high >> 16) | state.curr_dir.table[0].cluster_low);
         memcpy(nodeIndex[nodecount], state.curr_dir.table[0].name, strlen(state.curr_dir.table[0].name));
         nodecount++;
     }
-
     updateDirectoryTable(current_dir);
 
     for (int i = nodecount - 1; i >= 0; i--) {
@@ -103,15 +102,15 @@ void print_curr_dir_helper(char* path_str, uint32_t current_dir) {
         }
     }
 
-    syscall(PUT_CHARS, (uint32_t)path_str, strlen(path_str), 0);
+    put_chars(path_str, BIOS_LIGHT_BLUE);
 }
 
 void put_char(char buf){
     syscall(PUT_CHAR,(uint32_t)buf, 0, 0);
 }
 
-void put_chars(char* buf){
-    syscall(PUT_CHARS, (uint32_t)buf, strlen(buf), 0);
+void put_chars(char* buf, uint8_t color){
+    syscall(PUT_CHARS, (uint32_t)buf, strlen(buf), color);
 }
 
 void extract_filename(const char *filename, char *basename) {

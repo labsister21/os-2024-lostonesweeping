@@ -4,6 +4,13 @@
 
 
 void cat(char* val, uint32_t curr_pos){
+    if(val == NULL){
+        put_chars("cat: Argumen kurang", BIOS_RED); 
+        put_char('\n');
+        put_chars("cat: cat <nama_file>", BIOS_LIGHT_BLUE);
+        put_char('\n');
+        return;
+    }
     uint32_t search_directory_number = state.current_directory;
 
     char directories[10][12]; 
@@ -25,8 +32,8 @@ void cat(char* val, uint32_t curr_pos){
 
             int entry_index = findEntryName(directories[i]);  
             if (entry_index == -1 || state.curr_dir.table[entry_index].attribute != ATTR_SUBDIRECTORY) {
-                syscall(6, (uint32_t) "cd: Invalid directory path", strlen("cd: Invalid directory path"), 0);
-                syscall(5, (uint32_t) '\n', 0, 0);
+                put_chars("cat: Invalid Directory", BIOS_RED); 
+                put_char('\n');
                 return;
             }
 
@@ -51,9 +58,8 @@ void cat(char* val, uint32_t curr_pos){
     int32_t retcode;
 
     syscall(READ, (uint32_t) &request, (uint32_t) &retcode, 0x0);
-
     if(retcode == 0){
-        put_chars((char *)&cl);
+        put_chars((char *)&cl, BIOS_BROWN);
     }
     put_char('\n');
 

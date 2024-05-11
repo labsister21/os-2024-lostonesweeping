@@ -3,6 +3,11 @@
 #include "cp.h"
 
 void cp(char* src, char* dest, uint32_t curr_pos){
+    if(src == NULL|| dest == NULL){
+        put_chars("cp: Argumen kurang", BIOS_RED); 
+        put_char('\n'); 
+        return;
+    }
     uint32_t search_source_number = state.current_directory;
     uint32_t search_target_number = state.current_directory; 
 
@@ -20,7 +25,7 @@ void cp(char* src, char* dest, uint32_t curr_pos){
 
     char target[12] = "\0\0\0\0\0\0\0\0\0\0\0\0";
     memcpy(target, directories_src[num_dir_src - 1], 12); 
-    put_chars(directories_src[num_dir_src - 1]);
+    // put_chars(directories_src[num_dir_src - 1]);
     char name[8]; 
     char ext[3]; 
 
@@ -43,8 +48,8 @@ void cp(char* src, char* dest, uint32_t curr_pos){
 
             int entry_index = findEntryName(directories_src[i]);  
             if (entry_index == -1 || state.curr_dir.table[entry_index].attribute != ATTR_SUBDIRECTORY) {
-                syscall(6, (uint32_t) "cd: Invalid directory path", strlen("cd: Invalid directory path"), 0);
-                syscall(5, (uint32_t) '\n', 0, 0);
+                put_chars("Invalid directory path", BIOS_RED);
+                put_char('\n');
                 return;
             }
 
@@ -62,8 +67,8 @@ void cp(char* src, char* dest, uint32_t curr_pos){
 
             int entry_index = findEntryName(directories_target[i]);  
             if (entry_index == -1 || state.curr_dir.table[entry_index].attribute != ATTR_SUBDIRECTORY) {
-                syscall(6, (uint32_t) "cd: Invalid directory path", strlen("cd: Invalid directory path"), 0);
-                syscall(5, (uint32_t) '\n', 0, 0);
+                put_chars("Invalid directory path", BIOS_RED);
+                put_char('\n');
                 return;
             }
 
@@ -93,7 +98,7 @@ void cp(char* src, char* dest, uint32_t curr_pos){
         memcpy(req_read.ext, ext, 3);
         syscall(READ, (uint32_t)&req_read, (uint32_t)&retcode_read ,0);
         if(retcode_read != 0){
-            put_chars("Pembacaan file gagal"); 
+            put_chars("Pembacaan file gagal", BIOS_RED); 
             put_char('\n');
         }else{
             read_status = true;
@@ -101,7 +106,7 @@ void cp(char* src, char* dest, uint32_t curr_pos){
     }else{
         syscall(READ_DIRECTORY, (uint32_t)&req_read, (uint32_t)&retcode_read ,0);
         if(retcode_read != 0){
-            put_chars("Pembacaan folder gagal"); 
+            put_chars("Pembacaan folder gagal", BIOS_RED); 
             put_char('\n');
         }else{
             read_status = true;
@@ -123,20 +128,20 @@ void cp(char* src, char* dest, uint32_t curr_pos){
         }
         syscall(WRITE, (uint32_t)&req_write, (uint32_t)&ret, 0);
         if(ret == 0){
-            put_chars("File/Folder berhasil di-copy");
+            put_chars("cp: File/Folder berhasil di-copy", BIOS_LIGHT_GREEN);
             put_char('\n'); 
         }else{
-            put_chars("File/Folder gagal di-copy");
+            put_chars("cp: File/Folder gagal di-copy", BIOS_RED);
             put_char('\n'); 
         }
     }else if(!target_status){
-        put_chars("Ini bukan folder atau folder tidak ada"); 
+        put_chars("cp: Ini bukan folder atau folder tidak ada", BIOS_RED); 
         put_char('\n'); 
     } else if(!src_status){
-        put_chars("file atau folder yang dipilih salah");
+        put_chars("cp: file atau folder yang dipilih salah", BIOS_RED);
         put_char('\n');
     } else{
-        put_chars("salah semua lmao");
+        put_chars("cp: salah semua lmao", BIOS_RED);
         put_char('\n');
     }
 
