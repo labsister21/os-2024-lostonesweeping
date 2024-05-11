@@ -14,8 +14,8 @@ void rename(char* target_name, char* target_ext, char directories_src[][12], int
 
             int entry_index = findEntryName(directories_src[i]);  
             if (entry_index == -1 || state.curr_dir.table[entry_index].attribute != ATTR_SUBDIRECTORY) {
-                syscall(6, (uint32_t) "cd: Invalid directory path", strlen("cd: Invalid directory path"), 0);
-                syscall(5, (uint32_t) '\n', 0, 0);
+                put_chars("Invalid directory path");
+                put_char('\n');
                 return;
             }
 
@@ -130,8 +130,8 @@ void move(char directories_src[10][12], int num_dir_src , char directories_dest[
 
             int entry_index = findEntryName(directories_src[i]);  
             if (entry_index == -1 || state.curr_dir.table[entry_index].attribute != ATTR_SUBDIRECTORY) {
-                syscall(6, (uint32_t) "cd: Invalid directory path", strlen("cd: Invalid directory path"), 0);
-                syscall(5, (uint32_t) '\n', 0, 0);
+                put_chars("Invalid directory path");
+                put_char('\n');
                 return;
             }
 
@@ -149,8 +149,8 @@ void move(char directories_src[10][12], int num_dir_src , char directories_dest[
 
         int entry_index = findEntryName(directories_dest[i]);  
         if (entry_index == -1 || state.curr_dir.table[entry_index].attribute != ATTR_SUBDIRECTORY) {
-            syscall(6, (uint32_t) "cd: Invalid directory path", strlen("cd: Invalid directory path"), 0);
-            syscall(5, (uint32_t) '\n', 0, 0);
+            put_chars("Invalid directory path");
+            put_char('\n');
             return;
         }
         // Update the search_directory_number to the found directory
