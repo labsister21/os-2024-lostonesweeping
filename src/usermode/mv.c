@@ -70,7 +70,7 @@ void rename(char* target_name, char* target_ext, char directories_src[][12], int
         */
        struct ClusterBuffer cf = {0};
         struct FAT32DriverRequest request = {
-            .buf = 0,
+            .buf = &cf,
             .name = "\0\0\0\0\0\0\0",
             .parent_cluster_number = search_source_number,
             .buffer_size = 0,
@@ -84,6 +84,7 @@ void rename(char* target_name, char* target_ext, char directories_src[][12], int
 
         if(retcode == 0){
             put_chars("Folder berhasil di-rename");
+            put_char('\n');
         } 
     }
 }
