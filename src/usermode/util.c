@@ -83,11 +83,10 @@ void print_curr_dir(char* path_str, uint32_t current_dir) {
     path_str[pathlen++] = '/';
     while (parent != ROOT_CLUSTER_NUMBER) {
         updateDirectoryTable(parent);
-        parent = (uint32_t) ((state.curr_dir.table[0].cluster_high << 16) | state.curr_dir.table[0].cluster_low);
+        parent = (uint32_t) ((state.curr_dir.table[0].cluster_high >> 16) | state.curr_dir.table[0].cluster_low);
         memcpy(nodeIndex[nodecount], state.curr_dir.table[0].name, strlen(state.curr_dir.table[0].name));
         nodecount++;
     }
-
     updateDirectoryTable(current_dir);
 
     for (int i = nodecount - 1; i >= 0; i--) {

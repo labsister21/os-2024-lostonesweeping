@@ -499,6 +499,5 @@ int8_t delete(struct FAT32DriverRequest request){
         write_clusters(dir_table, request.parent_cluster_number, 1);
     }
 
-    
     return 0;
 }
