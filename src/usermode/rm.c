@@ -43,8 +43,9 @@ void remove(char* target, uint32_t curr_pos){
         }
     } updateDirectoryTable(curr_pos);
 
+    struct ClusterBuffer cl = {0}; 
     struct FAT32DriverRequest req = {
-        .buf = 0,
+        .buf = &cl,
         .name = "\0\0\0\0\0\0\0\0",
         .ext = "\0\0\0",
 	    .parent_cluster_number = search_directory_number,

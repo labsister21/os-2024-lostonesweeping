@@ -6,6 +6,7 @@
 #include "./rm.h"
 #include "cat.h"
 #include "cp.h"
+#include "mv.h"
 #include "util.h"
 
 void syscall(uint32_t eax, uint32_t ebx, uint32_t ecx, uint32_t edx) {
@@ -71,6 +72,11 @@ void run_prompt() {
         char* arg2 = my_strtok(NULL, '\0'); 
         cp(arg1, arg2, state.current_directory);
     }
+    else if(memcmp(token, "mv", 2) == 0){
+        char* arg1 = my_strtok(NULL, ' ');
+        char* arg2 = my_strtok(NULL, '\0'); 
+        mv(arg1, arg2, state.current_directory);
+    }
 }
 
 void clear_prompt() {
@@ -121,7 +127,7 @@ int main(void) {
 
     char bufer[7] = {'a', 'k', 'u', 'g', 'i', 'l', 'a'};
     struct FAT32DriverRequest req2={
-        .name = "lmao",
+        .name = "dua",
         .ext = "txt",
         .buffer_size = 10, 
         .buf = &bufer,
