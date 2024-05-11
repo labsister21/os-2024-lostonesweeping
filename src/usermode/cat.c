@@ -3,8 +3,41 @@
 #include "util.h"
 
 
-void cat(char* val){
+void cat(char* val, uint32_t curr_pos){
     uint32_t search_directory_number = state.current_directory;
+
+    char directories[10][12]; 
+    int num_dir; 
+
+    extract_dir(val, directories, &num_dir);
+    char true_target[12] = "\0\0\0\0\0\0\0\0\0\0\0\0";
+    memcpy(true_target, directories[num_dir - 1], 12);
+
+    char filename[8] = {'\0','\0','\0','\0','\0','\0','\0','\0'};
+    char fileext[3] = {'\0','\0','\0'};
+    extract_filename(true_target, filename);
+    extract_file_extension(true_target, fileext);
+
+    int i = 0;
+    if(num_dir > 1){
+        while (i < num_dir - 1) {
+            updateDirectoryTable(search_directory_number);  
+
+            int entry_index = findEntryName(directories[i]);  
+            if (entry_index == -1 || state.curr_dir.table[entry_index].attribute != ATTR_SUBDIRECTORY) {
+                syscall(6, (uint32_t) "cd: Invalid directory path", strlen("cd: Invalid directory path"), 0);
+                syscall(5, (uint32_t) '\n', 0, 0);
+                return;
+            }
+
+            // Update the search_directory_number to the found directory
+            search_directory_number = (uint32_t)((state.curr_dir.table[entry_index].cluster_high >> 16) | state.curr_dir.table[entry_index].cluster_low);
+            put_char('\n');
+            i++;
+        }
+    } updateDirectoryTable(curr_pos);
+
+
     struct ClusterBuffer cl           = {0};
     struct FAT32DriverRequest request = {
         .buf = &cl,
@@ -13,13 +46,6 @@ void cat(char* val){
         .parent_cluster_number = search_directory_number,
         .buffer_size = 4 * CLUSTER_SIZE,
     };
-
-    char filename[8] = {'\0','\0','\0','\0','\0','\0','\0','\0'};
-    char fileext[3] = {'\0','\0','\0'};
-    
-    extractBaseName(val, filename);
-    extractExtension(val, fileext);
-
     memcpy(&(request.name), filename, 8);
     memcpy(&(request.ext), fileext, 3);
     int32_t retcode;

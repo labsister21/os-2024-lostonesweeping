@@ -2,6 +2,6 @@
 #define _CAT__H
 
 
-void cat(char* args);
+void cat(char* args, uint32_t);
 
 #endif

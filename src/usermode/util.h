@@ -13,12 +13,12 @@ void put_chars(char* buf);
 
 int findEntryName(char* name);
 
-void extractDirectories(char* dir, char directories[][8], int* numDirs);
 
-void extract_dir_special(char* dir, char directories[][12], int* numDirs);
+void extract_dir(char* dir, char directories[][12], int* numDirs);
 
-void extractBaseName(const char *filename, char *basename);
+void extract_filename(const char *filename, char *basename);
 
-void extractExtension(const char *filename, char *extension);
+void extract_file_extension(const char *filename, char *extension);
 
+// void extractDirectories(char* dir, char directories[][8], int* numDirs);
 #endif

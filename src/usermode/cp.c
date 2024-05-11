@@ -15,8 +15,8 @@ void cp(char* src, char* dest, uint32_t curr_pos){
     int num_dir_src; 
     int num_dir_target; 
 
-    extract_dir_special(src, directories_src, &num_dir_src); 
-    extract_dir_special(dest, directories_target, &num_dir_target);
+    extract_dir(src, directories_src, &num_dir_src); 
+    extract_dir(dest, directories_target, &num_dir_target);
 
     char target[12] = "\0\0\0\0\0\0\0\0\0\0\0\0";
     memcpy(target, directories_src[num_dir_src - 1], 12); 
@@ -24,8 +24,8 @@ void cp(char* src, char* dest, uint32_t curr_pos){
     char name[8]; 
     char ext[3]; 
 
-    extractBaseName(target, name); 
-    extractExtension(target, ext);
+    extract_filename(target, name); 
+    extract_file_extension(target, ext);
 
 
     bool file;

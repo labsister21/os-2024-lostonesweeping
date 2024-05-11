@@ -10,10 +10,10 @@ void cd(char* dir) {
         return;  // No directory specified
     }
 
-    char directories[10][8]; 
+    char directories[10][12]; 
     int num_dir; 
 
-    extractDirectories(dir, directories, &num_dir);
+    extract_dir(dir, directories, &num_dir);
     int i = 0;
 
     while (i < num_dir) {
