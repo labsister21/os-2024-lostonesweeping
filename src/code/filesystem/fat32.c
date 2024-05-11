@@ -158,18 +158,6 @@ void initialize_filesystem_fat32(void){
 
 }
 
-int32_t driver_dir_table_linear_scan(char name[8], char ext[3], bool find_empty) {
-    for (uint32_t i = 0; i < TOTAL_DIRECTORY_ENTRY; i++) {
-        struct FAT32DirectoryEntry entry = fat32_driver_state.dir_table_buf.table[i];
-        bool is_entry_not_empty          = (entry.user_attribute & UATTR_NOT_EMPTY);
-        bool search_and_found_empty      = find_empty && !is_entry_not_empty;
-        bool name_match                  = is_entry_not_empty && !memcmp(entry.name, name, 8) && !memcmp(entry.ext, ext, 3);
-        if (search_and_found_empty || name_match)
-            return i;
-    }
-    return -1;
-}
-
 bool get_dir_table_from_cluster(uint32_t cluster, struct FAT32DirectoryTable *dir_entry) {
     if (fat32_driver_state.fat_table.cluster_map[cluster] != FAT32_FAT_END_OF_FILE)
         return false;
@@ -192,8 +180,21 @@ int8_t read_directory(struct FAT32DriverRequest request) {
         return -1;
     }
 
-    // Use the driver_dir_table_linear_scan function to find the directory entry
-    int32_t entry_index = driver_dir_table_linear_scan(request.name, request.ext, false);
+    // Search for the directory entry in the directory table buffer
+    bool find_empty = false; // We are not searching for an empty entry
+    int32_t entry_index = -1;
+
+    for (uint32_t i = 0; i < TOTAL_DIRECTORY_ENTRY; i++) {
+        struct FAT32DirectoryEntry entry = dir_table->table[i];
+        bool is_entry_not_empty = (entry.user_attribute & UATTR_NOT_EMPTY);
+        bool search_and_found_empty = find_empty && !is_entry_not_empty;
+        bool name_match = is_entry_not_empty && !memcmp(entry.name, request.name, 8) && !memcmp(entry.ext, request.ext, 3);
+
+        if (search_and_found_empty || name_match) {
+            entry_index = i;
+            break;
+        }
+    }
 
     if (entry_index == -1) {
         // Directory not found
@@ -208,7 +209,7 @@ int8_t read_directory(struct FAT32DriverRequest request) {
     }
 
     // Extract cluster number from the directory entry
-    uint32_t cluster_number = entry.cluster_low + ((uint32_t)entry.cluster_high >> 16);
+    uint32_t cluster_number = entry.cluster_low + ((uint32_t)entry.cluster_high << 16);
 
     // Read the cluster content into the provided buffer
     read_clusters(request.buf, cluster_number, 1);

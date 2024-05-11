@@ -130,7 +130,6 @@ int main(void) {
     syscall(WRITE, (uint32_t)&req2, (uint32_t)&ret, 0);
 
     
-
     init();
     while (true) {
         syscall(PUT_CHARS, (uint32_t)"LostOnesWeeping:", 16, 0);

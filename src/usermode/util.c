@@ -146,18 +146,12 @@ void print_curr_dir(char* path_str, uint32_t current_dir) {
 }
 
 void put_char(char buf){
-    syscall(5,(uint32_t)buf, 0, 0);
+    syscall(PUT_CHAR,(uint32_t)buf, 0, 0);
 }
 
 void put_chars(char* buf){
-    syscall(6, (uint32_t)buf, strlen(buf), 0);
+    syscall(PUT_CHARS, (uint32_t)buf, strlen(buf), 0);
 }
-
-
-bool isPathAbsolute(char* args_val, int (*args_info)[2], int args_pos) {
-    return (memcmp(args_val + (*(args_info + args_pos))[0], "/", 1) == 0);
-}
-
 
 void extractBaseName(const char *filename, char *basename) {
     int j;
