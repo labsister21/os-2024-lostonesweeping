@@ -25,43 +25,8 @@ int findEntryName(char* name) {
     return result;
 }
 
-void extractDirectories(char* dir, char directories[][8], int* numDirs) {
-    if (dir == NULL || directories == NULL || numDirs == NULL) {
-        return;  // Invalid input parameters
-    }
 
-    int len = strlen(dir);
-    if (len == 0) {
-        *numDirs = 0;
-        return;
-    }
-
-    int index = 0;
-    int start = 0;
-    int end = 0;
-
-    // Iterate through the input directory path
-    while (end <= len) {
-        if (dir[end] == '/' || dir[end] == '\0') {
-            // Calculate the length of the directory name
-            int dirLen = end - start;
-
-            // Copy the directory name into the directories array
-            if (dirLen > 0 && index < 10) {
-                memcpy(directories[index], &dir[start], dirLen);
-                directories[index][dirLen] = '\0';  // Null-terminate the string
-                index++;
-            }
-
-            start = end + 1;  // Move start to the next character after '/'
-        }
-        end++;
-    }
-
-    *numDirs = index;  // Set the number of extracted directories
-}
-
-void extract_dir_special(char* dir, char directories[][12], int* numDirs) {
+void extract_dir(char* dir, char directories[][12], int* numDirs) {
     if (dir == NULL || directories == NULL || numDirs == NULL) {
         return;  // Invalid input parameters
     }
@@ -117,24 +82,17 @@ void print_curr_dir_helper(char* path_str, uint32_t current_dir) {
         return;
     }
     
-    // Loop sampe parentnya ROOT
     uint32_t parent = current_dir;
     path_str[pathlen++] = '/';
     while (parent != ROOT_CLUSTER_NUMBER) {
-        // Isi dir_table dengan isi dari cluster sekarang
         updateDirectoryTable(parent);
-
-        // Ambil parentnya
         parent = (uint32_t) ((state.curr_dir.table[0].cluster_high << 16) | state.curr_dir.table[0].cluster_low);
-        
-        // Masukin namanya ke list
         memcpy(nodeIndex[nodecount], state.curr_dir.table[0].name, strlen(state.curr_dir.table[0].name));
         nodecount++;
     }
 
     updateDirectoryTable(current_dir);
 
-    // Iterate back to get the full pathstr
     for (int i = nodecount - 1; i >= 0; i--) {
         for (size_t j = 0; j < strlen(nodeIndex[i]); j++) {
             path_str[pathlen++] = nodeIndex[i][j];
@@ -149,20 +107,14 @@ void print_curr_dir_helper(char* path_str, uint32_t current_dir) {
 }
 
 void put_char(char buf){
-    syscall(5,(uint32_t)buf, 0, 0);
+    syscall(PUT_CHAR,(uint32_t)buf, 0, 0);
 }
 
 void put_chars(char* buf){
-    syscall(6, (uint32_t)buf, strlen(buf), 0);
+    syscall(PUT_CHARS, (uint32_t)buf, strlen(buf), 0);
 }
 
-
-bool isPathAbsolute(char* args_val, int (*args_info)[2], int args_pos) {
-    return (memcmp(args_val + (*(args_info + args_pos))[0], "/", 1) == 0);
-}
-
-
-void extractBaseName(const char *filename, char *basename) {
+void extract_filename(const char *filename, char *basename) {
     int j;
     int len = strlen(filename);
     for (j = 0; j < len; j++) {
@@ -172,7 +124,7 @@ void extractBaseName(const char *filename, char *basename) {
     basename[j] = '\0';
 }
 
-void extractExtension(const char *filename, char *extension) {
+void extract_file_extension(const char *filename, char *extension) {
     int i, j;
     int len = strlen(filename);
     int dot_found = -1;
@@ -194,3 +146,38 @@ void extractExtension(const char *filename, char *extension) {
     }
 }
 
+// void extractDirectories(char* dir, char directories[][8], int* numDirs) {
+//     if (dir == NULL || directories == NULL || numDirs == NULL) {
+//         return;  // Invalid input parameters
+//     }
+
+//     int len = strlen(dir);
+//     if (len == 0) {
+//         *numDirs = 0;
+//         return;
+//     }
+
+//     int index = 0;
+//     int start = 0;
+//     int end = 0;
+
+//     // Iterate through the input directory path
+//     while (end <= len) {
+//         if (dir[end] == '/' || dir[end] == '\0') {
+//             // Calculate the length of the directory name
+//             int dirLen = end - start;
+
+//             // Copy the directory name into the directories array
+//             if (dirLen > 0 && index < 10) {
+//                 memcpy(directories[index], &dir[start], dirLen);
+//                 directories[index][dirLen] = '\0';  // Null-terminate the string
+//                 index++;
+//             }
+
+//             start = end + 1;  // Move start to the next character after '/'
+//         }
+//         end++;
+//     }
+
+//     *numDirs = index;  // Set the number of extracted directories
+// }

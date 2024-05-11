@@ -15,15 +15,12 @@ void put_chars(char* buf);
 
 int findEntryName(char* name);
 
-bool isPathAbsolute(char* prompt_val, int (*prompt_info)[2], int prompt_pos); 
 
-void extractDirectories(char* dir, char directories[][8], int* numDirs);
+void extract_dir(char* dir, char directories[][12], int* numDirs);
 
-void extract_dir_special(char* dir, char directories[][12], int* numDirs);
+void extract_filename(const char *filename, char *basename);
 
-void extractBaseName(const char *filename, char *basename);
+void extract_file_extension(const char *filename, char *extension);
 
-void extractExtension(const char *filename, char *extension);
-
-
+// void extractDirectories(char* dir, char directories[][8], int* numDirs);
 #endif

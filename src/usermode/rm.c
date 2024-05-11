@@ -4,9 +4,6 @@
 #include "./util.h"
 
 
-
-
-
 void remove(char* target, uint32_t curr_pos){
     uint32_t search_directory_number = state.current_directory;
     if (target == NULL) {
@@ -16,15 +13,15 @@ void remove(char* target, uint32_t curr_pos){
     char directories[10][12]; 
     int num_dir; 
 
-    extract_dir_special(target, directories, &num_dir);
+    extract_dir(target, directories, &num_dir);
     char true_target[12] = "\0\0\0\0\0\0\0\0\0\0\0\0"; 
     memcpy(true_target, directories[num_dir - 1], 12);
 
 
     char name[8]; 
     char ext[3]; 
-    extractBaseName(true_target, name);
-    extractExtension(true_target, ext);
+    extract_filename(true_target, name);
+    extract_file_extension(true_target, ext);
 
 
     int i = 0;
@@ -46,8 +43,9 @@ void remove(char* target, uint32_t curr_pos){
         }
     } updateDirectoryTable(curr_pos);
 
+    struct ClusterBuffer cl = {0}; 
     struct FAT32DriverRequest req = {
-        .buf = 0,
+        .buf = &cl,
         .name = "\0\0\0\0\0\0\0\0",
         .ext = "\0\0\0",
 	    .parent_cluster_number = search_directory_number,

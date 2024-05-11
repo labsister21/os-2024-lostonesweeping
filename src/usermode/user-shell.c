@@ -7,6 +7,7 @@
 #include "./find.h"
 #include "cat.h"
 #include "cp.h"
+#include "mv.h"
 #include "util.h"
 
 void syscall(uint32_t eax, uint32_t ebx, uint32_t ecx, uint32_t edx) {
@@ -65,12 +66,17 @@ void run_prompt() {
     } 
     else if(memcmp(token, "cat", 3) == 0){
         char* arg = my_strtok(NULL, '\0'); 
-        cat(arg);
+        cat(arg, state.current_directory);
     }
     else if(memcmp(token, "cp", 2) == 0){
         char* arg1 = my_strtok(NULL, ' ');
         char* arg2 = my_strtok(NULL, '\0'); 
         cp(arg1, arg2, state.current_directory);
+    }
+    else if(memcmp(token, "mv", 2) == 0){
+        char* arg1 = my_strtok(NULL, ' ');
+        char* arg2 = my_strtok(NULL, '\0'); 
+        mv(arg1, arg2, state.current_directory);
     }
     else if(memcmp(token, "find", 4) == 0){
         char* arg = my_strtok(NULL, '\0'); 
@@ -126,7 +132,7 @@ int main(void) {
 
     char bufer[7] = {'a', 'k', 'u', 'g', 'i', 'l', 'a'};
     struct FAT32DriverRequest req2={
-        .name = "lmao",
+        .name = "dua",
         .ext = "txt",
         .buffer_size = 10, 
         .buf = &bufer,
@@ -135,7 +141,6 @@ int main(void) {
     syscall(WRITE, (uint32_t)&req2, (uint32_t)&ret, 0);
 
     
-
     init();
     while (true) {
         syscall(PUT_CHARS, (uint32_t)"LostOnesWeeping:", 16, 0);
