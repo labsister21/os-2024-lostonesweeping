@@ -77,10 +77,10 @@ void rename(char* target_name, char* target_ext, char directories_src[][12], int
         };
         memcpy(request.name, target_name, 8); 
         syscall(READ_DIRECTORY, (uint32_t)&request, (uint32_t)&retcode, 0x0);
-        memcpy(request.name, filename_rename, 8); 
-        syscall(WRITE, (uint32_t)&request, (uint32_t)&retcode, 0x0);
         memcpy(request.name, target_name, 8); 
         syscall(DELETE, (uint32_t)&request, (uint32_t)&retcode, 0x0);
+        memcpy(request.name, filename_rename, 8); 
+        syscall(WRITE, (uint32_t)&request, (uint32_t)&retcode, 0x0);
 
         if(retcode == 0){
             put_chars("Folder berhasil di-rename");
