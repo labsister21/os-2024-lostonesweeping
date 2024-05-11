@@ -83,7 +83,7 @@ void syscall(struct InterruptFrame frame) {
             break;
         case 5: //char put
             if((char) frame.cpu.general.ebx){
-                fputc((char)frame.cpu.general.ebx);
+                fputc((char)frame.cpu.general.ebx, (uint8_t) frame.cpu.general.edx);
                 // framebuffer_put((char) frame.cpu.general.ebx); 
             }
             break;
