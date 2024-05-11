@@ -5,7 +5,9 @@
 
 void clearBuf(void *pointer, size_t n);
 
-void print_curr_dir(char* path_str, uint32_t current_dir);
+void print_curr_dir(struct ShellState s);
+
+void print_curr_dir_helper(char* path_str, uint32_t current_dir);
 
 void put_char(char buf);
 
