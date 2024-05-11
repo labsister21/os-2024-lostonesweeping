@@ -14,7 +14,7 @@ void rename(char* target_name, char* target_ext, char directories_src[][12], int
 
             int entry_index = findEntryName(directories_src[i]);  
             if (entry_index == -1 || state.curr_dir.table[entry_index].attribute != ATTR_SUBDIRECTORY) {
-                put_chars("Invalid directory path");
+                put_chars("Invalid directory path", BIOS_RED);
                 put_char('\n');
                 return;
             }
@@ -60,7 +60,7 @@ void rename(char* target_name, char* target_ext, char directories_src[][12], int
         syscall(DELETE, (uint32_t)&request, (uint32_t)&retcode, 0x0);
 
         if(retcode == 0){
-            put_chars("File berhasil di-rename");
+            put_chars("File berhasil di-rename", BIOS_LIGHT_GREEN);
             put_char('\n');
         } 
     }
@@ -83,12 +83,12 @@ void rename(char* target_name, char* target_ext, char directories_src[][12], int
         syscall(WRITE, (uint32_t)&request, (uint32_t)&retcode, 0x0);
 
         if(retcode == 0){
-            put_chars("Folder berhasil di-rename");
+            put_chars("Folder berhasil di-rename", BIOS_LIGHT_GREEN);
             put_char('\n');
         } else if (retcode == 1){
             memcpy(request.name, target_name, 8); 
             syscall(WRITE, (uint32_t)&request, (uint32_t)&retcode, 0x0);
-            put_chars("Folder sudah ada nama yang sama");
+            put_chars("Folder sudah ada nama yang sama", BIOS_RED);
             put_char('\n');
 
         }
@@ -106,7 +106,7 @@ void move(char directories_src[10][12], int num_dir_src , char directories_dest[
 
     char target[12] = "\0\0\0\0\0\0\0\0\0\0\0\0";
     memcpy(target, directories_src[num_dir_src - 1], 12); 
-    put_chars(directories_src[num_dir_src - 1]);
+    // put_chars(directories_src[num_dir_src - 1],);
     char name[8]; 
     char ext[3]; 
 
@@ -130,7 +130,7 @@ void move(char directories_src[10][12], int num_dir_src , char directories_dest[
 
             int entry_index = findEntryName(directories_src[i]);  
             if (entry_index == -1 || state.curr_dir.table[entry_index].attribute != ATTR_SUBDIRECTORY) {
-                put_chars("Invalid directory path");
+                put_chars("Invalid directory path", BIOS_RED);
                 put_char('\n');
                 return;
             }
@@ -149,7 +149,7 @@ void move(char directories_src[10][12], int num_dir_src , char directories_dest[
 
         int entry_index = findEntryName(directories_dest[i]);  
         if (entry_index == -1 || state.curr_dir.table[entry_index].attribute != ATTR_SUBDIRECTORY) {
-            put_chars("Invalid directory path");
+            put_chars("Invalid directory path", BIOS_RED);
             put_char('\n');
             return;
         }
@@ -179,7 +179,7 @@ void move(char directories_src[10][12], int num_dir_src , char directories_dest[
         memcpy(req.ext, ext, 3);
         syscall(READ, (uint32_t)&req, (uint32_t)&retcode ,0);
         if(retcode != 0){
-            put_chars("Pembacaan file gagal"); 
+            put_chars("Pembacaan file gagal", BIOS_RED); 
             put_char('\n');
         }else{
             read_status = true;
@@ -187,7 +187,7 @@ void move(char directories_src[10][12], int num_dir_src , char directories_dest[
     } else{
         syscall(READ_DIRECTORY, (uint32_t)&req, (uint32_t)&retcode ,0);
         if(retcode != 0){
-            put_chars("Pembacaan folder gagal"); 
+            put_chars("Pembacaan folder gagal", BIOS_RED); 
             put_char('\n');
         }else{
             read_status = true;
@@ -203,22 +203,22 @@ void move(char directories_src[10][12], int num_dir_src , char directories_dest[
         }
         syscall(WRITE, (uint32_t)&req, (uint32_t)&retcode, 0);
         if(retcode == 0){
-            put_chars("File/Folder berhasil di-move");
+            put_chars("File/Folder berhasil di-move", BIOS_LIGHT_GREEN);
             put_char('\n'); 
             req.parent_cluster_number = search_source_number;
             syscall(DELETE, (uint32_t)&req, (uint32_t)&retcode, 0);
         }else{
-            put_chars("File/Folder gagal di-copy");
+            put_chars("File/Folder gagal di-copy", BIOS_RED);
             put_char('\n'); 
         }
     }else if(!target_status){
-        put_chars("Ini bukan folder atau folder tidak ada"); 
+        put_chars("Ini bukan folder atau folder tidak ada", BIOS_RED); 
         put_char('\n'); 
     } else if(!src_status){
-        put_chars("file atau folder yang dipilih salah");
+        put_chars("file atau folder yang dipilih salah", BIOS_RED);
         put_char('\n');
     } else{
-        put_chars("salah semua lmao");
+        put_chars("salah semua lmao", BIOS_RED);
         put_char('\n');
     }
 
@@ -227,7 +227,11 @@ void move(char directories_src[10][12], int num_dir_src , char directories_dest[
 
 
 void mv(char* arg1, char* arg2, uint32_t curr_pos){
-
+    if(arg1 == NULL ||  arg2){
+        put_chars("mv: Argumen kurang", BIOS_RED);
+        put_char('\n');
+        return;
+    }
     char directories_src[10][12]; 
     char directories_target[10][12]; 
 

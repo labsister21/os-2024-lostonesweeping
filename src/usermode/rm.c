@@ -31,7 +31,7 @@ void remove(char* target, uint32_t curr_pos){
 
             int entry_index = findEntryName(directories[i]);  
             if (entry_index == -1 || state.curr_dir.table[entry_index].attribute != ATTR_SUBDIRECTORY) {
-                put_chars("Invalid directory path");
+                put_chars("Invalid directory path", BIOS_RED);
                 put_char('\n');
                 return;
             }

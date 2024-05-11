@@ -7,9 +7,9 @@ void cd(char* dir) {
     uint32_t search_directory_number = state.current_directory;
     // put_chars(dir);
     if (dir == NULL) {
-        put_chars("cd: Argumen kurang"); 
+        put_chars("cd: Argumen kurang", BIOS_RED); 
         put_char('\n');
-        put_chars("cd: Contoh penggunaan: cd folder1/folder2"); 
+        put_chars("cd: Contoh penggunaan: cd folder1/folder2", BIOS_LIGHT_GREEN); 
         put_char('\n');
         return;  // No directory specified
     }
@@ -26,7 +26,7 @@ void cd(char* dir) {
 
         int entry_index = findEntryName(directories[i]);  
         if (entry_index == -1 || state.curr_dir.table[entry_index].attribute != ATTR_SUBDIRECTORY) {
-                put_chars("cp: Invalid directory path");
+                put_chars("cp: Invalid directory path", BIOS_RED);
                 put_char('\n');
             return;
 

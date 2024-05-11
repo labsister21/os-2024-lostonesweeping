@@ -66,7 +66,7 @@ void framebuffer_move_cursor(enum FramebufferCursorMove direction, int count);
 
 void framebuffer_clear(void);
 
-void framebuffer_put(char c);
+void framebuffer_put(char c, uint8_t color);
 
 void framebuffer_clear_delete(void); 
 

@@ -90,8 +90,9 @@ void syscall(struct InterruptFrame frame) {
         case 6: { //chars puts
             int i = frame.cpu.general.ecx;
 		    char *str = (char *)frame.cpu.general.ebx;
+            uint8_t color = frame.cpu.general.edx;
 		    for(int j = 0; j < i; j++){
-                framebuffer_put(str[j]);
+                framebuffer_put(str[j], color);
             }
         }
             break;
@@ -110,9 +111,10 @@ void syscall(struct InterruptFrame frame) {
         case 11: //prevent deleting? 
             int i = 0;
             char *str = (char *)frame.cpu.general.ebx;
+            uint8_t color = frame.cpu.general.edx;
             while (str[i] != '\0') {
                 if(str[i] != '\b'){
-                    framebuffer_put(str[i]);
+                    framebuffer_put(str[i], color);
                     ++i;
                 }else{
                     framebuffer_clear_delete();

@@ -75,7 +75,7 @@ void print_curr_dir(char* path_str, uint32_t current_dir) {
 
     if (current_dir == ROOT_CLUSTER_NUMBER) {
         path_str[pathlen++] = '/';
-        syscall(PUT_CHARS, (uint32_t)path_str, 1, 0);
+        put_chars(path_str, BIOS_LIGHT_BLUE);
         return;
     }
     
@@ -99,15 +99,15 @@ void print_curr_dir(char* path_str, uint32_t current_dir) {
         }
     }
 
-    syscall(PUT_CHARS, (uint32_t)path_str, strlen(path_str), 0);
+    put_chars(path_str, BIOS_LIGHT_BLUE);
 }
 
 void put_char(char buf){
     syscall(PUT_CHAR,(uint32_t)buf, 0, 0);
 }
 
-void put_chars(char* buf){
-    syscall(PUT_CHARS, (uint32_t)buf, strlen(buf), 0);
+void put_chars(char* buf, uint8_t color){
+    syscall(PUT_CHARS, (uint32_t)buf, strlen(buf), color);
 }
 
 void extract_filename(const char *filename, char *basename) {
