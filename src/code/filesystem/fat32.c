@@ -435,7 +435,7 @@ int8_t delete(struct FAT32DriverRequest request){
     //Cari file/folder yang di-request
     bool found = false;
     bool isFolder = false;
-    int rc; //request cluster
+    uint32_t rc; //request cluster
     for(rc = 0; rc<TOTAL_DIRECTORY_ENTRY; rc++){
         if(dir_table->table[rc].user_attribute == UATTR_NOT_EMPTY
         && strcmp(dir_table->table[rc].name, request.name, 8) == 0
@@ -470,11 +470,10 @@ int8_t delete(struct FAT32DriverRequest request){
 
         //Jalankan operasi delete
         struct FAT32FileAllocationTable *fat_table = &fat32_driver_state.fat_table;
-        int prev;
 
         //Kosongkan dir_table pada rc
-        // (Tidak semua dikosongkan, tetapi yang terpenting adalah .attribute)
-        dir_table->table[rc].attribute = !UATTR_NOT_EMPTY;
+        // (Tidak semua dikosongkan, tetapi yang terpenting adalah .user_attribute)
+        dir_table->table[rc].user_attribute = !UATTR_NOT_EMPTY;
         for (int i=0; i<8; i++){
             dir_table->table[rc].name[i] = '\0';     
         }  
@@ -482,18 +481,18 @@ int8_t delete(struct FAT32DriverRequest request){
             dir_table->table[rc].ext[i] = '\0';     
         }  
 
-        //Linked list allocationTable pada indeks rc jika ketemu file dalam folder, sekaligus delete cluster isi file/folder
-        //rc++ Karena cluster indexing pada dir_table dimulai dari 0 (?)
-        rc++;
+        //Linked list allocationTable pada indeks cluster_number jika ketemu file dalam folder, sekaligus delete cluster isi file/folder
         struct ClusterBuffer emptyBuffer = {0};
-        while (fat_table->cluster_map[rc] != FAT32_FAT_END_OF_FILE){
-            write_clusters(&emptyBuffer, rc, 1);
-            prev = rc;
-            rc = fat_table->cluster_map[rc]; 
+        uint32_t cluster_number = dir_table->table[rc].cluster_low + (((uint32_t)dir_table->table[rc].cluster_high) >> 16);
+        uint32_t prev;
+        while (fat_table->cluster_map[cluster_number] != FAT32_FAT_END_OF_FILE){
+            write_clusters(&emptyBuffer, cluster_number, 1);
+            prev = cluster_number;
+            cluster_number = fat_table->cluster_map[cluster_number];
             fat_table->cluster_map[prev] = FAT32_FAT_EMPTY_ENTRY;
         }
-        write_clusters(&emptyBuffer, rc, 1);
-        fat_table->cluster_map[rc] = FAT32_FAT_EMPTY_ENTRY;
+        write_clusters(&emptyBuffer, cluster_number, 1);
+        fat_table->cluster_map[cluster_number] = FAT32_FAT_EMPTY_ENTRY;
         
         //Delete dengan overwrite HDD dengan FAT, dir_table, dan cluster yang dimodifikasi
         write_clusters(fat_table, FAT_CLUSTER_NUMBER, 1);
