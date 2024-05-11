@@ -1,6 +1,7 @@
 #include "../../header/driver/keyboard.h"
 #include "../../header/cpu/portio.h"
 #include "../../header/cpu/interrupt.h"
+#include "header/text/framebuffer.h"
 #include <stdint.h>
 
 
@@ -123,6 +124,18 @@ void keyboard_isr(void) {
       case EXT_SCANCODE_RIGHT_SHIFT + BUTTON_RELEASED: 
         keyboard_state.shift_pressed = false;
         break;
+
+      case (uint8_t)0xE048: // Up Arrow Key Pressed
+            // Implement logic for up arrow key press
+            // For example, move cursor up or navigate upwards
+            framebuffer_scroll_up(); 
+            break;
+
+      case (uint8_t) 0xE050: // Down Arrow Key Pressed
+          // Implement logic for down arrow key press
+          // For example, move cursor down or navigate downwards
+            framebuffer_scroll_down(); 
+          break;
 
       default: {
         char c;
