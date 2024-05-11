@@ -12,6 +12,10 @@
 #define PIC1_OFFSET          0x20
 #define PIC2_OFFSET          0x28
 
+#define SYSCALL_CALL 0x30
+#define SYSCALL_CALL2 0xe
+// PRIVILEGE 
+
 // PIC ports
 #define PIC1                 0x20
 #define PIC2                 0xA0
@@ -59,6 +63,9 @@
 #define IRQ_FPU          13
 #define IRQ_PRIMARY_ATA  14
 #define IRQ_SECOND_ATA   15
+
+//
+#define SELECTOR_INTERRUPT 0x10
 
 
 /**

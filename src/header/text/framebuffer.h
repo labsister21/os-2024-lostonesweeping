@@ -55,9 +55,18 @@ void framebuffer_set_cursor(uint8_t r, uint8_t c);
  * Extra note: It's allowed to use different color palette for this
  *
  */
+enum FramebufferCursorMove {
+	UP,
+	RIGHT,
+	DOWN,
+	LEFT
+};
+
+void framebuffer_move_cursor(enum FramebufferCursorMove direction, int count);
+
 void framebuffer_clear(void);
 
-void framebuffer_place(char c);
+void framebuffer_put(char c, uint8_t color);
 
 void framebuffer_clear_delete(void); 
 
