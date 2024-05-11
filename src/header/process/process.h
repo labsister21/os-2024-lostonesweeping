@@ -45,7 +45,29 @@
 #define PROCESS_CREATE_FAIL_NOT_ENOUGH_MEMORY    3
 #define PROCESS_CREATE_FAIL_FS_READ_FAILURE      4
 
+/**
+ * EXPLAIN: keknya ProcessControlBlock ditaruh disini 
+ * tau ah asumsi saya gitu.
+ * so, hold up jadi ProcessControlBlock dia jadi list
+ * terus di.c dia new_pcb itu _process_list dan dia punya pid? 
+ * jadi dia ada struct di dalam struct!???!!?
+*/
 
+/**
+ * GAMBARAN KASAR!!!!!
+ * apa ini T_T
+*/
+struct ProcessControlBlock{
+    struct {
+        uint32_t pid; 
+        // ini ada isi lagi? 
+    } metadata;
+
+    struct{
+        void *virtual_addr_user[PROCESS_PAGE_FRAME_COUNT_MAX];
+        uint32_t page_frame_used_count;
+    } memory;
+};
 
 
 

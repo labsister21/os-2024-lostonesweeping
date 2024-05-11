@@ -4,6 +4,45 @@
 #include "header/cpu/gdt.h"
 
 
+/**
+ * ini pindah harusnya disini atau di process_manager_state? 
+ * tau ah aku taruh di process_magnager_state dulubut wait... 
+*/
+// typedef struct {
+//     uint32_t pid; 
+// } Process_Control_Block;
+
+// i dont know what is this, saya assume nulis begini karena di program dibawah
+/**
+ * dikasihnya process_manager_state
+*/
+struct process_manager_state {
+    uint32_t active_process_count; 
+    uint32_t pid;
+} process_manager_state;
+
+
+/**
+ * i assume _process_list size is in macro PROCESS_COUNT_MAX that defined
+ * in process.h
+ * ini gimana sih? harus bikin di header? atau GIMANA!!?!?!?!?!?
+*/
+static struct ProcessControlBlock _process_list[PROCESS_COUNT_MAX];
+
+/**
+ * buat ngetrack total dari process yang ada atau dari PID
+*/
+static uint32_t total_process = 0;
+
+
+/**
+ * uh dari namanya dia generate pid baru? 
+ * jadi yang dari state dijumlahin aja i guess? 
+*/
+uint32_t process_generate_new_pid(void){
+    return process_manager_state.pid++;
+}
+
 
 int32_t process_create_user_process(struct FAT32DriverRequest request) {
     int32_t retcode = PROCESS_CREATE_SUCCESS; 
@@ -27,10 +66,27 @@ int32_t process_create_user_process(struct FAT32DriverRequest request) {
 
     // Process PCB 
     int32_t p_index = process_list_get_inactive_index();
+    /**
+     * what is this!??!?!?!?
+    */
     struct ProcessControlBlock *new_pcb = &(_process_list[p_index]);
 
+    /**
+     * new_pcb huh, what is this?
+    */
     new_pcb->metadata.pid = process_generate_new_pid();
 
 exit_cleanup:
     return retcode;
+}
+
+bool process_destroy(uint32_t pid){
+    for(int i = 0; i < PROCESS_COUNT_MAX; i++){
+        if(_process_list[i].metadata.pid == pid){
+            memset(&_process_list[i], 0, sizeof(struct ProcessControlBlock)); // gatau jir aku ngarang
+            total_process--;
+            return true;
+        }
+    }
+    return false;
 }
