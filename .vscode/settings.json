@@ -14,7 +14,17 @@
         "stdbool.h": "c",
         "fat32.h": "c",
         "stddef.h": "c",
-        "stdalign.h": "c"
+        "stdalign.h": "c",
+        "cstdio": "c",
+        "stdlib.h": "c",
+        "stdio.h": "c",
+        "libc-header-start.h": "c",
+        "syscall.h": "c",
+        "user-shell.h": "c",
+        "ls.h": "c",
+        "util.h": "c",
+        "find.h": "c",
+        "cat.h": "c"
     },
     "C_Cpp.default.compilerPath": "C:\\msys64\\mingw64\\bin\\gcc.exe",
 }

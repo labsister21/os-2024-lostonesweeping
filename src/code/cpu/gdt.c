@@ -1,11 +1,11 @@
 #include "../../header/cpu/gdt.h"
-
+#include "../../header/cpu/interrupt.h"
 /**
  * global_descriptor_table, predefined GDT.
  * Initial SegmentDescriptor already set properly according to Intel Manual & OSDev.
  * Table entry : [{Null Descriptor}, {Kernel Code}, {Kernel Data (variable, etc)}, ...].
  */
-struct GlobalDescriptorTable global_descriptor_table = {
+static struct GlobalDescriptorTable global_descriptor_table = {
     .table = {
         // Null Descriptor
         {
@@ -28,9 +28,11 @@ struct GlobalDescriptorTable global_descriptor_table = {
         {
             .segment_low = 0xFFFF, 
             .segment_high = 0xF, 
+
             .base_low = 0, 
             .base_mid = 0, 
             .base_high = 0,
+
             .type_bit = 0xA, 
             .non_system = 1, 
             .privillege_bit = 0, 
@@ -76,9 +78,11 @@ struct GlobalDescriptorTable global_descriptor_table = {
         {
             .segment_low = 0xFFFF,
             .segment_high = 0xF,
+
             .base_low = 0, 
             .base_mid = 0,
             .base_high = 0,
+            
             .type_bit = 0x2, 
             .non_system = 1, 
             .privillege_bit = 0x3, 
@@ -88,15 +92,16 @@ struct GlobalDescriptorTable global_descriptor_table = {
             .granularity_bit = 1,
             .available_bit = 0
         },
+
         // TSS Entry
         {
-            .segment_low       = sizeof(struct TSSEntry),
             .segment_high      = (sizeof(struct TSSEntry) & (0xF << 16)) >> 16,
+            .segment_low       = sizeof(struct TSSEntry),
             .base_low          = 0,
             .base_mid          = 0,
             .base_high         = 0,
-            .type_bit          = 0x9,
             .non_system        = 0,    // S bit
+            .type_bit          = 0x9,
             .privillege_bit    = 0,    // DPL
             .present_bit       = 1,    // P bit
             .code_segment_bit  = 0,    // L bit
@@ -116,12 +121,12 @@ struct GlobalDescriptorTable global_descriptor_table = {
 struct GDTR _gdt_gdtr = {
     // TODO : Implement, this GDTR will point to global_descriptor_table. 
     //        Use sizeof operator
-    .size = sizeof(global_descriptor_table) - 1,
+    .size = sizeof(global_descriptor_table),
     .address = &global_descriptor_table
 };
 
 void gdt_install_tss(void) {
-    uint32_t base = (uint32_t) &_interrupt_tss_entry;
+    uint32_t base = (uint32_t)&_interrupt_tss_entry;
     global_descriptor_table.table[5].base_high = (base & (0xFF << 24)) >> 24;
     global_descriptor_table.table[5].base_mid  = (base & (0xFF << 16)) >> 16;
     global_descriptor_table.table[5].base_low  = base & 0xFFFF;

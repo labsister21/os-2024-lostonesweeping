@@ -12,6 +12,18 @@ struct FramebufferState framebuffer_state = {
     .bg = 0
 };
 
+void framebuffer_scroll_up(void) {
+    // Move each row's content one row up
+    for (int r = 0; r < 20; r++) {
+        uint16_t *src = (uint16_t *)(BASE_MEMORY_OFFSET + (r + 1) * BUFFER_WIDTH * 2);
+        uint16_t *dst = (uint16_t *)(BASE_MEMORY_OFFSET + r * BUFFER_WIDTH * 2);
+        memcpy(dst, src, BUFFER_WIDTH * 2);
+    }
+    // Clear the last row
+    size_t last_row_offset = (BUFFER_HEIGHT - 1) * BUFFER_WIDTH;
+    memset((void *)(BASE_MEMORY_OFFSET + last_row_offset * 2), 0, BUFFER_WIDTH * 2);
+}
+
 void framebuffer_set_cursor(uint8_t r, uint8_t c) {
     uint16_t pos = r * BUFFER_WIDTH + c; 
     out(CURSOR_PORT_CMD, 0x0F);
@@ -63,35 +75,64 @@ void framebuffer_clear_delete(void){
 }
 
 void framebuffer_newline(void){
+    if (framebuffer_state.row == 20) {
+    // Scroll up if at bottom row
+    framebuffer_scroll_up();
+    framebuffer_state.row--; // Adjust row after scroll
+    }
     framebuffer_state.row++;
-    framebuffer_state.col = 0;
+    if(framebuffer_state.row == BUFFER_HEIGHT){
+        framebuffer_state.row = 0;
+    }
     framebuffer_set_cursor(
         framebuffer_state.row, 
-        framebuffer_state.col
+        0
     );
 }
 
-void framebuffer_place(char c){
-    if(c == '\b') framebuffer_clear_delete();
-    else if(c == '\n') framebuffer_newline();
-    else{
-        framebuffer_write(
-            framebuffer_state.row, 
-            framebuffer_state.col, 
-            c, 
-            framebuffer_state.fg, 
-            framebuffer_state.bg
-        );
-        framebuffer_set_cursor(framebuffer_state.row, framebuffer_state.col);
+void framebuffer_move_cursor(enum FramebufferCursorMove direction, int count) {
+	int next_row = framebuffer_state.row;
+	int next_col = framebuffer_state.col;
+	switch (direction) {
+	case UP: {
+		next_row -= count;
+	} break;
+	case DOWN: {
+		next_row += count;
+	} break;
+	case LEFT: {
+		next_col -= count;
+	} break;
+	case RIGHT: {
+		next_col += count;
+	} break;
+	}
+	framebuffer_set_cursor(next_row, next_col);
+};
 
-        framebuffer_state.col += 1;
-        if (framebuffer_state.col == BUFFER_WIDTH) {
-            framebuffer_state.col = 0;
-            framebuffer_state.row += 1;
-            if (framebuffer_state.row == BUFFER_HEIGHT) {
-                framebuffer_state.row = 0;
-            }
-        }
+void framebuffer_put(char c, uint8_t color){
+     if (framebuffer_state.row == 20) {
+        // Scroll up if at bottom row
+        framebuffer_scroll_up();
+        framebuffer_state.row--; // Adjust row after scroll
+    }
+
+    framebuffer_write(
+        framebuffer_state.row, 
+        framebuffer_state.col, 
+        c, 
+        color, 
+        framebuffer_state.bg
+    );
+
+    framebuffer_set_cursor(framebuffer_state.row, framebuffer_state.col);
+    framebuffer_state.col += 1;
+    if (framebuffer_state.col == BUFFER_WIDTH) {
+        framebuffer_state.col = 0;
+        framebuffer_state.row += 1;
+    }
+    if (framebuffer_state.row == BUFFER_HEIGHT) {
+        framebuffer_state.row = 0;
     }
 }
 

@@ -107,3 +107,58 @@ bool cmp_string_with_fixed_length(const char *a, const char *b, int l){
     }
     return true;
 }
+
+
+char* my_strtok(char* str, char delim) {
+    static char* saved_token = NULL;
+    char* token_start;
+
+    if (str != NULL) {
+        // New string, update saved_token
+        saved_token = str;
+    } else if (saved_token == NULL || *saved_token == '\0') {
+        // No more tokens left
+        return NULL;
+    }
+
+    // Find the start of the next token
+    token_start = saved_token;
+
+    // Skip leading delimiters
+    while (*token_start == delim) {
+        token_start++;
+    }
+
+    if (*token_start == '\0') {
+        // No more tokens
+        saved_token = NULL;
+        return NULL;
+    }
+
+    // Find the end of the token
+    char* token_end = token_start;
+    while (*token_end != '\0' && *token_end != delim) {
+        token_end++;
+    }
+
+    // Update saved_token for next call
+    if (*token_end == '\0') {
+        saved_token = token_end; // Point to the end of the string
+    } else {
+        *token_end = '\0';  // Null-terminate the token
+        saved_token = token_end + 1;  // Move saved_token to next token
+    }
+
+    return token_start;
+}
+
+size_t strlen(const char *str) {
+    size_t length = 0;
+    
+    // Iterate over the string until the null terminator is found
+    while (str[length] != '\0') {
+        length++;
+    }
+    
+    return length;
+}
