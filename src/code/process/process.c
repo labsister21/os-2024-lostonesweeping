@@ -218,10 +218,10 @@ int32_t process_create_user_process(struct FAT32DriverRequest request) {
      * demn dibuku bagian mana bjir ini? 
     */
     frame->int_stack.cs = GDT_USER_CODE_SEGMENT_SELECTOR + 0x3; 
-    frame->int_stack.eip = (uint32_t)request.buf; 
+    frame->int_stack.eip = 0; 
     frame->int_stack.error_code= 0;
     frame->int_number = 0;
-
+    
     /**
      * once again, i dont know...
      * really, i dumb af. 
