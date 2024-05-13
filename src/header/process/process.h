@@ -74,7 +74,9 @@ extern struct process_state {
 
 struct Context {
     // TODO: Add important field here
-    struct InterruptFrame frame; //iniada di interrupt.h gatau ah susah betul 
+    struct CPURegister cpu;
+    uint32_t eflags; 
+    uint32_t eip;
     struct PageDirectory *page_directory_virtual_addr;
     /**
      * terus cpu, epi, eflags taruh mana bjir... sumpah gahabis fikir
@@ -115,7 +117,6 @@ struct ProcessControlBlock{
     } metadata;
     //i dont know why, but i think i should include Context into this struct 
     struct Context context;
-
     /**
      * ini memory ada di guidebook bagian 3.1.2.3
     */

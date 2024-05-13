@@ -12,22 +12,6 @@
 #include "header/memory/paging.h"
 #include "header/process/process.h"
 
-// void kernel_setup(void) {
-//     load_gdt(&_gdt_gdtr);
-//     pic_remap();
-//     initialize_idt();
-//     activate_keyboard_interrupt();
-//     framebuffer_clear();
-//     framebuffer_set_cursor(0, 0);
-//     initialize_filesystem_fat32();
-
-//     keyboard_state_activate();
-//     while (true){
-//         char c;
-//         get_keyboard_buffer(&c);
-//         if (c) framebuffer_place(c);
-//     }
-// }
 
 void kernel_setup(void) {
     load_gdt(&_gdt_gdtr);
