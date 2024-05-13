@@ -126,13 +126,12 @@ int32_t process_create_user_process(struct FAT32DriverRequest request) {
     * kita pake void pointer karena di paging_allocate_user_page_frame dia nerima parameter 
     * void *virtual_address
    */
-    void *program_base_address = request.buf; //*virtual_address
-    paging_allocate_user_page_frame(page_directory, program_base_address);
-   /**
-    * then what? we read the request? 
-    * wait, which one I have to use? read or read_dir? 
-    * ah fck it assume it used read. 
-   */
+    void *program_base_address = request.buf;
+    if (!paging_allocate_user_page_frame(page_directory, program_base_address)) {
+        retcode = PROCESS_CREATE_FAIL_NOT_ENOUGH_MEMORY;
+        goto exit_cleanup;
+    }
+    
     read(request);
     /**
      * setelah request dibaca perlu balik ke page sebelumnya? 
