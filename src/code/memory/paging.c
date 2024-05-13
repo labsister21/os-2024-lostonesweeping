@@ -127,19 +127,15 @@ struct PageDirectory* paging_create_new_page_directory(void) {
     /**
      * mari kita asumsikan sama seperti paging-paging sebelumnya 
     */
-   int i;
-    for (i = 0; i < PAGING_DIRECTORY_TABLE_MAX_COUNT; ++i) {
-        if (page_manager_state.page_frame_map[i] == 0) {
-            break;
-        }
-    }
+    int i = 0;
+	while (i < PAGING_DIRECTORY_TABLE_MAX_COUNT) {
+		if (page_directory_manager.page_directory_used[i++] == 0) break;
+	}
 
-    if (i == PAGING_DIRECTORY_TABLE_MAX_COUNT) {
-        return NULL;
-    }
+	if (i == PAGING_DIRECTORY_TABLE_MAX_COUNT) return NULL;
 
-    //ini yang sesuai sama TODO, kayanya karena present_bit, write_bit, page_size diatur jadi true
-    page_directory_list[i].table[0x300] = (struct PageDirectoryEntry){
+    //ini yang ada di TODO:
+	page_directory_list[i].table[0x300] = (struct PageDirectoryEntry){
 			.flag.present_bit = 1,
 			.flag.write_bit = 1,
 			.flag.use_pagesize_4_mb = 1,
@@ -147,26 +143,7 @@ struct PageDirectory* paging_create_new_page_directory(void) {
 	};
 
 	page_directory_manager.page_directory_used[i] = true;
-
-    for (uint32_t j = 0; j < PAGE_ENTRY_COUNT; ++j) {
-        if (!page_manager_state.page_frame_map[j]) {
-            page_manager_state.page_frame_map[j] = true;
-            page_manager_state.free_page_frame_count -= 1;
-            void *physical_addr = (void *)(j * PAGE_FRAME_SIZE);
-            struct PageDirectoryEntryFlag flag = {
-                .present_bit = 1,
-                .write_bit = 1,
-                .use_pagesize_4_mb = 1,
-                .user_supervisor = 1,
-            };
-            update_page_directory_entry(&(page_directory_list[i]), physical_addr, (void *)0x300000, flag);
-            return &(page_directory_list[i]);
-        }
-    }
-
-    // Free the page directory entry if we fail to allocate a user page frame
-    page_directory_manager.page_directory_used[i] = false;
-    return NULL;
+	return &(page_directory_list[i]);
     /**
      * saya asumsikan ini benar. benar-benar salah
     */
@@ -181,7 +158,7 @@ bool paging_free_page_directory(struct PageDirectory *page_dir) {
      */
     for (int i = 0; i < PAGING_DIRECTORY_TABLE_MAX_COUNT; ++i) {
         if (&(page_directory_list[i]) == page_dir){
-            for (int j = 0; j < PAGE_ENTRY_COUNT; ++j){
+            for (int j = 0; j < PAGE_ENTRY_COUNT; j++){
                 struct PageDirectoryEntry *entry = &(page_directory_list[i].table[j]);
                 if (entry->flag.present_bit)
                     paging_free_user_page_frame(&page_directory_list[i], (void *)(PAGE_FRAME_SIZE * j));

@@ -1,5 +1,5 @@
 #include "header/process/process.h"
-// #include "header/memory/paging.h"
+#include "header/memory/paging.h"
 #include "header/stdlib/string.h"
 #include "header/cpu/gdt.h"
 
@@ -25,7 +25,6 @@ uint32_t process_generate_new_pid(void){
 uint32_t get_current_pid(){
     return process_manager_state.last_pid;
 }
-
 
 
 /// gatau anjir ini bener ga sih? 
@@ -56,6 +55,9 @@ int32_t process_list_get_inactive_index(){
 }
 
 int32_t process_create_user_process(struct FAT32DriverRequest request) {
+    /**
+     * VALIDASI: pada bagian ini dilakukan validasi-validasi
+    */
     int32_t retcode = PROCESS_CREATE_SUCCESS; 
     if (process_manager_state.active_process_count >= PROCESS_COUNT_MAX) {
         retcode = PROCESS_CREATE_FAIL_MAX_PROCESS_EXCEEDED;
@@ -75,6 +77,9 @@ int32_t process_create_user_process(struct FAT32DriverRequest request) {
         goto exit_cleanup;
     }
 
+    /**
+     * PEMBUATAN: pembuatan virtual address dengan page directory
+    */
     // Process PCB 
     int32_t p_index = process_list_get_inactive_index();
     struct ProcessControlBlock *new_pcb = &(_process_list[p_index]);
@@ -165,6 +170,7 @@ int32_t process_create_user_process(struct FAT32DriverRequest request) {
      * Mode untuk melakukan linking, user program akan 
      * mengasumsikan instruksi program terletak pada lokasi memory 0x0 dan seterusnya. 
     */
+
     //inisiasi index register
     frame->cpu.index.edi = 0;
     frame->cpu.index.esi = 0; 
@@ -187,9 +193,10 @@ int32_t process_create_user_process(struct FAT32DriverRequest request) {
      * hmm, tapi yang mana? 
      * gdt user data berarti: GDT_USER_DATA_SEGMENT_SELECTOR
      * privillege berarti 0x3? 
-     * terus dijumlahin? kayaknya jumlahin 
+     * terus dijumlahin? atau di or? 
+     * 
     */
-    uint32_t segment_val = GDT_USER_DATA_SEGMENT_SELECTOR + 0x3;
+    uint32_t segment_val = GDT_USER_DATA_SEGMENT_SELECTOR | 0x3;
     frame->cpu.segment.gs = segment_val;
     frame->cpu.segment.fs = segment_val; 
     frame->cpu.segment.es = segment_val; 
@@ -217,15 +224,16 @@ int32_t process_create_user_process(struct FAT32DriverRequest request) {
      * @param eflags demn
      * demn dibuku bagian mana bjir ini? 
     */
-    frame->int_stack.cs = GDT_USER_CODE_SEGMENT_SELECTOR + 0x3; 
+    frame->int_stack.cs = GDT_USER_CODE_SEGMENT_SELECTOR | 0x3; 
     frame->int_stack.eip = 0; 
     frame->int_stack.error_code= 0;
     frame->int_number = 0;
-    
+
     /**
      * once again, i dont know...
      * really, i dumb af. 
     */
+   process_manager_state.active_process_count++;
 
 exit_cleanup:
     return retcode;
@@ -235,6 +243,7 @@ bool process_destroy(uint32_t pid){
     for(int i = 0; i < PROCESS_COUNT_MAX; i++){
         if(_process_list[i].metadata.pid == pid){
             memset(&_process_list[i], 0, sizeof(struct ProcessControlBlock)); // gatau jir aku ngarang
+            _process_list[i].metadata.state = Inactive;
             process_manager_state.active_process_count--;
             return true;
         }

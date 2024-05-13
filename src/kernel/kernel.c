@@ -12,7 +12,6 @@
 #include "header/memory/paging.h"
 #include "header/process/process.h"
 
-
 // void kernel_setup(void) {
 //     load_gdt(&_gdt_gdtr);
 //     pic_remap();
@@ -63,29 +62,13 @@ void kernel_setup(void) {
         .parent_cluster_number = ROOT_CLUSTER_NUMBER,
         .buffer_size           = 0x100000,
     };
-    // read(request);
-    // keyboard_state_activate();
-    // while(true){
-    //     char c;
-    //     get_keyboard_buffer(&c);
-    //     if(c)framebuffer_put(c);
-    // }
-    // Set TSS $esp pointer and jump into shell 
-    // char b;
-	// struct FAT32DriverRequest req = {
-    //     .buf = &b,
-    //     .name = "root",
-    //     .parent_cluster_number = ROOT_CLUSTER_NUMBER, 
-    //     .buffer_size = 0, 
-    // };
-    // write(req);
-    // framebuffer_put('Z');
-    // read_directory(req);
-    // framebuffer_put('X');
+
     set_tss_kernel_current_stack();
-    process_create_user_process(request);
+
+    int32_t ret =  process_create_user_process(request);
+    framebuffer_put(ret + '0', 0b1100);
     paging_use_page_directory(_process_list[0].context.page_directory_virtual_addr);
-    kernel_execute_user_program((uint8_t*) 0);
+    kernel_execute_user_program((void*) 0x0);
 
     while (true);
 }
