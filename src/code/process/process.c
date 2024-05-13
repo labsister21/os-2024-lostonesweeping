@@ -1,14 +1,18 @@
 #include "header/process/process.h"
-#include "header/memory/paging.h"
+// #include "header/memory/paging.h"
 #include "header/stdlib/string.h"
 #include "header/cpu/gdt.h"
 
+/**
+ * ini sama ada di bagian guidebook 
+ * 3.1.2.2
+*/
+struct process_state process_manager_state = {
+    .active_process_count = 0,
+    .last_pid = 0,
+};
 
-
-
-
-
-
+struct ProcessControlBlock _process_list[PROCESS_COUNT_MAX];
 /**
  * uh dari namanya dia generate pid baru? 
  * jadi yang dari state dijumlahin aja i guess? 
@@ -16,6 +20,7 @@
 uint32_t process_generate_new_pid(void){
     return process_manager_state.last_pid++;
 }
+
 
 uint32_t get_current_pid(){
     return process_manager_state.last_pid;
@@ -25,7 +30,7 @@ uint32_t get_current_pid(){
 
 /// gatau anjir ini bener ga sih? 
 struct ProcessControlBlock* process_get_current_running_pcb_pointer(void) {
-    uint32_t current_pid = get_current_pid(); 
+    // uint32_t current_pid = get_current_pid(); 
     
     for(int i = 0; i < PROCESS_COUNT_MAX; i++){
         if(_process_list[i].metadata.state == Running){
@@ -144,7 +149,7 @@ int32_t process_create_user_process(struct FAT32DriverRequest request) {
     * https://course.ccs.neu.edu/cs3650/unix-xv6/HTML/S/3.html
     * 
    */
-   struct CPURegister *cpu = &(new_pcb->context.cpu);
+   struct InterruptFrame *frame = &(new_pcb->context.frame);
    /**
     * im not sure for real di cpu register ada 
     * index(edi, esi)
@@ -161,18 +166,18 @@ int32_t process_create_user_process(struct FAT32DriverRequest request) {
      * mengasumsikan instruksi program terletak pada lokasi memory 0x0 dan seterusnya. 
     */
     //inisiasi index register
-    cpu->index.edi = 0;
-    cpu->index.esi = 0; 
+    frame->cpu.index.edi = 0;
+    frame->cpu.index.esi = 0; 
 
     //inisiasi stack register 
-    cpu->stack.ebp = 0; 
-    cpu->stack.esp = 0;
+    frame->cpu.stack.ebp = 0; 
+    frame->cpu.stack.esp = 0;
 
     //inisiasi general purpose register 
-    cpu->general.ebx = 0; 
-    cpu->general.edx = 0; 
-    cpu->general.ecx = 0; 
-    cpu->general.eax = 0; 
+    frame->cpu.general.ebx = 0; 
+    frame->cpu.general.edx = 0; 
+    frame->cpu.general.ecx = 0; 
+    frame->cpu.general.eax = 0; 
 
     /**
      * segment diisi apa bjir? 
@@ -185,10 +190,10 @@ int32_t process_create_user_process(struct FAT32DriverRequest request) {
      * terus dijumlahin? kayaknya jumlahin 
     */
     uint32_t segment_val = GDT_USER_DATA_SEGMENT_SELECTOR + 0x3;
-    cpu->segment.gs = segment_val;
-    cpu->segment.fs = segment_val; 
-    cpu->segment.es = segment_val; 
-    cpu->segment.ds = segment_val;
+    frame->cpu.segment.gs = segment_val;
+    frame->cpu.segment.fs = segment_val; 
+    frame->cpu.segment.es = segment_val; 
+    frame->cpu.segment.ds = segment_val;
 
     /**
      * masih ada yang kurang 
@@ -202,9 +207,25 @@ int32_t process_create_user_process(struct FAT32DriverRequest request) {
      * weh pake InterruptFrame kah? 
      * */ 
 
+    frame->int_stack.eflags |= CPU_EFLAGS_BASE_FLAG | CPU_EFLAGS_FLAG_INTERRUPT_ENABLE; 
+    /**
+     * nah udah, terus sisanya diisi apa? 
+     * masih ada 
+     * @param error_code 
+     * @param eip 
+     * @param cs 
+     * @param eflags demn
+     * demn dibuku bagian mana bjir ini? 
+    */
+    frame->int_stack.cs = GDT_USER_CODE_SEGMENT_SELECTOR + 0x3; 
+    frame->int_stack.eip = (uint32_t)request.buf; 
+    frame->int_stack.error_code= 0;
+    frame->int_number = 0;
 
-
-
+    /**
+     * once again, i dont know...
+     * really, i dumb af. 
+    */
 
 exit_cleanup:
     return retcode;

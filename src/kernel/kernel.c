@@ -10,6 +10,7 @@
 #include "header/filesystem/fat32.h"
 #include "header/stdlib/string.h"
 #include "header/memory/paging.h"
+#include "header/process/process.h"
 
 
 // void kernel_setup(void) {
@@ -62,7 +63,7 @@ void kernel_setup(void) {
         .parent_cluster_number = ROOT_CLUSTER_NUMBER,
         .buffer_size           = 0x100000,
     };
-    read(request);
+    // read(request);
     // keyboard_state_activate();
     // while(true){
     //     char c;
@@ -82,6 +83,8 @@ void kernel_setup(void) {
     // read_directory(req);
     // framebuffer_put('X');
     set_tss_kernel_current_stack();
+    process_create_user_process(request);
+    paging_use_page_directory(_process_list[0].context.page_directory_virtual_addr);
     kernel_execute_user_program((uint8_t*) 0);
 
     while (true);

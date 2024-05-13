@@ -65,15 +65,21 @@
  * ini ada guidebook bagian 
  * 3.1.2.1
 */
+extern struct process_state {
+    uint32_t active_process_count; // Total number of active processes
+    uint32_t last_pid;             // Last assigned process ID
+} process_state;
+
+
+
 struct Context {
     // TODO: Add important field here
-    struct CPURegister *cpu; //iniada di interrupt.h gatau ah susah betul 
-    uint32_t eip; //ada di param gua masukin aja, tapi gatau ini uint32_t
-    uint32_t eflags; //sama kayak eip lmao fck it we ball
+    struct InterruptFrame frame; //iniada di interrupt.h gatau ah susah betul 
     struct PageDirectory *page_directory_virtual_addr;
     /**
      * terus cpu, epi, eflags taruh mana bjir... sumpah gahabis fikir
      * kayanya udah bjir. oke 
+     * keknya ini harusnya pake InterruptFrame deh
     */
 };
 
@@ -119,21 +125,6 @@ struct ProcessControlBlock{
     } memory;
 };
 
-
-
-// i dont know what is this, saya assume nulis begini karena di program dibawah
-/**
- * dikasihnya process_manager_state
-*/
-
-/**
- * ini sama ada di bagian guidebook 
- * 3.1.2.2
-*/
-struct process_manager_state {
-    uint32_t active_process_count; //total dari keseluruhan pid
-    uint32_t last_pid; //pid paling terakhir
-} process_manager_state;
 
 /**
  * i assume _process_list size is in macro PROCESS_COUNT_MAX that defined
