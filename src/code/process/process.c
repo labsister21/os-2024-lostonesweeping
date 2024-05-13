@@ -126,14 +126,15 @@ int32_t process_create_user_process(struct FAT32DriverRequest request) {
     * kita pake void pointer karena di paging_allocate_user_page_frame dia nerima parameter 
     * void *virtual_address
    */
+    read(request);
     void *program_base_address = request.buf; //*virtual_address
     paging_allocate_user_page_frame(page_directory, program_base_address);
+    paging_allocate_user_page_frame(page_directory,(void *) 0xBFFFFFFC);
    /**
     * then what? we read the request? 
     * wait, which one I have to use? read or read_dir? 
     * ah fck it assume it used read. 
    */
-    read(request);
     /**
      * setelah request dibaca perlu balik ke page sebelumnya? 
     */
@@ -154,7 +155,7 @@ int32_t process_create_user_process(struct FAT32DriverRequest request) {
     * https://course.ccs.neu.edu/cs3650/unix-xv6/HTML/S/3.html
     * 
    */
-   struct InterruptFrame *frame = &(new_pcb->context.frame);
+   struct CPURegister *cpu = (new_pcb->context.cpu);
    /**
     * im not sure for real di cpu register ada 
     * index(edi, esi)
@@ -172,18 +173,18 @@ int32_t process_create_user_process(struct FAT32DriverRequest request) {
     */
 
     //inisiasi index register
-    frame->cpu.index.edi = 0;
-    frame->cpu.index.esi = 0; 
+    cpu->index.edi = 0;
+    cpu->index.esi = 0; 
 
     //inisiasi stack register 
-    frame->cpu.stack.ebp = 0; 
-    frame->cpu.stack.esp = 0;
+    cpu->stack.ebp = 0; 
+    cpu->stack.esp = 0;
 
     //inisiasi general purpose register 
-    frame->cpu.general.ebx = 0; 
-    frame->cpu.general.edx = 0; 
-    frame->cpu.general.ecx = 0; 
-    frame->cpu.general.eax = 0; 
+    cpu->general.ebx = 0; 
+    cpu->general.edx = 0; 
+    cpu->general.ecx = 0; 
+    cpu->general.eax = 0; 
 
     /**
      * segment diisi apa bjir? 
@@ -197,10 +198,10 @@ int32_t process_create_user_process(struct FAT32DriverRequest request) {
      * 
     */
     uint32_t segment_val = GDT_USER_DATA_SEGMENT_SELECTOR | 0x3;
-    frame->cpu.segment.gs = segment_val;
-    frame->cpu.segment.fs = segment_val; 
-    frame->cpu.segment.es = segment_val; 
-    frame->cpu.segment.ds = segment_val;
+    cpu->segment.gs = segment_val;
+    cpu->segment.fs = segment_val; 
+    cpu->segment.es = segment_val; 
+    cpu->segment.ds = segment_val;
 
     /**
      * masih ada yang kurang 
@@ -214,26 +215,20 @@ int32_t process_create_user_process(struct FAT32DriverRequest request) {
      * weh pake InterruptFrame kah? 
      * */ 
 
-    frame->int_stack.eflags |= CPU_EFLAGS_BASE_FLAG | CPU_EFLAGS_FLAG_INTERRUPT_ENABLE; 
+    new_pcb->context.eflags |= CPU_EFLAGS_BASE_FLAG | CPU_EFLAGS_FLAG_INTERRUPT_ENABLE; 
     /**
      * nah udah, terus sisanya diisi apa? 
      * masih ada 
-     * @param error_code 
      * @param eip 
-     * @param cs 
-     * @param eflags demn
      * demn dibuku bagian mana bjir ini? 
     */
-    frame->int_stack.cs = GDT_USER_CODE_SEGMENT_SELECTOR | 0x3; 
-    frame->int_stack.eip = 0; 
-    frame->int_stack.error_code= 0;
-    frame->int_number = 0;
+    new_pcb->context.eip = 0; 
 
     /**
      * once again, i dont know...
      * really, i dumb af. 
     */
-   process_manager_state.active_process_count++;
+    process_manager_state.active_process_count++;
 
 exit_cleanup:
     return retcode;
