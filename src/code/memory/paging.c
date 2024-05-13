@@ -105,6 +105,7 @@ bool paging_free_user_page_frame(struct PageDirectory *page_dir, void *virtual_a
 __attribute__((aligned(0x1000))) static struct PageDirectory page_directory_list[PAGING_DIRECTORY_TABLE_MAX_COUNT] = {0};
 
 static struct {
+
     bool page_directory_used[PAGING_DIRECTORY_TABLE_MAX_COUNT];
 } page_directory_manager = {
     .page_directory_used = {false},

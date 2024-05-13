@@ -45,6 +45,39 @@
 #define PROCESS_CREATE_FAIL_NOT_ENOUGH_MEMORY    3
 #define PROCESS_CREATE_FAIL_FS_READ_FAILURE      4
 
+
+/**
+ * INI TERUS CONTEXT TARUH MANA BJIR? 
+ * ah susah kali 
+ * asumsi ini aja deh
+*/
+
+/**
+ * Contain information needed for task to be able to get interrupted and resumed later
+ *
+ * @param cpu                         All CPU register state
+ * @param eip                         CPU instruction counter to resume execution
+ * @param eflags                      Flag register to load before resuming the execution
+ * @param page_directory_virtual_addr CPU register CR3, containing pointer to active page directory
+ */
+
+/**
+ * ini ada guidebook bagian 
+ * 3.1.2.1
+*/
+struct Context {
+    // TODO: Add important field here
+    struct CPURegister *cpu; //iniada di interrupt.h gatau ah susah betul 
+    uint32_t eip; //ada di param gua masukin aja, tapi gatau ini uint32_t
+    uint32_t eflags; //sama kayak eip lmao fck it we ball
+    struct PageDirectory *page_directory_virtual_addr;
+    /**
+     * terus cpu, epi, eflags taruh mana bjir... sumpah gahabis fikir
+     * kayanya udah bjir. oke 
+    */
+};
+
+
 /**
  * EXPLAIN: keknya ProcessControlBlock ditaruh disini 
  * tau ah asumsi saya gitu.
@@ -57,12 +90,29 @@
  * GAMBARAN KASAR!!!!!
  * apa ini T_T
 */
+
+//buat state untuk ambil dari process list? 
+/**
+ * tau ah gua ngarang bebas ini. 
+*/
+enum ProcessState{
+    Inactive, 
+    Running, 
+    Waiting,
+};
+
 struct ProcessControlBlock{
     struct {
         uint32_t pid; 
-        // ini ada isi lagi? 
+        enum ProcessState state;
+        // ini ada isi lagi
     } metadata;
+    //i dont know why, but i think i should include Context into this struct 
+    struct Context context;
 
+    /**
+     * ini memory ada di guidebook bagian 3.1.2.3
+    */
     struct{
         void *virtual_addr_user[PROCESS_PAGE_FRAME_COUNT_MAX];
         uint32_t page_frame_used_count;
@@ -70,6 +120,27 @@ struct ProcessControlBlock{
 };
 
 
+
+// i dont know what is this, saya assume nulis begini karena di program dibawah
+/**
+ * dikasihnya process_manager_state
+*/
+
+/**
+ * ini sama ada di bagian guidebook 
+ * 3.1.2.2
+*/
+struct process_manager_state {
+    uint32_t active_process_count; //total dari keseluruhan pid
+    uint32_t last_pid; //pid paling terakhir
+} process_manager_state;
+
+/**
+ * i assume _process_list size is in macro PROCESS_COUNT_MAX that defined
+ * in process.h
+ * ini gimana sih? harus bikin di header? atau GIMANA!!?!?!?!?!?
+*/
+extern struct ProcessControlBlock _process_list[PROCESS_COUNT_MAX];
 
 /**
  * Get currently running process PCB pointer

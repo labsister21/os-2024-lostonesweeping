@@ -147,7 +147,7 @@ void init(){
 
 }
 
-int main(void) {
+int main(void){
 	int8_t ret;
     state.current_directory = ROOT_CLUSTER_NUMBER;
     syscall(ACTIVATE_KEYBOARD, 0, 0, 0);
