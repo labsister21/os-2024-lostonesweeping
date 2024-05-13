@@ -88,13 +88,123 @@ int32_t process_create_user_process(struct FAT32DriverRequest request) {
     /**
      * ini kayaknya buat 3.1.3. dari guidebook 
     */
+
    /**
     * anak anj, paging_create_new_page juga harus bikin sendiri dong!!!
+    * Nah, pagingnya dah bener kayanya lanjut process. 
    */
-   struct PageDirectory *page_directory = paging_create_new_page_directory();
+    struct PageDirectory *page_directory = paging_create_new_page_directory();
+    //setelah dibikin page, kitamasukin ke ProcessControlBLOCK!!!
+    new_pcb->context.page_directory_virtual_addr = page_directory;
+    /**
+     * bentar process kan ganti-gantian dari process satu ganti ke process lainnya 
+     * perlu nyimpen current_page kah? 
+    */
+    struct PageDirectory *current_page = paging_get_current_page_directory_addr();
 
-    new_pcb->memory.virtual_addr_user[0];
+    //uh setelah dibikin terus? dipake kah?
+    /**
+     * hmm jadi ini kaya buat proses ganti-gantian? 
+     * ini masuknya ke bab 3.1.3? 
+    */
+    paging_use_page_directory(page_directory);
+    /**
+     * habis dipake terus diapain bjir? 
+     * kan param request tapi disini blm dipake apa mulai dari sini? 
+    */
+   /**
+    * kita pake void pointer karena di paging_allocate_user_page_frame dia nerima parameter 
+    * void *virtual_address
+   */
+    void *program_base_address = request.buf; //*virtual_address
+    paging_allocate_user_page_frame(page_directory, program_base_address);
+   /**
+    * then what? we read the request? 
+    * wait, which one I have to use? read or read_dir? 
+    * ah fck it assume it used read. 
+   */
+    read(request);
+    /**
+     * setelah request dibaca perlu balik ke page sebelumnya? 
+    */
+    paging_use_page_directory(current_page);
+    
+    //wait ini sama kayak pindah-pindah directory buat shell kah? kayanya iya. 
+    new_pcb->memory.virtual_addr_used[0] = program_base_address;
     new_pcb->memory.page_frame_used_count++;
+
+    /**
+     * terus di guidebook ada 
+     * eflags |= CPU_EFLAGS_BASE_FLAG | CPU_EFLAGS_FLAG_INTERRUPT_ENABLE
+     * buat dimana WOEY!? buat di CPURegister kah? 
+    */
+
+   /**
+    * ini gimana bikinnya bjir? gelap, w buka ni link juga bingung bjir 
+    * https://course.ccs.neu.edu/cs3650/unix-xv6/HTML/S/3.html
+    * 
+   */
+   struct CPURegister *cpu = &(new_pcb->context.cpu);
+   /**
+    * im not sure for real di cpu register ada 
+    * index(edi, esi)
+    * stack(ebp, esp)
+    * general(ebx, edx, ecx, eax)
+    * segment(gs, fs, es, ds)
+    * Nah, harus diisi apa anjir!!???
+   */
+    /**
+     * asumsi 0 karena inisialisasi
+     * ini ada di bagian 3.1.3.1 
+     * Jika menggunakan linker script yang diberikan panduan User 
+     * Mode untuk melakukan linking, user program akan 
+     * mengasumsikan instruksi program terletak pada lokasi memory 0x0 dan seterusnya. 
+    */
+    //inisiasi index register
+    cpu->index.edi = 0;
+    cpu->index.esi = 0; 
+
+    //inisiasi stack register 
+    cpu->stack.ebp = 0; 
+    cpu->stack.esp = 0;
+
+    //inisiasi general purpose register 
+    cpu->general.ebx = 0; 
+    cpu->general.edx = 0; 
+    cpu->general.ecx = 0; 
+    cpu->general.eax = 0; 
+
+    /**
+     * segment diisi apa bjir? 
+     * wait oh "Segment register seharusnya menggunakan 
+     * nilai Segment Selector yang menunjuk ke GDT 
+     * user data segment descriptor dan memiliki Privilege Level 3."
+     * hmm, tapi yang mana? 
+     * gdt user data berarti: GDT_USER_DATA_SEGMENT_SELECTOR
+     * privillege berarti 0x3? 
+     * terus dijumlahin? kayaknya jumlahin 
+    */
+    uint32_t segment_val = GDT_USER_DATA_SEGMENT_SELECTOR + 0x3;
+    cpu->segment.gs = segment_val;
+    cpu->segment.fs = segment_val; 
+    cpu->segment.es = segment_val; 
+    cpu->segment.ds = segment_val;
+
+    /**
+     * masih ada yang kurang 
+     * bagian eflags |= CPU_EFLAGS_BASE_FLAG | CPU_EFLAGS_FLAG_INTERRUPT_ENABLE
+     * taruh dimana? apa aku salah? kalau dipikir-pikir 
+     * struct InterruptFrame udah include CPURegister, Interrupt_stack
+     * dia ada eip sama eflags juga apa harusnya pake itu ya? 
+     * eh, tapi bukunya bilang ambil dari header? 
+     * jir ada banyak, pake yang mana. eh 
+     * itu eflags |= !? 
+     * weh pake InterruptFrame kah? 
+     * */ 
+
+
+
+
 
 exit_cleanup:
     return retcode;

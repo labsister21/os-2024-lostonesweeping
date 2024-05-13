@@ -114,7 +114,7 @@ struct ProcessControlBlock{
      * ini memory ada di guidebook bagian 3.1.2.3
     */
     struct{
-        void *virtual_addr_user[PROCESS_PAGE_FRAME_COUNT_MAX];
+        void *virtual_addr_used[PROCESS_PAGE_FRAME_COUNT_MAX];
         uint32_t page_frame_used_count;
     } memory;
 };
