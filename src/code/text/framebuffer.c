@@ -54,7 +54,8 @@ void framebuffer_set_cursor(uint8_t r, uint8_t c) {
 void framebuffer_write(uint8_t row, uint8_t col, char c, uint8_t fg, uint8_t bg) {
     framebuffer_set_cursor(row, col);
     uint16_t idx = (row * BUFFER_WIDTH) +  col; 
-    uint16_t *where = (uint16_t *)0xC00B8000 + BASE_MEMORY_OFFSET + idx;
+    uint16_t *where = (uint16_t *)(0xC0000000 + BASE_MEMORY_OFFSET) + idx;
+    // uint16_t *where = (uint16_t *)BASE_MEMORY_OFFSET + idx;
     uint16_t attrib = (bg << 4) | (fg & 0x0F);
     *where = c | (attrib << 8);
 }
