@@ -109,3 +109,56 @@ kernel_execute_user_program:
     push eax ; eip register to jump back
 
     iret
+
+global process_context_switch ;
+; Load struct Context (CPU GP-register) then jump
+; Function Signature: void process_context_switch(struct Context ctx);
+process_context_switch:
+    ; Using iret (return instruction for interrupt) technique for privilege change
+    lea  ecx, [esp+0x04] ; Save the base address for struct Context ctx
+
+    mov eax, [ecx] 
+    mov edx, [eax + 0]
+
+    ; setup iret stack dengan push 
+    push dword ptr [eax + 40] ; push eflags
+    push dword ptr [eax + 36] ; push eip 
+
+    ; load semua register dari ctx 
+    Terima kasih atas informasi tambahan mengenai struktur Context. Berdasarkan struktur yang Anda berikan, kita perlu menyesuaikan kode assembly untuk memuat dan menyimpan nilai register dari struktur Context dan CPURegister. Berikut adalah kode yang sudah disesuaikan:
+
+asm
+
+.global process_context_switch
+process_context_switch:
+    ; Simpan base address untuk argumen function ctx
+    lea ecx, [esp+4]  ; ecx sekarang mengandung alamat ctx
+
+    ; Simpan pointer ke struct CPURegister
+    mov eax, [ecx]                ; eax = pointer ke struct Context
+    mov edx, [eax + 0]            ; edx = pointer ke struct CPURegister dalam Context
+
+    ; Setup iret stack dengan push
+    push dword ptr [eax + 40]     ; push eflags
+    push dword ptr [eax + 36]     ; push eip
+
+    ; Load semua register dari ctx
+    mov eax, [edx + 28]           ; restore eax
+    mov ecx, [edx + 24]           ; restore ecx
+    mov edx, [edx + 20]           ; restore edx
+    mov ebx, [edx + 16]           ; restore ebx
+    mov ebp, [edx + 8]            ; restore ebp
+    mov edi, [edx + 0]            ; restore edi
+    mov esi, [edx + 4]            ; restore esi
+
+    ; Restore segment registers
+    mov eax, [edx + 32]           ; restore gs
+    mov gs, ax
+    mov eax, [edx + 36]           ; restore fs
+    mov fs, ax
+    mov eax, [edx + 40]           ; restore es
+    mov es, ax
+    mov eax, [edx + 44]           ; restore ds
+    mov ds, ax
+
+    iret 
