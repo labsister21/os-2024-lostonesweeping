@@ -98,7 +98,6 @@ kernel_execute_user_program:
     ; [esp] -> eip, [esp+4] -> cs, [esp+8] -> eflags, [] -> user esp, [] -> user ss
     mov  ecx, [esp+4] ; Save first (before pushing anything to stack) for last push
     push eax ; Stack segment selector (GDT_USER_DATA_SELECTOR), user privilege
-    ;mov  eax, 0xBFFFFFFC ; manipulasi
     mov  eax, ecx ; original
     add  eax, 0x400000 - 4 ;
     push eax ; User space stack pointer (esp), move it into last 4 MiB
@@ -112,35 +111,58 @@ kernel_execute_user_program:
 
 global process_context_switch
 process_context_switch:
-    ; Sebelum melakukan semuanya, simpan base address function argument ctx
-    lea ecx, [esp+4]  ; ecx now contains the address of ctx
+    ; Save the address of the function argument 'ctx' (pointer to Context)
+    lea ecx, [esp + 4]     ; ecx now contains the address of ctx
 
-    ; Save the pointer to struct CPURegister
-    mov eax, ecx                ; eax = pointer to struct Context
-    mov edx, [eax]              ; edx = pointer to struct CPURegister in Context
-
-    ; Lanjutkan dengan setup iret stack dengan push
-    push dword [eax + 8]      ; push eflags (offset 8 in struct Context)
-    push dword [eax + 4]      ; push eip (offset 4 in struct Context)
-
-    ; Load all general-purpose registers from ctx
-    mov eax, [edx + 28]           ; restore eax
-    mov ecx, [edx + 24]           ; restore ecx
-    mov edx, [edx + 20]           ; restore edx
-    mov ebx, [edx + 16]           ; restore ebx
-    mov ebp, [edx + 8]            ; restore ebp
-    mov edi, [edx]                ; restore edi
-    mov esi, [edx + 4]            ; restore esi
+    ; Load the pointer to struct CPURegister in Context
+    lea edi, [ecx]         ; edx = pointer to struct CPURegister in Context
 
     ; Restore segment registers
-    mov eax, [edx + 32]           ; restore gs
+    mov eax, [edi + 32]    ; restore gs
     mov gs, ax
-    mov eax, [edx + 36]           ; restore fs
+    mov eax, [edi + 36]    ; restore fs
     mov fs, ax
-    mov eax, [edx + 40]           ; restore es
+    mov eax, [edi + 40]    ; restore es
     mov es, ax
-    mov eax, [edx + 44]           ; restore ds
+    mov eax, [edi + 44]    ; restore ds
     mov ds, ax
 
+    ; Restore general-purpose registers
+    mov esi, [edi + 4]     ; restore esi
+    mov ebp, [edi + 8]     ; restore ebp
+    mov ebx, [edi + 16]    ; restore ebx
+    mov ecx, [edi + 24]    ; restore ecx
+    mov eax, [edi + 28]    ; restore eax
+    mov edx, [edi + 20]    ; restore edx
+    push edx 
+    mov edx, [edi] 
+    mov edi, edx 
+    pop edx 
+
+    ; Load the address of the Context structure again
+    push ecx 
+    lea ecx, [esp + 4]
+
+    ; Prepare for the iret instruction
+    ; Set up the segment selectors with user privilege (RPL 3)
+    mov eax, 0x18 | 0x3
+    mov ds, ax
+    mov es, ax
+    mov fs, ax
+    mov gs, ax
+
+    ; Using iret to switch to user mode
+    ; Stack values: eip, cs, eflags, esp, ss
+    mov eax, [ecx + 4]     ; eip (offset 4 in struct Context)
+    push eax               ; Push eip
+    mov eax, 0x18 | 0x3    ; cs (user code segment selector with RPL 3)
+    push eax               ; Push cs
+    pushf                  ; Push eflags
+    mov eax, 0x20 | 0x3    ; ss (user stack segment selector with RPL 3)
+    push eax               ; Push ss
+    mov eax, [ecx + 12]    ; esp (user stack pointer, offset 12 in struct Context)
+    push eax               ; Push esp
+
+    pop ecx ;
     ; Perform the jump to the process with iret
     iret
