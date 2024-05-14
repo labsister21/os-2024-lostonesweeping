@@ -98,7 +98,8 @@ kernel_execute_user_program:
     ; [esp] -> eip, [esp+4] -> cs, [esp+8] -> eflags, [] -> user esp, [] -> user ss
     mov  ecx, [esp+4] ; Save first (before pushing anything to stack) for last push
     push eax ; Stack segment selector (GDT_USER_DATA_SELECTOR), user privilege
-    mov  eax, ecx ; manipulasi
+    ;mov  eax, 0xBFFFFFFC ; manipulasi
+    mov  eax, ecx ; original
     add  eax, 0x400000 - 4 ;
     push eax ; User space stack pointer (esp), move it into last 4 MiB
     pushf    ; eflags register state, when jump inside user program

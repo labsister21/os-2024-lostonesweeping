@@ -15,23 +15,23 @@ struct FramebufferState framebuffer_state = {
 void framebuffer_scroll_up(void) {
     // Move each row's content one row up
     for (int r = 0; r < 20; r++) {
-        uint16_t *src = (uint16_t *)(BASE_MEMORY_OFFSET + (r + 1) * BUFFER_WIDTH * 2);
-        uint16_t *dst = (uint16_t *)(BASE_MEMORY_OFFSET + r * BUFFER_WIDTH * 2);
+        uint16_t *src = (uint16_t *)(0xC0000000 + BASE_MEMORY_OFFSET + (r + 1) * BUFFER_WIDTH * 2);
+        uint16_t *dst = (uint16_t *)(0xC0000000 + BASE_MEMORY_OFFSET + r * BUFFER_WIDTH * 2);
         memcpy(dst, src, BUFFER_WIDTH * 2);
     }
     // Clear the last row
     size_t last_row_offset = (BUFFER_HEIGHT - 1) * BUFFER_WIDTH;
-    memset((void *)(BASE_MEMORY_OFFSET + last_row_offset * 2), 0, BUFFER_WIDTH * 2);
+    memset((void *)(0xC0000000 + BASE_MEMORY_OFFSET + last_row_offset * 2), 0, BUFFER_WIDTH * 2);
 }
 
 void framebuffer_scroll_down(void) {
     for (int r = BUFFER_HEIGHT - 1; r > 0; r--) {
-        uint16_t *src = (uint16_t *)(BASE_MEMORY_OFFSET + (r - 1) * BUFFER_WIDTH * 2);
-        uint16_t *dst = (uint16_t *)(BASE_MEMORY_OFFSET + r * BUFFER_WIDTH * 2);
+        uint16_t *src = (uint16_t *)(0xC0000000 + BASE_MEMORY_OFFSET + (r - 1) * BUFFER_WIDTH * 2);
+        uint16_t *dst = (uint16_t *)(0xC0000000 + BASE_MEMORY_OFFSET + r * BUFFER_WIDTH * 2);
         memcpy(dst, src, BUFFER_WIDTH * 2);
     }
     // Clear the first row
-    memset((void *)BASE_MEMORY_OFFSET, 0, BUFFER_WIDTH * 2);
+    memset((void *)(0xC0000000 + BASE_MEMORY_OFFSET), 0, BUFFER_WIDTH * 2);
 
     // Update cursor position and row index
     framebuffer_state.row++;
@@ -75,7 +75,7 @@ void framebuffer_clear_delete(void){
     else if (framebuffer_state.row > 0) {
         framebuffer_state.row--;  
         size_t prev_col = BUFFER_WIDTH - 1; 
-        uint16_t *prev_row_start = (uint16_t *)(BASE_MEMORY_OFFSET + (framebuffer_state.row * BUFFER_WIDTH * 2));
+        uint16_t *prev_row_start = (uint16_t *)(0xC0000000 + BASE_MEMORY_OFFSET + (framebuffer_state.row * BUFFER_WIDTH * 2));
         while(prev_col > 0 && prev_row_start[prev_col] == 0x00){
             prev_col--;
         }
