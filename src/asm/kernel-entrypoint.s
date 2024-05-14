@@ -110,45 +110,26 @@ kernel_execute_user_program:
 
     iret
 
-global process_context_switch ;
-; Load struct Context (CPU GP-register) then jump
-; Function Signature: void process_context_switch(struct Context ctx);
+global process_context_switch
 process_context_switch:
-    ; Using iret (return instruction for interrupt) technique for privilege change
-    lea  ecx, [esp+0x04] ; Save the base address for struct Context ctx
+    ; Sebelum melakukan semuanya, simpan base address function argument ctx
+    lea ecx, [esp+4]  ; ecx now contains the address of ctx
 
-    mov eax, [ecx] 
-    mov edx, [eax + 0]
+    ; Save the pointer to struct CPURegister
+    mov eax, [ecx]                ; eax = pointer to struct Context
+    mov edx, [eax]                ; edx = pointer to struct CPURegister in Context
 
-    ; setup iret stack dengan push 
-    push dword ptr [eax + 40] ; push eflags
-    push dword ptr [eax + 36] ; push eip 
+    ; Lanjutkan dengan setup iret stack dengan push
+    push dword [eax + 8]      ; push eflags (offset 8 in struct Context)
+    push dword [eax + 4]      ; push eip (offset 4 in struct Context)
 
-    ; load semua register dari ctx 
-    Terima kasih atas informasi tambahan mengenai struktur Context. Berdasarkan struktur yang Anda berikan, kita perlu menyesuaikan kode assembly untuk memuat dan menyimpan nilai register dari struktur Context dan CPURegister. Berikut adalah kode yang sudah disesuaikan:
-
-asm
-
-.global process_context_switch
-process_context_switch:
-    ; Simpan base address untuk argumen function ctx
-    lea ecx, [esp+4]  ; ecx sekarang mengandung alamat ctx
-
-    ; Simpan pointer ke struct CPURegister
-    mov eax, [ecx]                ; eax = pointer ke struct Context
-    mov edx, [eax + 0]            ; edx = pointer ke struct CPURegister dalam Context
-
-    ; Setup iret stack dengan push
-    push dword ptr [eax + 40]     ; push eflags
-    push dword ptr [eax + 36]     ; push eip
-
-    ; Load semua register dari ctx
+    ; Load all general-purpose registers from ctx
     mov eax, [edx + 28]           ; restore eax
     mov ecx, [edx + 24]           ; restore ecx
     mov edx, [edx + 20]           ; restore edx
     mov ebx, [edx + 16]           ; restore ebx
     mov ebp, [edx + 8]            ; restore ebp
-    mov edi, [edx + 0]            ; restore edi
+    mov edi, [edx]                ; restore edi
     mov esi, [edx + 4]            ; restore esi
 
     ; Restore segment registers
@@ -161,4 +142,5 @@ process_context_switch:
     mov eax, [edx + 44]           ; restore ds
     mov ds, ax
 
-    iret 
+    ; Perform the jump to the process with iret
+    iret
