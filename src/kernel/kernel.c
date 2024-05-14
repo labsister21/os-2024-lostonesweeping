@@ -12,22 +12,6 @@
 #include "header/memory/paging.h"
 #include "header/process/process.h"
 
-// void kernel_setup(void) {
-//     load_gdt(&_gdt_gdtr);
-//     pic_remap();
-//     initialize_idt();
-//     activate_keyboard_interrupt();
-//     framebuffer_clear();
-//     framebuffer_set_cursor(0, 0);
-//     initialize_filesystem_fat32();
-
-//     keyboard_state_activate();
-//     while (true){
-//         char c;
-//         get_keyboard_buffer(&c);
-//         if (c) framebuffer_place(c);
-//     }
-// }
 
 void kernel_setup(void) {
     load_gdt(&_gdt_gdtr);
@@ -42,7 +26,7 @@ void kernel_setup(void) {
     set_tss_register();
 
     // Allocate first 4 MiB virtual memory
-    paging_allocate_user_page_frame(&_paging_kernel_page_directory, (uint8_t*) 0);
+    // paging_allocate_user_page_frame(&_paging_kernel_page_directory, (uint8_t*) 0);
 
     // Write shell into memory
     // struct FAT32DriverRequest request1 = {
@@ -65,9 +49,12 @@ void kernel_setup(void) {
 
     set_tss_kernel_current_stack();
 
-    int32_t ret =  process_create_user_process(request);
-    framebuffer_put(ret + '0', 0b1100);
+    paging_allocate_user_page_frame(&_paging_kernel_page_directory, 0);
+    read(request);
+    process_create_user_process(request);
+    // framebuffer_put(ret + '0', 0b1100);
     paging_use_page_directory(_process_list[0].context.page_directory_virtual_addr);
+    // framebuffer_put(ret + '0', 0b1100);
     kernel_execute_user_program((void*) 0x0);
 
     while (true);

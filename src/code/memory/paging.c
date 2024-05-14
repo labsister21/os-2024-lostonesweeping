@@ -100,7 +100,7 @@ bool paging_free_user_page_frame(struct PageDirectory *page_dir, void *virtual_a
 	return true;
 }
 
-/*>           PROCESS                     <*/
+/*>    ===========PROCESS=============      <*/
 
 __attribute__((aligned(0x1000))) static struct PageDirectory page_directory_list[PAGING_DIRECTORY_TABLE_MAX_COUNT] = {0};
 
@@ -112,7 +112,7 @@ static struct {
 };
 
 struct PageDirectory* paging_create_new_page_directory(void) {
-    /*
+    /**
      * TODO: Get & initialize empty page directory from page_directory_list
      * - Iterate page_directory_list[] & get unused page directory
      * - Mark selected page directory as used

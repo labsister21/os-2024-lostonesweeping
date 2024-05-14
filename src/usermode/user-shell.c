@@ -83,24 +83,17 @@ void run_prompt() {
         find(arg);
     }
     else{
-        put_chars("Perintah tidak ada: ", BIOS_RED);
+        put_chars("Perintah tidak ada", BIOS_RED);
         put_char('\n');
-        put_chars("List perintah: ", BIOS_RED);
+        put_chars("List perintah:", BIOS_RED);
         put_char('\n');
-        put_chars("cat", BIOS_RED);
-        put_char('\n');
-        put_chars("find", BIOS_RED);
-        put_char('\n');
-        put_chars("ls", BIOS_RED);
-        put_char('\n');
-        put_chars("mv", BIOS_RED);
-        put_char('\n');
-        put_chars("cp", BIOS_RED);
-        put_char('\n');
-        put_chars("mkdir", BIOS_RED);
-        put_char('\n');
-        put_chars("cd", BIOS_RED);
-        put_char('\n');
+        put_chars("cat ", BIOS_RED);
+        put_chars("find ", BIOS_RED);
+        put_chars("ls ", BIOS_RED);
+        put_chars("mv ", BIOS_RED);
+        put_chars("cp ", BIOS_RED);
+        put_chars("mkdir ", BIOS_RED);
+        put_chars("cd ", BIOS_RED);
         put_chars("rm", BIOS_RED);
         put_char('\n');
     }
