@@ -153,7 +153,6 @@ int32_t process_create_user_process(struct FAT32DriverRequest request) {
     */
     paging_use_page_directory(current_page);
 
-    //wait ini sama kayak pindah-pindah directory buat shell kah? kayanya iya. 
     new_pcb->memory.virtual_addr_used[0] = program_base_address;
     new_pcb->memory.page_frame_used_count++;
 
