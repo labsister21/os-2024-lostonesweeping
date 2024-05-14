@@ -116,8 +116,8 @@ process_context_switch:
     lea ecx, [esp+4]  ; ecx now contains the address of ctx
 
     ; Save the pointer to struct CPURegister
-    mov eax, [ecx]                ; eax = pointer to struct Context
-    mov edx, [eax]                ; edx = pointer to struct CPURegister in Context
+    mov eax, ecx                ; eax = pointer to struct Context
+    mov edx, [eax]              ; edx = pointer to struct CPURegister in Context
 
     ; Lanjutkan dengan setup iret stack dengan push
     push dword [eax + 8]      ; push eflags (offset 8 in struct Context)
