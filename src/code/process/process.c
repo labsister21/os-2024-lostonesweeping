@@ -176,7 +176,8 @@ int32_t process_create_user_process(struct FAT32DriverRequest request) {
 
     //inisiasi stack register 
     cpu->stack.ebp = 0; 
-    cpu->stack.esp = 0;
+    // cpu->stack.esp = 0x400000-4;
+    cpu->stack.esp = 0x400000-4;
 
     //inisiasi general purpose register 
     cpu->general.ebx = 0; 
