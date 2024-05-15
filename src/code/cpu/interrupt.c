@@ -128,7 +128,8 @@ void syscall(struct InterruptFrame frame) {
         case 13: 
             read_clusters((struct FAT32DirectoryTable*)frame.cpu.general.ebx, frame.cpu.general.ecx, 1);
             break;
-
+        case 14: 
+            break;
 
         // case 14: 
         //     char *dest = (char *)frame.cpu.general.ebx;
@@ -173,7 +174,3 @@ void set_tss_kernel_current_stack(void) {
     // Add 8 because 4 for ret address and other 4 is for stack_ptr variable
     _interrupt_tss_entry.esp0 = stack_ptr + 8; 
 }
-
-
-
-
