@@ -128,7 +128,23 @@ void syscall(struct InterruptFrame frame) {
         case 13: 
             read_clusters((struct FAT32DirectoryTable*)frame.cpu.general.ebx, frame.cpu.general.ecx, 1);
             break;
-        case 14: 
+        case 14: //Terminate (frame?) process 
+            struct Context ctx;
+            ctx.cpu = frame.cpu;
+            ctx.eflags = frame.int_stack.eflags;
+            ctx.eip = frame.int_stack.eip;
+            ctx.page_directory_virtual_addr = process_get_current_running_pcb_pointer()->context.page_directory_virtual_addr;
+            process_get_current_running_pcb_pointer()->metadata.state = Inactive;
+            scheduler_save_context_to_current_running_pcb(ctx);
+            // pic_ack(IRQ_TIMER);
+            // scheduler_switch_to_next_process();        
+            break;
+        case 15: //Pembuatan user process baru
+            *((int8_t *)frame.cpu.general.ecx) =  process_create_user_process(*(struct FAT32DriverRequest*)frame.cpu.general.ebx);
+            break;
+        case 16: //Melakukan terminasi process berdasarkan PID
+            break;
+        case 17: //Mendapatkan informasi process pada sistem
             break;
 
         // case 14: 
