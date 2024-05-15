@@ -78,11 +78,6 @@ struct Context {
     uint32_t eflags; 
     uint32_t eip;
     struct PageDirectory *page_directory_virtual_addr;
-    /**
-     * terus cpu, epi, eflags taruh mana bjir... sumpah gahabis fikir
-     * kayanya udah bjir. oke 
-     * keknya ini harusnya pake InterruptFrame deh
-    */
 };
 
 

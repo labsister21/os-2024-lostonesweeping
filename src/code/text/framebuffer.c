@@ -75,7 +75,7 @@ void framebuffer_clear_delete(void){
     else if (framebuffer_state.row > 0) {
         framebuffer_state.row--;  
         size_t prev_col = BUFFER_WIDTH - 1; 
-        uint16_t *prev_row_start = (uint16_t *)(0xC0000000 + BASE_MEMORY_OFFSET + (framebuffer_state.row * BUFFER_WIDTH * 2));
+        uint16_t *prev_row_start = (uint16_t *)(BASE_MEMORY_OFFSET + (framebuffer_state.row * BUFFER_WIDTH * 2));
         while(prev_col > 0 && prev_row_start[prev_col] == 0x00){
             prev_col--;
         }

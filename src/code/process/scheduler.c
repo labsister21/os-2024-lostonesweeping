@@ -58,6 +58,7 @@ void scheduler_switch_to_next_process(void){
     if(next_process_index == -1){
         if (current_process != NULL) {
             current_process->metadata.state = Running;
+            paging_use_page_directory(current_process->context.page_directory_virtual_addr);
             process_context_switch(current_process->context);
         } else {
             while (1) __asm__("hlt");
@@ -65,5 +66,6 @@ void scheduler_switch_to_next_process(void){
     }
 
     _process_list[next_process_index].metadata.state = Running; 
+    paging_use_page_directory(_process_list[next_process_index].context.page_directory_virtual_addr);
     process_context_switch(_process_list[next_process_index].context);
 }
