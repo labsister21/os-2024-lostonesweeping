@@ -149,11 +149,12 @@ void main_interrupt_handler(struct InterruptFrame frame) {
         case SYSCALL_CALL: 
             syscall(frame);
             break;
-        case IRQ_TIMER:
+        case IRQ_TIMER + PIC1_OFFSET:
             struct Context ctx;
             ctx.cpu = frame.cpu;
             ctx.eflags = frame.int_stack.eflags;
             ctx.eip = frame.int_stack.eip;
+            ctx.page_directory_virtual_addr = process_get_current_running_pcb_pointer()->context.page_directory_virtual_addr;
             scheduler_save_context_to_current_running_pcb(ctx);
             break;
     }

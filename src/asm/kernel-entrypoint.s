@@ -116,9 +116,6 @@ process_context_switch:
     push ecx;
     lea ecx, [esp + 4]     ; ecx now contains the address of ctx
 
-    ; Load the pointer to struct CPURegister in Context
-    lea edi, [ecx]         ; edi = pointer to struct CPURegister in Context
-
     ; Butuh : esp, eip, eflags dari context
     ; 2. setup iret stack dengan push
     ; based on kernel_user_execute_program
@@ -128,39 +125,41 @@ process_context_switch:
     ; eflags 
     ; cs
     ; eip
+
     mov eax, 0x23          ; User data segment selector (GDT_USER_DATA_SELECTOR with RPL 3)
     push eax               ; Push ss
     
-    mov eax, [edi + 12]    ; esp (offset 12 in struct CPURegister, accessed through context)
+    mov eax, [ecx + 16]    ; esp (offset 12 in struct CPURegister, accessed through context)
     push eax               ; Push esp
     
-    push dword [ecx + 48]  ; eflags (offset 48 in struct Context)
+    mov eax, [ecx + 52]    ; eflags (offset 48 in struct Context)
+    push eax               ;
     
-    mov eax, 0x1B          ; Code segment selector (GDT_USER_CODE_SELECTOR with RPL 3)
+    mov eax, 0x18 | 0x3    ; Code segment selector (GDT_USER_CODE_SELECTOR with RPL 3)
     push eax               ; Push cs
 
-    mov eax, [ecx + 52]    ; eip (offset 52 in struct Context)
+    mov eax, [ecx + 32]    ; eip (offset 52 in struct Context)
     push eax               ; Push eip
 
 
     ; 3. load semua register dari ctx 
-    mov ax, [edi + 32]     ; restore gs
+    mov ax, [ecx + 48]     ; restore gs
     mov gs, ax             ; 
-    mov ax, [edi + 36]     ; restore fs
+    mov ax, [ecx + 36]     ; restore fs
     mov fs, ax             ; 
-    mov ax, [edi + 40]     ; restore es
+    mov ax, [ecx + 40]     ; restore es
     mov es, ax             ;
-    mov ax, [edi + 44]     ; restore ds
+    mov ax, [ecx + 44]     ; restore ds
     mov ds, ax             ;
 
     ; Restore general-purpose registers
-    mov esi, [edi + 4]     ; restore esi
-    mov ebp, [edi + 8]     ; restore ebp    
-    mov ebx, [edi + 16]    ; restore ebx
-    mov ecx, [edi + 24]    ; restore ecx
-    mov eax, [edi + 28]    ; restore eax
-    mov edx, [edi + 20]    ; restore edx
-    mov edi, [edi + 0]     ; restore edi
+    mov esi, [ecx + 4]     ; restore esi
+    mov ebp, [ecx + 8]     ; restore ebp    
+    mov ebx, [ecx + 12]    ; restore ebx
+    mov eax, [ecx + 28]    ; restore eax
+    mov edx, [ecx + 20]    ; restore edx
+    mov edi, [ecx + 0]     ; restore edi
+    mov ecx, [ecx + 24]    ; restore ecx
 
 
     

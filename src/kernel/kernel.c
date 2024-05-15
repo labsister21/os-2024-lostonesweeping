@@ -57,5 +57,6 @@ void kernel_setup(void) {
     scheduler_init();
     scheduler_switch_to_next_process();
 
+    
     while (true);
 }
