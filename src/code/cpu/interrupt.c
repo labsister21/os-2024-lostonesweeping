@@ -156,6 +156,10 @@ void main_interrupt_handler(struct InterruptFrame frame) {
             ctx.eip = frame.int_stack.eip;
             ctx.page_directory_virtual_addr = process_get_current_running_pcb_pointer()->context.page_directory_virtual_addr;
             scheduler_save_context_to_current_running_pcb(ctx);
+            // Send PIC_ACK 
+            pic_ack(IRQ_TIMER);
+            // Run scheduler process switch 
+            scheduler_switch_to_next_process();
             break;
     }
 }

@@ -47,6 +47,7 @@ void scheduler_switch_to_next_process(void){
     if(current_process != NULL){
         current_process->metadata.state = Waiting; 
     }
+    
     int next_process_index = -1; 
     for(int i = 0; i < PROCESS_COUNT_MAX; i++){
         if(_process_list[i].metadata.state == Waiting && &_process_list[i] != current_process){
