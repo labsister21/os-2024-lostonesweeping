@@ -61,6 +61,19 @@
  * @param page_directory_virtual_addr CPU register CR3, containing pointer to active page directory
  */
 
+enum ProcessState{
+    Inactive, 
+    Running, 
+    Waiting,
+};
+
+//tambahan saya 
+struct ProcessInfo {
+    uint32_t pid;
+    enum ProcessState state;  
+    // Add other fields as necessary
+};
+
 /**
  * ini ada guidebook bagian 
  * 3.1.2.1
@@ -98,11 +111,8 @@ struct Context {
 /**
  * tau ah gua ngarang bebas ini. 
 */
-enum ProcessState{
-    Inactive, 
-    Running, 
-    Waiting,
-};
+
+const char* getStateString(enum ProcessState state);
 
 struct ProcessControlBlock{
     struct {

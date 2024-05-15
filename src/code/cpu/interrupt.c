@@ -103,12 +103,10 @@ void syscall(struct InterruptFrame frame) {
         case 8: 
             keyboard_state_deactivate();
             break;
-
         case 10: //get_prompt
             char *ptr= (char*) frame.cpu.general.ebx; 
             get_keyboard_buffer(ptr);
             break;
-        
         case 11: //prevent deleting? 
             int i = 0;
             char *str = (char *)frame.cpu.general.ebx;
@@ -143,19 +141,47 @@ void syscall(struct InterruptFrame frame) {
             *((int8_t *)frame.cpu.general.ecx) =  process_create_user_process(*(struct FAT32DriverRequest*)frame.cpu.general.ebx);
             break;
         case 16: //Melakukan terminasi process berdasarkan PID
-            break;
-        case 17: //Mendapatkan informasi process pada sistem
+            uint32_t pid = frame.cpu.general.ebx;
+            *((int8_t *)frame.cpu.general.ecx) = process_destroy(pid) ? 0 : -1; 
             break;
 
-        // case 14: 
-        //     char *dest = (char *)frame.cpu.general.ebx;
-        //     change_curr_dir(dest, 8);
-        //     int a = 0;
-        //     while(dest[a] != '\0'){
-        //         framebuffer_put(dest[a++]);
-        //     }
-        //     break;
-    }
+        case 17: // Gather and print process information
+            struct ProcessInfo *info = (struct ProcessInfo *) frame.cpu.general.ebx;
+            int max_count = frame.cpu.general.ecx;
+            int count = 0;
+            char *pid_info = "PID: ";
+            char *state_info = "State: ";
+            // Gather information
+            for (int i = 0; i < PROCESS_COUNT_MAX && count < max_count; i++) {
+                if (_process_list[i].metadata.state != Inactive) {
+                    info[count].pid = _process_list[i].metadata.pid;
+                    info[count].state = _process_list[i].metadata.state;
+
+                    // Print PID info
+                    for (int j = 0; j < 4; j++) {
+                        framebuffer_put(pid_info[j], 0b1010);
+                    }
+                    framebuffer_put(info[count].pid + '0', 0b1010);
+                    framebuffer_put(' ', 0b1010);
+
+                    // Print state info
+                    for (int j = 0; j < 6; j++) { 
+                        framebuffer_put(state_info[j], 0b1010);
+                    }
+                    const char* state_str = getStateString(info[count].state);
+                    for(int j = 0; state_str[j] != '\0'; j++) {
+                        framebuffer_put(state_str[j], 0b1010);
+                    }
+                    framebuffer_newline();
+
+                    count++;
+                }
+            }
+            framebuffer_newline();
+
+            frame.cpu.general.edx = count;  
+            break;
+        }
 }
 
 void main_interrupt_handler(struct InterruptFrame frame) {

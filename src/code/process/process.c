@@ -41,6 +41,16 @@ struct ProcessControlBlock* process_get_current_running_pcb_pointer(void) {
 }
 
 
+const char* getStateString(enum ProcessState state) {
+    switch (state) {
+        case Inactive: return "Inactive";
+        case Running: return "Running";
+        case Waiting: return "Waiting";
+        default: return "Unknown";
+    }
+}
+
+
 //di bawah ada yang pake fungsi ini, tapi gadibuatin harus mikir deh lmao 
 /**
  * did we need state? in struct? but how? enum?
