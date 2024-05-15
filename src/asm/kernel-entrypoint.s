@@ -96,10 +96,10 @@ kernel_execute_user_program:
     ; Using iret (return instruction for interrupt) technique for privilege change
     ; Stack values will be loaded into these register:
     ; [esp] -> eip, [esp+4] -> cs, [esp+8] -> eflags, [] -> user esp, [] -> user ss
+
     mov  ecx, [esp+4] ; Save first (before pushing anything to stack) for last push
     push eax ; Stack segment selector (GDT_USER_DATA_SELECTOR), user privilege
-    ;mov  eax, 0xBFFFFFFC ; manipulasi
-    mov  eax, ecx ; original
+    mov  eax, ecx ; 
     add  eax, 0x400000 - 4 ;
     push eax ; User space stack pointer (esp), move it into last 4 MiB
     pushf    ; eflags register state, when jump inside user program
@@ -112,35 +112,57 @@ kernel_execute_user_program:
 
 global process_context_switch
 process_context_switch:
-    ; Sebelum melakukan semuanya, simpan base address function argument ctx
-    lea ecx, [esp+4]  ; ecx now contains the address of ctx
+    ; 1. Sebelum melakukan semuanya, simpan base address function argument ctx
+    lea ecx, [esp + 4]     ; ecx now contains the address of ctx
 
-    ; Save the pointer to struct CPURegister
-    mov eax, [ecx]                ; eax = pointer to struct Context
-    mov edx, [eax]                ; edx = pointer to struct CPURegister in Context
+    ; Butuh : esp, eip, eflags dari context
+    ; 2. setup iret stack dengan push
+    ; based on kernel_user_execute_program
+    ; urutan 
+    ; ss 
+    ; esp
+    ; eflags 
+    ; cs
+    ; eip
 
-    ; Lanjutkan dengan setup iret stack dengan push
-    push dword [eax + 8]      ; push eflags (offset 8 in struct Context)
-    push dword [eax + 4]      ; push eip (offset 4 in struct Context)
+    mov eax, 0x23          ; User data segment selector (GDT_USER_DATA_SELECTOR with RPL 3)
+    push eax               ; Push ss
+    
+    mov eax, [ecx + 12]    ; esp (offset 12 in struct CPURegister, accessed through context)
+    push eax               ; Push esp
+    
+    mov eax, [ecx + 48]    ; eflags (offset 48 in struct Context)
+    push eax               ;
+    
+    mov eax, 0x18 | 0x3    ; Code segment selector (GDT_USER_CODE_SELECTOR with RPL 3)
+    push eax               ; Push cs
 
-    ; Load all general-purpose registers from ctx
-    mov eax, [edx + 28]           ; restore eax
-    mov ecx, [edx + 24]           ; restore ecx
-    mov edx, [edx + 20]           ; restore edx
-    mov ebx, [edx + 16]           ; restore ebx
-    mov ebp, [edx + 8]            ; restore ebp
-    mov edi, [edx]                ; restore edi
-    mov esi, [edx + 4]            ; restore esi
+    mov eax, [ecx + 52]    ; eip (offset 52 in struct Context)
+    push eax               ; Push eip
 
-    ; Restore segment registers
-    mov eax, [edx + 32]           ; restore gs
-    mov gs, ax
-    mov eax, [edx + 36]           ; restore fs
-    mov fs, ax
-    mov eax, [edx + 40]           ; restore es
-    mov es, ax
-    mov eax, [edx + 44]           ; restore ds
-    mov ds, ax
 
-    ; Perform the jump to the process with iret
+    ; 3. load semua register dari ctx 
+    mov ax, [ecx + 32]     ; restore gs
+    mov gs, ax             ; 
+    mov ax, [ecx + 36]     ; restore fs
+    mov fs, ax             ; 
+    mov ax, [ecx + 40]     ; restore es
+    mov es, ax             ;
+    mov ax, [ecx + 44]     ; restore ds
+    mov ds, ax             ;
+
+    ; Restore general-purpose registers
+    mov esi, [ecx + 4]     ; restore esi
+    mov ebp, [ecx + 8]     ; restore ebp    
+    mov ebx, [ecx + 16]    ; restore ebx
+    mov eax, [ecx + 28]    ; restore eax
+    mov edx, [ecx + 20]    ; restore edx
+    mov edi, [ecx + 0]     ; restore edi
+    mov ecx, [ecx + 24]    ; restore ecx
+
+
+    
+    ; 4. Cleanup operasi register yang tersisa jika ada
+
+    ; 5. Lakukan jump ke process dengan iret
     iret

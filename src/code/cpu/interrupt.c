@@ -5,6 +5,7 @@
 #include "../../header/filesystem/fat32.h"
 #include "../../header/cpu/gdt.h"
 #include "../../header/text/terminaltext.h"
+#include "../../header/process/scheduler.h"
 
 void activate_keyboard_interrupt(void) {
     out(PIC1_DATA, in(PIC1_DATA) & ~(1 << IRQ_KEYBOARD));
@@ -147,6 +148,16 @@ void main_interrupt_handler(struct InterruptFrame frame) {
             break;
         case SYSCALL_CALL: 
             syscall(frame);
+            break;
+        case IRQ_TIMER + PIC1_OFFSET:
+            struct Context ctx;
+            ctx.cpu = frame.cpu;
+            ctx.eflags = frame.int_stack.eflags;
+            ctx.eip = frame.int_stack.eip;
+            ctx.page_directory_virtual_addr = process_get_current_running_pcb_pointer()->context.page_directory_virtual_addr;
+            scheduler_save_context_to_current_running_pcb(ctx);
+            pic_ack(IRQ_TIMER);
+            scheduler_switch_to_next_process();
             break;
     }
 }

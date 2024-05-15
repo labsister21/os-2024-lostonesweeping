@@ -74,15 +74,10 @@ extern struct process_state {
 
 struct Context {
     // TODO: Add important field here
-    struct CPURegister cpu;
-    uint32_t eflags; 
-    uint32_t eip;
-    struct PageDirectory *page_directory_virtual_addr;
-    /**
-     * terus cpu, epi, eflags taruh mana bjir... sumpah gahabis fikir
-     * kayanya udah bjir. oke 
-     * keknya ini harusnya pake InterruptFrame deh
-    */
+    struct CPURegister cpu; 
+    uint32_t eflags; //48
+    uint32_t eip; //52
+    struct PageDirectory *page_directory_virtual_addr; 
 };
 
 
