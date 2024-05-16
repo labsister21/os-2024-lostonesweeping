@@ -147,6 +147,10 @@ insert-clock: clock inserter
 	@echo inserting clock into root directory.. 
 	@cd $(OUTPUT_FOLDER); ./inserter clock 2 $(DISK_NAME).bin
 
+insert-badapple: inserter
+	@echo inserting badapple into root directory.. 
+	@cd $(OUTPUT_FOLDER); ./inserter badapple 2 $(DISK_NAME).bin
+
 restart: clean disk inserter insert-shell
 
 .PHONY: all
