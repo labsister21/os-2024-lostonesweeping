@@ -185,6 +185,18 @@ void syscall(struct InterruptFrame frame) {
 
             frame.cpu.general.edx = count;  
             break;
+
+        case 18: 
+            struct ProcessInfo *info_to_kill = (struct ProcessInfo *) frame.cpu.general.ebx;
+            max_count = frame.cpu.general.ecx;
+            count = 0;
+            // Gather information
+            for (int i = 0; i < PROCESS_COUNT_MAX && count < max_count; i++) {
+                if (_process_list[i].metadata.state != Inactive) {
+                    info_to_kill[count].pid = _process_list[i].metadata.pid;
+                    info_to_kill[count].state = _process_list[i].metadata.state;
+                }
+            }
         }
 }
 

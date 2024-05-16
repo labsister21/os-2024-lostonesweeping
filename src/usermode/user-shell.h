@@ -17,7 +17,10 @@
 #define DEACTIVATE_KEYBOARD 8 
 #define GET_PROMPT 10 
 #define CHANGE_DIR 13
-
+#define EXEC 15 
+#define KILL 16 
+#define LIST_PRINT 17
+#define LIST 18
 
 #define BIOS_LIGHT_GREEN 0b1010
 #define BIOS_GREY        0b0111
