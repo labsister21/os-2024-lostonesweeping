@@ -1,8 +1,33 @@
 #include "exec.h"
 #include "header/process/process.h"
 #include "user-shell.h"
+#include "util.h"
 
 void exec(char* arg){
+
+    if(arg == NULL){
+        put_chars("exec: argumen kurang desu", BIOS_RED); 
+        put_char('\n');
+        return;
+    }
+
+    if(findEntryName(arg) == -1){
+        put_chars("exec: program tidak ada desu", BIOS_RED);
+        put_char('\n');
+        return;
+    }
+
+    struct ProcessInfo process_info[PROCESS_COUNT_MAX];
+
+    int total;
+    syscall(17, (uint32_t)&process_info, (uint32_t)&total, 0); 
+    for(int i = 0; i < total; i++){
+        if(memcmp(process_info[i].name, arg, 8) == 0){
+            put_chars("exec: proses sudah ada desu!", BIOS_RED);
+            put_char('\n');
+            return;
+        }
+    }
 
     int retcode;
     struct FAT32DriverRequest request = {

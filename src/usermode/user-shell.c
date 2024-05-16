@@ -11,6 +11,7 @@
 #include "util.h"
 #include "ps.h"
 #include "exec.h"
+#include "kill.h"
 
 void syscall(uint32_t eax, uint32_t ebx, uint32_t ecx, uint32_t edx) {
     __asm__ volatile("mov %0, %%ebx" : /* <Empty> */ : "r"(ebx));
@@ -30,11 +31,6 @@ struct ShellState state = {
  
 void updateDirectoryTable(uint32_t cluster_number) {
     syscall(CHANGE_DIR, (uint32_t)&state.curr_dir, cluster_number, 0x1);
-}
-
-void clear() {
-	syscall(PUT_CHAR, (uint32_t) '\e', 0, 0xF);
-	syscall(PUT_CHAR, (uint32_t) 'J', 0, 0xF);
 }
 
 void refresh_dir(){
@@ -91,8 +87,15 @@ void run_prompt() {
         char* arg = my_strtok(NULL, '\0');
         exec(arg);
     }
+    else if(memcmp(token, "kill", 4) == 0){
+        char* arg = my_strtok(NULL, '\0');
+        kill(arg);
+    }
+    else if(memcmp(token, "clear", 5) == 0){
+        syscall(CLEAR, 0, 0, 0);
+    }
     else{
-        put_chars("Perintah tidak ada", BIOS_RED);
+        put_chars("Shell: Perintah tidak ada", BIOS_RED);
         put_char('\n');
         put_chars("List perintah:", BIOS_RED);
         put_char('\n');

@@ -69,6 +69,7 @@ enum ProcessState{
 
 //tambahan saya 
 struct ProcessInfo {
+    char name[8];
     uint32_t pid;
     enum ProcessState state;  
     // Add other fields as necessary
@@ -112,10 +113,11 @@ struct Context {
  * tau ah gua ngarang bebas ini. 
 */
 
-const char* getStateString(enum ProcessState state);
+char* getStateString(enum ProcessState state);
 
 struct ProcessControlBlock{
     struct {
+        char process_name[8];
         uint32_t pid; 
         enum ProcessState state;
         // ini ada isi lagi

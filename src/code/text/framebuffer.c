@@ -135,6 +135,7 @@ void framebuffer_put(char c, uint8_t color){
 void framebuffer_clear(void) {
     size_t framebuffer_size = BUFFER_WIDTH * BUFFER_HEIGHT + sizeof(FRAMEBUFFER_MEMORY_OFFSET);
     memset(FRAMEBUFFER_MEMORY_OFFSET, 0, framebuffer_size);
+    framebuffer_set_cursor(0, 0);
 }
 
 
