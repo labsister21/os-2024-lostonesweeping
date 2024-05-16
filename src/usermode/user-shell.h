@@ -15,6 +15,7 @@
 #define PUT_CHARS 6 
 #define ACTIVATE_KEYBOARD 7 
 #define DEACTIVATE_KEYBOARD 8 
+#define CLEAR 9
 #define GET_PROMPT 10 
 #define CHANGE_DIR 13
 #define EXEC 15 

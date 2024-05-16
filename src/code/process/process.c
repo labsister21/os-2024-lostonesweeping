@@ -41,7 +41,7 @@ struct ProcessControlBlock* process_get_current_running_pcb_pointer(void) {
 }
 
 
-const char* getStateString(enum ProcessState state) {
+char* getStateString(enum ProcessState state) {
     switch (state) {
         case Inactive: return "Inactive";
         case Running: return "Running";
@@ -106,6 +106,7 @@ int32_t process_create_user_process(struct FAT32DriverRequest request) {
      * oke, pid-nya diambil dari pid yang paling terakhir 
      * terus harusnya state dia jadi waiting
     */
+    memcpy(new_pcb->metadata.process_name, request.name, 8);
     new_pcb->metadata.pid = process_generate_new_pid();
     new_pcb->metadata.state = Waiting;
     /**
