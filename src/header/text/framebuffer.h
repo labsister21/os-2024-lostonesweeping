@@ -8,7 +8,7 @@
 #define FRAMEBUFFER_MEMORY_OFFSET ((uint8_t*) 0xC00B8000)
 #define BASE_MEMORY_OFFSET 0xB8000
 #define BUFFER_WIDTH 80
-#define BUFFER_HEIGHT 50
+#define BUFFER_HEIGHT 100
 #define CURSOR_PORT_CMD 0x03D4
 #define CURSOR_PORT_DATA 0x03D5
 
@@ -55,14 +55,10 @@ void framebuffer_set_cursor(uint8_t r, uint8_t c);
  * Extra note: It's allowed to use different color palette for this
  *
  */
-enum FramebufferCursorMove {
-	UP,
-	RIGHT,
-	DOWN,
-	LEFT
-};
 
-void framebuffer_move_cursor(enum FramebufferCursorMove direction, int count);
+void framebuffer_scroll_up(void);
+
+void framebuffer_scroll_down(void);
 
 void framebuffer_clear(void);
 

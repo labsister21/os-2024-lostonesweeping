@@ -15,13 +15,29 @@ struct FramebufferState framebuffer_state = {
 void framebuffer_scroll_up(void) {
     // Move each row's content one row up
     for (int r = 0; r < 20; r++) {
-        uint16_t *src = (uint16_t *)(BASE_MEMORY_OFFSET + (r + 1) * BUFFER_WIDTH * 2);
-        uint16_t *dst = (uint16_t *)(BASE_MEMORY_OFFSET + r * BUFFER_WIDTH * 2);
+        uint16_t *src = (uint16_t *)(0xC0000000 + BASE_MEMORY_OFFSET + (r + 1) * BUFFER_WIDTH * 2);
+        uint16_t *dst = (uint16_t *)(0xC0000000 + BASE_MEMORY_OFFSET + r * BUFFER_WIDTH * 2);
         memcpy(dst, src, BUFFER_WIDTH * 2);
     }
     // Clear the last row
     size_t last_row_offset = (BUFFER_HEIGHT - 1) * BUFFER_WIDTH;
-    memset((void *)(BASE_MEMORY_OFFSET + last_row_offset * 2), 0, BUFFER_WIDTH * 2);
+    memset((void *)(0xC0000000 + BASE_MEMORY_OFFSET + last_row_offset * 2), 0, BUFFER_WIDTH * 2);
+}
+
+void framebuffer_scroll_down(void) {
+    for (int r = BUFFER_HEIGHT - 1; r > 0; r--) {
+        uint16_t *src = (uint16_t *)(0xC0000000 + BASE_MEMORY_OFFSET + (r - 1) * BUFFER_WIDTH * 2);
+        uint16_t *dst = (uint16_t *)(0xC0000000 + BASE_MEMORY_OFFSET + r * BUFFER_WIDTH * 2);
+        memcpy(dst, src, BUFFER_WIDTH * 2);
+    }
+    // Clear the first row
+    memset((void *)(0xC0000000 + BASE_MEMORY_OFFSET), 0, BUFFER_WIDTH * 2);
+
+    // Update cursor position and row index
+    framebuffer_state.row++;
+    if (framebuffer_state.row >= BUFFER_HEIGHT) {
+        framebuffer_state.row = BUFFER_HEIGHT - 1;
+    }
 }
 
 void framebuffer_set_cursor(uint8_t r, uint8_t c) {
@@ -36,9 +52,9 @@ void framebuffer_set_cursor(uint8_t r, uint8_t c) {
 }
 
 void framebuffer_write(uint8_t row, uint8_t col, char c, uint8_t fg, uint8_t bg) {
-    framebuffer_set_cursor(row, col);
+    // framebuffer_set_cursor(row, col);
     uint16_t idx = (row * BUFFER_WIDTH) +  col; 
-    uint16_t *where = (uint16_t *)BASE_MEMORY_OFFSET + idx;
+    uint16_t *where = (uint16_t *)(0xC0000000 + BASE_MEMORY_OFFSET) + idx;
     uint16_t attrib = (bg << 4) | (fg & 0x0F);
     *where = c | (attrib << 8);
 }
@@ -90,26 +106,6 @@ void framebuffer_newline(void){
     );
 }
 
-void framebuffer_move_cursor(enum FramebufferCursorMove direction, int count) {
-	int next_row = framebuffer_state.row;
-	int next_col = framebuffer_state.col;
-	switch (direction) {
-	case UP: {
-		next_row -= count;
-	} break;
-	case DOWN: {
-		next_row += count;
-	} break;
-	case LEFT: {
-		next_col -= count;
-	} break;
-	case RIGHT: {
-		next_col += count;
-	} break;
-	}
-	framebuffer_set_cursor(next_row, next_col);
-};
-
 void framebuffer_put(char c, uint8_t color){
      if (framebuffer_state.row == 20) {
         // Scroll up if at bottom row
@@ -139,6 +135,7 @@ void framebuffer_put(char c, uint8_t color){
 void framebuffer_clear(void) {
     size_t framebuffer_size = BUFFER_WIDTH * BUFFER_HEIGHT + sizeof(FRAMEBUFFER_MEMORY_OFFSET);
     memset(FRAMEBUFFER_MEMORY_OFFSET, 0, framebuffer_size);
+    framebuffer_set_cursor(0, 0);
 }
 
 

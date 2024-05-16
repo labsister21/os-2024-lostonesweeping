@@ -12,6 +12,7 @@ SOURCE_FOLDER_STDLIB = src/stdlib
 SOURCE_FOLDER_KERNEL = src/kernel
 SOURCE_FOLDER_ASM = src/asm
 SOURCE_FOLDER_USER = src/usermode
+SOURCE_FOLDER_CLOCK = src/clock
 OUTPUT_FOLDER = bin
 ISO_NAME      = OS2024
 
@@ -104,16 +105,21 @@ user-shell:
 	$(CC) $(CFLAGS) -fno-pie -c $(SOURCE_FOLDER_USER)/cp.c -o $(OUTPUT_FOLDER)/cp.o 
 	$(CC) $(CFLAGS) -fno-pie -c $(SOURCE_FOLDER_USER)/mv.c -o $(OUTPUT_FOLDER)/mv.o 
 	$(CC) $(CFLAGS) -fno-pie -c $(SOURCE_FOLDER_USER)/find.c -o $(OUTPUT_FOLDER)/find.o 
+	$(CC) $(CFLAGS) -fno-pie -c $(SOURCE_FOLDER_USER)/ps.c -o $(OUTPUT_FOLDER)/ps.o 
+	$(CC) $(CFLAGS) -fno-pie -c $(SOURCE_FOLDER_USER)/exec.c -o $(OUTPUT_FOLDER)/exec.o 
+	$(CC) $(CFLAGS) -fno-pie -c $(SOURCE_FOLDER_USER)/kill.c -o $(OUTPUT_FOLDER)/kill.o 
 	$(LIN) -T $(SOURCE_FOLDER_USER)/user-linker.ld -melf_i386 --oformat=binary \
 		$(OUTPUT_FOLDER)/crt0.o $(OUTPUT_FOLDER)/user-shell.o $(OUTPUT_FOLDER)/mkdir.o \
 		$(OUTPUT_FOLDER)/ls.o $(OUTPUT_FOLDER)/rm.o $(OUTPUT_FOLDER)/cd.o $(OUTPUT_FOLDER)/string.o \
-		$(OUTPUT_FOLDER)/util.o $(OUTPUT_FOLDER)/cat.o  $(OUTPUT_FOLDER)/cp.o $(OUTPUT_FOLDER)/mv.o \
-		$(OUTPUT_FOLDER)/find.o -o $(OUTPUT_FOLDER)/shell
+		$(OUTPUT_FOLDER)/util.o $(OUTPUT_FOLDER)/cat.o  $(OUTPUT_FOLDER)/cp.o $(OUTPUT_FOLDER)/mv.o $(OUTPUT_FOLDER)/find.o \
+		$(OUTPUT_FOLDER)/ps.o $(OUTPUT_FOLDER)/exec.o $(OUTPUT_FOLDER)/kill.o \
+		-o $(OUTPUT_FOLDER)/shell
 	@echo Linking object shell object files and generating flat binary...
 	$(LIN) -T $(SOURCE_FOLDER_USER)/user-linker.ld -melf_i386 --oformat=elf32-i386 \
 		$(OUTPUT_FOLDER)/crt0.o $(OUTPUT_FOLDER)/user-shell.o $(OUTPUT_FOLDER)/mkdir.o \
 		$(OUTPUT_FOLDER)/ls.o  $(OUTPUT_FOLDER)/rm.o $(OUTPUT_FOLDER)/cd.o $(OUTPUT_FOLDER)/string.o \
 		$(OUTPUT_FOLDER)/util.o $(OUTPUT_FOLDER)/cat.o $(OUTPUT_FOLDER)/cp.o $(OUTPUT_FOLDER)/mv.o $(OUTPUT_FOLDER)/find.o \
+		$(OUTPUT_FOLDER)/ps.o $(OUTPUT_FOLDER)/exec.o $(OUTPUT_FOLDER)/kill.o \
 		-o $(OUTPUT_FOLDER)/shell_elf
 	@echo Linking object shell object files and generating ELF32 for debugging...
 	size --target=binary $(OUTPUT_FOLDER)/shell
@@ -124,6 +130,23 @@ user-shell:
 insert-shell: disk inserter user-shell
 	@echo Inserting shell into root directory...
 	@cd $(OUTPUT_FOLDER); ./inserter shell 2 $(DISK_NAME).bin
+
+clock: 
+	$(ASM) $(AFLAGS) $(SOURCE_FOLDER_USER)/crt0.s -o $(OUTPUT_FOLDER)/crt0.o
+	$(CC) $(CFLAGS) -fno-pie -c $(SOURCE_FOLDER_CODE)/driver/cmos.c -o $(OUTPUT_FOLDER)/cmos.o
+	$(CC) $(CFLAGS) -fno-pie -c $(SOURCE_FOLDER_CLOCK)/clock.c -o $(OUTPUT_FOLDER)/clock.o
+	$(LIN) -T $(SOURCE_FOLDER_USER)/user-linker.ld -melf_i386 --oformat=binary \
+		$(OUTPUT_FOLDER)/crt0.o $(OUTPUT_FOLDER)/clock.o $(OUTPUT_FOLDER)/cmos.o \
+		-o $(OUTPUT_FOLDER)/clock
+	@echo Linking object shell object files and generating flat binary...
+	$(LIN) -T $(SOURCE_FOLDER_USER)/user-linker.ld -melf_i386 --oformat=elf32-i386 \
+		$(OUTPUT_FOLDER)/crt0.o $(OUTPUT_FOLDER)/clock.o $(OUTPUT_FOLDER)/cmos.o \
+		-o $(OUTPUT_FOLDER)/clock_elf
+	rm -f $(OUTPUT_FOLDER)/*.o	
+
+insert-clock: clock inserter
+	@echo inserting clock into root directory.. 
+	@cd $(OUTPUT_FOLDER); ./inserter clock 2 $(DISK_NAME).bin
 
 restart: clean disk inserter insert-shell
 
