@@ -27,7 +27,8 @@
         "cat.h": "c",
         "paging.h": "c",
         "process.h": "c",
-        "scheduler.h": "c"
+        "scheduler.h": "c",
+        "exec.h": "c"
     },
     "C_Cpp.default.compilerPath": "C:\\msys64\\mingw64\\bin\\gcc.exe",
 }

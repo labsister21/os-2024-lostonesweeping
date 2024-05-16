@@ -10,6 +10,7 @@
 #include "mv.h"
 #include "util.h"
 #include "ps.h"
+#include "exec.h"
 
 void syscall(uint32_t eax, uint32_t ebx, uint32_t ecx, uint32_t edx) {
     __asm__ volatile("mov %0, %%ebx" : /* <Empty> */ : "r"(ebx));
@@ -85,6 +86,10 @@ void run_prompt() {
     }
     else if(memcmp(token, "ps", 2) == 0){
         ps();
+    }
+    else if(memcmp(token, "exec", 4) == 0){
+        char* arg = my_strtok(NULL, '\0');
+        exec(arg);
     }
     else{
         put_chars("Perintah tidak ada", BIOS_RED);

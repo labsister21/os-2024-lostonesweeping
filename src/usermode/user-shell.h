@@ -5,6 +5,7 @@
 #include "header/filesystem/fat32.h"
 #include "header/stdlib/string.h"
 #include "header/driver/keyboard.h"
+#include "header/process/process.h"
 
 #define READ 0 
 #define READ_DIRECTORY 1 

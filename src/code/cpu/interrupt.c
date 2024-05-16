@@ -100,8 +100,11 @@ void syscall(struct InterruptFrame frame) {
         case 7: 
             keyboard_state_activate();
             break;
-        case 8: 
-            keyboard_state_deactivate();
+        case 8: //write clock
+            if((char)frame.cpu.general.ebx){
+                int pos = frame.cpu.general.ecx;
+                framebuffer_write(20, pos, (char)frame.cpu.general.ebx, 0b1010, 0);
+            }
             break;
         case 10: //get_prompt
             char *ptr= (char*) frame.cpu.general.ebx; 

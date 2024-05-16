@@ -129,7 +129,8 @@ struct PageDirectory* paging_create_new_page_directory(void) {
     */
     int i = 0;
 	while (i < PAGING_DIRECTORY_TABLE_MAX_COUNT) {
-		if (page_directory_manager.page_directory_used[i++] == 0) break;
+		if (page_directory_manager.page_directory_used[i] == false) break;
+        i++;
 	}
 
 	if (i == PAGING_DIRECTORY_TABLE_MAX_COUNT) return NULL;
