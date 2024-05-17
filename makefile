@@ -152,6 +152,10 @@ insert-badapple: inserter
 	@echo inserting badapple into root directory.. 
 	@cd $(OUTPUT_FOLDER); ./inserter badapple 2 $(DISK_NAME).bin
 
+insert-frametes:
+	@echo inserting frametes into root directory..
+	@cd $(OUTPUT_FOLDER); ./inserter frametes 2 $(DISK_NAME).bin
+
 restart: clean disk inserter insert-shell
 
 .PHONY: all

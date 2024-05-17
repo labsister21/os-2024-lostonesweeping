@@ -95,7 +95,7 @@ void syscall(struct InterruptFrame frame) {
 		    char *str = (char *)frame.cpu.general.ebx;
             uint8_t color = frame.cpu.general.edx;
 		    for(int j = 0; j < i; j++){
-                framebuffer_put(str[j], color);
+                fputc(str[j], color);
             }
         }
             break;
