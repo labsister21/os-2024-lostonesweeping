@@ -5,6 +5,8 @@
 #include "../../header/filesystem/fat32.h"
 #include "../../header/cpu/gdt.h"
 #include "../../header/text/terminaltext.h"
+#include "../../header/process/scheduler.h"
+#include "../../header/stdlib/string.h"
 
 void activate_keyboard_interrupt(void) {
     out(PIC1_DATA, in(PIC1_DATA) & ~(1 << IRQ_KEYBOARD));
@@ -58,6 +60,7 @@ void pic_remap(void) {
  * case 10: framebuffer_cursor 
  * case 11: time
 */
+
 void syscall(struct InterruptFrame frame) {
     switch (frame.cpu.general.eax) {
         case 0: //READ
@@ -92,22 +95,26 @@ void syscall(struct InterruptFrame frame) {
 		    char *str = (char *)frame.cpu.general.ebx;
             uint8_t color = frame.cpu.general.edx;
 		    for(int j = 0; j < i; j++){
-                framebuffer_put(str[j], color);
+                fputc(str[j], color);
             }
         }
             break;
         case 7: 
             keyboard_state_activate();
             break;
-        case 8: 
-            keyboard_state_deactivate();
+        case 8: //write clock
+            if((char)frame.cpu.general.ebx){
+                int pos = frame.cpu.general.ecx;
+                framebuffer_write(21, pos, (char)frame.cpu.general.ebx, 0b1010, 0);
+            }
             break;
-
+        case 9: 
+            framebuffer_clear();
+            break;
         case 10: //get_prompt
             char *ptr= (char*) frame.cpu.general.ebx; 
             get_keyboard_buffer(ptr);
             break;
-        
         case 11: //prevent deleting? 
             int i = 0;
             char *str = (char *)frame.cpu.general.ebx;
@@ -127,17 +134,47 @@ void syscall(struct InterruptFrame frame) {
         case 13: 
             read_clusters((struct FAT32DirectoryTable*)frame.cpu.general.ebx, frame.cpu.general.ecx, 1);
             break;
+        case 14: //Terminate (frame?) process 
+            struct Context ctx;
+            ctx.cpu = frame.cpu;
+            ctx.eflags = frame.int_stack.eflags;
+            ctx.eip = frame.int_stack.eip;
+            ctx.page_directory_virtual_addr = process_get_current_running_pcb_pointer()->context.page_directory_virtual_addr;
+            process_get_current_running_pcb_pointer()->metadata.state = Inactive;
+            scheduler_save_context_to_current_running_pcb(ctx);
+            // pic_ack(IRQ_TIMER);
+            // scheduler_switch_to_next_process();        
+            break;
+        case 15: //Pembuatan user process baru
+            *((int8_t *)frame.cpu.general.ecx) =  process_create_user_process(*(struct FAT32DriverRequest*)frame.cpu.general.ebx);
+            break;
+        case 16: //Melakukan terminasi process berdasarkan PID
+            uint32_t pid = frame.cpu.general.ebx;
 
+            if(process_destroy(pid) == true){
+                *((int8_t *)frame.cpu.general.ecx) = 0; 
+            }else{
+                *((int8_t *)frame.cpu.general.ecx) = -1; 
+            }
+            break;
 
-        // case 14: 
-        //     char *dest = (char *)frame.cpu.general.ebx;
-        //     change_curr_dir(dest, 8);
-        //     int a = 0;
-        //     while(dest[a] != '\0'){
-        //         framebuffer_put(dest[a++]);
-        //     }
-        //     break;
-    }
+        case 17: // Gather and print process information
+            struct ProcessInfo *info = (struct ProcessInfo *) frame.cpu.general.ebx;
+            int max_count = frame.cpu.general.ecx;
+            int count = 0;
+            // Gather information
+            for (int i = 0; i < PROCESS_COUNT_MAX && count < max_count; i++) {
+                if (_process_list[i].metadata.state != Inactive) {
+                    info[count].pid = _process_list[i].metadata.pid;
+                    memcpy(info[count].name, _process_list[i].metadata.process_name, 8);
+                    info[count].state = _process_list[i].metadata.state;
+                    count++;
+                }
+            }
+            framebuffer_newline();
+            *((int8_t *)frame.cpu.general.ecx) = count;  
+            break;
+        }
 }
 
 void main_interrupt_handler(struct InterruptFrame frame) {
@@ -147,6 +184,16 @@ void main_interrupt_handler(struct InterruptFrame frame) {
             break;
         case SYSCALL_CALL: 
             syscall(frame);
+            break;
+        case IRQ_TIMER + PIC1_OFFSET:
+            struct Context ctx;
+            ctx.cpu = frame.cpu;
+            ctx.eflags = frame.int_stack.eflags;
+            ctx.eip = frame.int_stack.eip;
+            ctx.page_directory_virtual_addr = process_get_current_running_pcb_pointer()->context.page_directory_virtual_addr;
+            scheduler_save_context_to_current_running_pcb(ctx);
+            pic_ack(IRQ_TIMER);
+            scheduler_switch_to_next_process();
             break;
     }
 }
@@ -162,7 +209,3 @@ void set_tss_kernel_current_stack(void) {
     // Add 8 because 4 for ret address and other 4 is for stack_ptr variable
     _interrupt_tss_entry.esp0 = stack_ptr + 8; 
 }
-
-
-
-
