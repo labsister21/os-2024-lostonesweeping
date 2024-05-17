@@ -57,13 +57,13 @@ void play(char* val, uint32_t curr_pos){
     } updateDirectoryTable(curr_pos);
 
 
-    struct GiantClusterBuffer cl           = {0};
+    struct GiantClusterBuffer cl;
     struct FAT32DriverRequest request = {
         .buf = &cl,
         .name = "\0\0\0\0\0\0\0",
         .ext = "\0\0\0",
         .parent_cluster_number = search_directory_number,
-        .buffer_size = 227 * CLUSTER_SIZE,
+        .buffer_size = 350 * CLUSTER_SIZE,
     };
     memcpy(&(request.name), filename, 8);
     memcpy(&(request.ext), fileext, 3);
@@ -75,14 +75,18 @@ void play(char* val, uint32_t curr_pos){
         char* token = my_strtok((char *)&cl, '\n'); 
         int newline = 0;
         while (token != NULL) { 
+            if (strlen(token) > 10){
+                token[strlen(token)-1] = '\0';
+                token[strlen(token)-2] = '\0';
+            }
             put_chars(token, BIOS_WHITE); 
             put_chars("\n", BIOS_WHITE);
             token = my_strtok(NULL, '\n'); 
             newline++;
-            if (newline == 12){
+            if (newline == 14){
                 //delay with volatile int unreliable?
                 //delay(894);
-                delay(836);
+                delay(814);
                 syscall(CLEAR, 0, 0, 0);
                 newline = 0;
             }
