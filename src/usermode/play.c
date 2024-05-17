@@ -1,13 +1,25 @@
 #include "user-shell.h"
-#include "cat.h"
+#include "play.h"
 #include "util.h"
 
+void delay(unsigned int milliseconds) {
+    for (unsigned int i = 0; i < milliseconds; ++i) {
+        // Approximate delay by executing empty loop
+        for (volatile int j = 0; j < 10000; ++j) {
+            // Do nothing
+        }
+    }
+}
 
-void cat(char* val, uint32_t curr_pos){
+#define ROW_FRAME 11
+#define COL_FRAME 60
+#define TOTAL_CHAR_FRAME 5 + (ROW_FRAME * COL_FRAME)
+
+void play(char* val, uint32_t curr_pos){
     if(val == NULL){
-        put_chars("cat: Argumen kurang", BIOS_RED); 
+        put_chars("play: Argumen kurang", BIOS_RED); 
         put_char('\n');
-        put_chars("cat: cat <nama_file>", BIOS_LIGHT_BLUE);
+        put_chars("play: play <nama_file>", BIOS_LIGHT_BLUE);
         put_char('\n');
         return;
     }
@@ -32,7 +44,7 @@ void cat(char* val, uint32_t curr_pos){
 
             int entry_index = findEntryName(directories[i]);  
             if (entry_index == -1 || state.curr_dir.table[entry_index].attribute != ATTR_SUBDIRECTORY) {
-                put_chars("cat: Invalid Directory", BIOS_RED); 
+                put_chars("play: Invalid Directory", BIOS_RED); 
                 put_char('\n');
                 return;
             }
@@ -45,13 +57,13 @@ void cat(char* val, uint32_t curr_pos){
     } updateDirectoryTable(curr_pos);
 
 
-    struct ClusterBuffer cl           = {0};
+    struct GiantClusterBuffer cl           = {0};
     struct FAT32DriverRequest request = {
         .buf = &cl,
         .name = "\0\0\0\0\0\0\0",
         .ext = "\0\0\0",
         .parent_cluster_number = search_directory_number,
-        .buffer_size = 4 * CLUSTER_SIZE,
+        .buffer_size = 227 * CLUSTER_SIZE,
     };
     memcpy(&(request.name), filename, 8);
     memcpy(&(request.ext), fileext, 3);
@@ -59,9 +71,20 @@ void cat(char* val, uint32_t curr_pos){
 
     syscall(READ, (uint32_t) &request, (uint32_t) &retcode, 0x0);
     if(retcode == 0){
-        put_chars((char *)&cl, BIOS_BROWN);
+        syscall(CLEAR, 0, 0, 0);
+        char* token = my_strtok((char *)&cl, '\n'); 
+        int newline = 0;
+        while (token != NULL) { 
+            put_chars(token, BIOS_WHITE); 
+            put_chars("\n", BIOS_WHITE);
+            token = my_strtok(NULL, '\n'); 
+            newline++;
+            if (newline == 12){
+                delay(894);
+                syscall(CLEAR, 0, 0, 0);
+                newline = 0;
+            }
+        } 
     }
     put_char('\n');
-
-
 }
