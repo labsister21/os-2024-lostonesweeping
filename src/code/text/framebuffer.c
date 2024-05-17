@@ -46,9 +46,9 @@ void framebuffer_set_cursor(uint8_t r, uint8_t c) {
 	out(CURSOR_PORT_DATA, (uint8_t) (pos & 0xFF));
 	out(CURSOR_PORT_CMD, 0x0E);
 	out(CURSOR_PORT_DATA, (uint8_t) ((pos >> 8) & 0xFF));
-
     framebuffer_state.row = r; 
     framebuffer_state.col = c;
+
 }
 
 void framebuffer_write(uint8_t row, uint8_t col, char c, uint8_t fg, uint8_t bg) {
@@ -87,7 +87,7 @@ void framebuffer_clear_delete(void){
             0x0    
         );
     }
-  
+    framebuffer_set_cursor(framebuffer_state.row, framebuffer_state.col);
 }
 
 void framebuffer_newline(void){
@@ -126,10 +126,13 @@ void framebuffer_put(char c, uint8_t color){
     if (framebuffer_state.col == BUFFER_WIDTH) {
         framebuffer_state.col = 0;
         framebuffer_state.row += 1;
+        framebuffer_set_cursor(framebuffer_state.row, framebuffer_state.col);
     }
     if (framebuffer_state.row == BUFFER_HEIGHT) {
         framebuffer_state.row = 0;
+        framebuffer_set_cursor(framebuffer_state.row, framebuffer_state.col);
     }
+
 }
 
 void framebuffer_clear(void) {
