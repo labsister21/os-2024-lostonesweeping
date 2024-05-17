@@ -111,7 +111,8 @@ void run_prompt() {
         put_chars("cp ", BIOS_RED);
         put_chars("mkdir ", BIOS_RED);
         put_chars("cd ", BIOS_RED);
-        put_chars("rm", BIOS_RED);
+        put_chars("rm ", BIOS_RED);
+        put_chars("ps exec kill clear play", BIOS_RED);
         put_char('\n');
     }
 }
