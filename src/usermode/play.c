@@ -80,7 +80,9 @@ void play(char* val, uint32_t curr_pos){
             token = my_strtok(NULL, '\n'); 
             newline++;
             if (newline == 12){
-                delay(894);
+                //delay with volatile int unreliable?
+                //delay(894);
+                delay(836);
                 syscall(CLEAR, 0, 0, 0);
                 newline = 0;
             }
