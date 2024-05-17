@@ -48,7 +48,7 @@ struct ClusterBuffer {
 
 // hehe
 struct GiantClusterBuffer {
-    uint8_t buf[314 * CLUSTER_SIZE];
+    uint8_t buf[227 * CLUSTER_SIZE];
 } __attribute__((packed));
 
 

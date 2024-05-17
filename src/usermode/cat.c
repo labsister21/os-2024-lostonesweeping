@@ -45,13 +45,13 @@ void cat(char* val, uint32_t curr_pos){
     } updateDirectoryTable(curr_pos);
 
 
-    struct ClusterBuffer cl           = {0};
+    struct GiantClusterBuffer cl           = {0};
     struct FAT32DriverRequest request = {
         .buf = &cl,
         .name = "\0\0\0\0\0\0\0",
         .ext = "\0\0\0",
         .parent_cluster_number = search_directory_number,
-        .buffer_size = 4 * CLUSTER_SIZE,
+        .buffer_size = 227 * CLUSTER_SIZE,
     };
     memcpy(&(request.name), filename, 8);
     memcpy(&(request.ext), fileext, 3);
