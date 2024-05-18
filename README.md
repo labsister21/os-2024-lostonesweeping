@@ -42,7 +42,6 @@ OS telah berjalan! Berikut adalah list perintah yang bisa dijalankan:
 > play badapple
 ```
 
-
 ### Penggunaan: Bonus
 5. Jalankan command berikut sebelum memulai OS untuk menambahkan *badapple* ke program
 ```
@@ -52,6 +51,7 @@ make insert-badapple
 ```
 play badapple
 ```
+Demo badapple: https://youtu.be/YfE9l08-R9M
 
 ## List Kontributor
 | NIM      | Nama 						 |
