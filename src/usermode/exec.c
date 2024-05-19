@@ -37,6 +37,33 @@ void exec(char* arg){
         .parent_cluster_number = ROOT_CLUSTER_NUMBER,
         .buffer_size           = 0x100000,
     };
-    memcpy(request.name, arg, 8);
-    syscall(15, (uint32_t)&request, (uint32_t)&retcode, 0);
+
+    struct FAT32DriverRequest requestFolder = {
+        .buf                   = (uint8_t*)0,
+        .name                  = {0},
+        .parent_cluster_number = ROOT_CLUSTER_NUMBER,
+        .buffer_size           = 0,
+    };
+
+    //cek dulu apakah dia folder atau bukan 
+    memcpy(requestFolder.name, arg, 8);
+    syscall(READ_DIRECTORY, (uint32_t)&requestFolder, (uint32_t)&retcode, 0);
+    
+
+    if(retcode == 0){
+        put_chars("exec: ini folder bukan proses: ", BIOS_RED);
+        return;
+    }
+
+    syscall(READ, (uint32_t)&request, (uint32_t)&retcode, 0);
+
+    if(retcode == 0){
+        put_chars("exec: ini file bukan proses: \n", BIOS_RED);
+        return;
+    }
+    else{
+        memcpy(request.name, arg, 8);
+        //proses terakhir
+        syscall(15, (uint32_t)&request, (uint32_t)&retcode, 0);
+    }
 }
