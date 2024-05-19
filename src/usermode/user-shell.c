@@ -163,15 +163,25 @@ int main(void){
     state.current_directory = ROOT_CLUSTER_NUMBER;
     syscall(ACTIVATE_KEYBOARD, 0, 0, 0);
 
-    char bufer[7] = {'a', 'k', 'u', 'g', 'i', 'l', 'a'};
+    char bufer[874] = "[Alstroemeria Records (Bad Apple!!) ft. nomico]\n\n[Verse 1]\nNagareteku toki no naka de demo Kedarusa ga hora guruguru mawatte Watashi kara hanareru kokoro mo Mienaiwa sou shiranai? Jibun kara ugoku koto mo naku Toki no sukima ni nagasare tsuzukete Shiranai wa mawari no koto nado Watashi wa watashi sore dake\n[Refrain]\nYume miteru? Nani mo mitenai? Kataru mo muda na jibun no kotoba Kanashimu nante tsukareru dake yo Nani mo kanjizu sugoseba ii no Tomadou kotoba ataerarete mo Jibun no kokoro tada uwa no sora Moshi watashi kara ugoku no naraba Subete kaeru no nara kuro ni suru\n[Chorus]\nKonna jibun ni mirai wa aru no? Konna sekai ni watashi wa iru no? Ima setsunai no? Ima kanashii no? Jibun no koto mo wakaranai mama Ayumu koto sae tsukareru dake yo Hito no koto nado shiri mo shinaiwa Konna watashi mo kawareru no nara Moshi kawareru no nara shiro ni naru...";
     struct FAT32DriverRequest req2={
-        .name = "dua",
+        .name = "lirik",
         .ext = "txt",
-        .buffer_size = 10, 
+        .buffer_size = 874, 
         .buf = &bufer,
         .parent_cluster_number = ROOT_CLUSTER_NUMBER
     };
     syscall(WRITE, (uint32_t)&req2, (uint32_t)&ret, 0);
+
+    char bufer2[1200] = "Narrator:    According to all known laws of aviation, there is no way that a bee should be able to fly. Its wings are too small to get its fat little body off the ground. The bee, of course, flies anyway because bees don't care what humans think is impossible.\n     cut to Barry's room, where he's picking out what to wear\nBarry    Yellow, black. Yellow, black. Yellow, black. Yellow, black. Ooh, black and yellow! Yeah, let's shake it up a little.\nMom (Janet Benson)    (calling from downstairs:) Barry! Breakfast is ready!\nBarry:    Coming! (phone rings) Oh, hang on a second. (adjusts his antennas into a headset) Hello?\nAdam Flayman    (on the phone) Barry?\nBarry:    Adam?\nAdam:    Can you believe this is happening?\nBarry:    I can't believe it. I'll pick you up. (hangs up, sharpens his stinger) Lookin' sharp. (flies downstairs)\nMom:    Barry, why don't you use the stairs? Your father paid good money for those.\nBarry:    Sorry. I'm excited.";
+    struct FAT32DriverRequest req3={
+        .name = "gila",
+        .ext = "txt",
+        .buffer_size = 1200, 
+        .buf = &bufer2,
+        .parent_cluster_number = ROOT_CLUSTER_NUMBER
+    };
+    syscall(WRITE, (uint32_t)&req3, (uint32_t)&ret, 0);   
 
     
     init();
