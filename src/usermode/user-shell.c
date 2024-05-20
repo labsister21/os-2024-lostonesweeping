@@ -182,10 +182,9 @@ int main(void){
         .parent_cluster_number = ROOT_CLUSTER_NUMBER
     };
     syscall(WRITE, (uint32_t)&req3, (uint32_t)&ret, 0);   
-
-    
+ 
     init();
-    while (true) {
+    while (true){
         put_chars("LostOnesWeeping", BIOS_LIGHT_BLUE);
         put_chars("-IF2230", BIOS_LIGHT_GREEN);
         put_chars(":", BIOS_LIGHT_BLUE);
