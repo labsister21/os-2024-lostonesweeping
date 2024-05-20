@@ -18,9 +18,13 @@ struct ProcessControlBlock _process_list[PROCESS_COUNT_MAX];
  * jadi yang dari state dijumlahin aja i guess? 
 */
 uint32_t process_generate_new_pid(void){
+    for(int i = 0; i< PROCESS_COUNT_MAX; i++){
+        if(_process_list[i].metadata.state == Inactive){
+            return i;
+        }
+    }
     return process_manager_state.last_pid++;
 }
-
 
 uint32_t get_current_pid(){
     return process_manager_state.last_pid;
