@@ -7,6 +7,34 @@ void clearBuf(void *pointer, size_t n) {
     }
 }
 
+int my_atoi(char* str){
+    int res = 0;
+    for (int i = 0; str[i] != '\0'; ++i)
+        res = res * 10 + str[i] - '0';
+ 
+    return res;
+}
+
+bool is_number(const char* str){
+    int i = 0;
+    while (str[i] == ' ' || str[i] == '\t' || str[i] == '\n' || str[i] == '\v' || str[i] == '\f' || str[i] == '\r'){
+        i++;
+    }
+    if (str[i] == '-' || str[i] == '+'){
+        i++;
+    }
+    if (str[i] < '0' || str[i] > '9'){
+        return false;
+    }
+    while (str[i] != '\0'){
+        if (str[i] < '0' || str[i] > '9') {
+            return false;
+        }
+        i++;
+    }
+    return true;
+}
+
 int findEntryName(char* name) {
     int result = -1;
 
