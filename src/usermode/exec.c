@@ -30,7 +30,15 @@ void exec(char* arg){
     }
 
     int retcode;
+    struct ClusterBuffer cl           = {0};
     struct FAT32DriverRequest request = {
+        .buf                   = &cl,
+        .name                  = {0},
+        .ext                   = "\0\0\0",
+        .parent_cluster_number = ROOT_CLUSTER_NUMBER,
+        .buffer_size           = CLUSTER_SIZE,
+    };
+    struct FAT32DriverRequest request_exe = {
         .buf                   = (uint8_t*) 0,
         .name                  = {0},
         .ext                   = "\0\0\0",
@@ -38,5 +46,13 @@ void exec(char* arg){
         .buffer_size           = 0x100000,
     };
     memcpy(request.name, arg, 8);
-    syscall(15, (uint32_t)&request, (uint32_t)&retcode, 0);
+    //check wheter is program or not? 
+    syscall(READ, (uint32_t)&request, (uint32_t)&retcode,0);
+    if(retcode != 0){
+        put_chars("exec: ini bukan executable desu!\n", BIOS_RED);
+        return;
+    }
+    //the real executioner
+    memcpy(request_exe.name, arg, 8);
+    syscall(EXEC, (uint32_t)&request_exe, (uint32_t)&retcode, 0);
 }
