@@ -156,6 +156,8 @@ int32_t process_create_user_process(struct FAT32DriverRequest request) {
 
     int8_t result_read = read(request);
     if(result_read != 0){
+        memset(new_pcb, 0, sizeof(struct ProcessControlBlock));
+        paging_use_page_directory(current_page);
         retcode = PROCESS_CREATE_FAIL_FS_READ_FAILURE;
         goto exit_cleanup;
     }
