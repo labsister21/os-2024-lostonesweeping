@@ -279,7 +279,7 @@ int8_t write(struct FAT32DriverRequest request){
      * berada dalam direktori parent tidak ada. 
     */
 
-    for(i=0; i<TOTAL_DIRECTORY_ENTRY; i++){
+    for(i=2; i<TOTAL_DIRECTORY_ENTRY; i++){
 
         if( fat32_driver_state.dir_table_buf.table[i].user_attribute == UATTR_NOT_EMPTY
         && 
@@ -436,13 +436,13 @@ int8_t delete(struct FAT32DriverRequest request){
     bool found = false;
     bool isFolder = false;
     uint32_t rc; //request cluster
-    for(rc = 0; rc<TOTAL_DIRECTORY_ENTRY; rc++){
+    for(rc = 2; rc<TOTAL_DIRECTORY_ENTRY; rc++){
         if(dir_table->table[rc].user_attribute == UATTR_NOT_EMPTY
-        && strcmp(dir_table->table[rc].name, request.name, 8) == 0
-        && (strcmp(dir_table->table[rc].ext, request.ext, 3) == 0)
+        && memcmp(dir_table->table[rc].name, request.name, 8) == 0
+        && (memcmp(dir_table->table[rc].ext, request.ext, 3) == 0)
         ){
             found = true;
-            isFolder = dir_table->table[rc].attribute == ATTR_SUBDIRECTORY; //Perlu testing, apakah jika request berupa folder ini true?
+            isFolder = dir_table->table[rc].attribute == ATTR_SUBDIRECTORY;
             break;
         }
     }
@@ -452,20 +452,19 @@ int8_t delete(struct FAT32DriverRequest request){
         if (isFolder){
             //Validasi bahwa folder kosong
             bool isKosong = true;
-            struct FAT32DirectoryTable *request_dt = {0};
-            get_dir_table_from_cluster(rc, request_dt);
+            uint32_t folderRC = dir_table->table[rc].cluster_low + (((uint32_t)dir_table->table[rc].cluster_high) >> 16);
+            get_dir_table_from_cluster(folderRC, dir_table);
 
-            int i; //i dimulai dari 2 karena 0 dan 1 berupa "." dan ".."
+            uint32_t i; //i dimulai dari 2 karena 0 dan 1 berupa "." dan ".."
             for(i = 2; i<TOTAL_DIRECTORY_ENTRY; i++){
-                if(request_dt->table[i].user_attribute != UATTR_NOT_EMPTY //Perlu testing
-                && strcmp(request_dt->table[i].name, request.name, 8)
-                && (strcmp(request_dt->table[i].ext, request.ext, 3))
+                if(dir_table->table[i].user_attribute == UATTR_NOT_EMPTY //Perlu testing
                 ){
                     isKosong = false;
                     break;
                 }
             }
-            if (isKosong) return 2;
+            get_dir_table_from_cluster(request.parent_cluster_number, dir_table);
+            if (!isKosong) return 2;
         }
 
         //Jalankan operasi delete

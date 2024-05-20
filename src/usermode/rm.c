@@ -50,7 +50,6 @@ void remove(char* target, uint32_t curr_pos){
         .ext = "\0\0\0",
 	    .parent_cluster_number = search_directory_number,
         .buffer_size = 0,
-        
     };
     memcpy(req.name, name, 8);
     memcpy(req.ext, ext, 3);
@@ -59,4 +58,17 @@ void remove(char* target, uint32_t curr_pos){
     // syscall(PUT_CHARS, (uint32_t)req.ext, strlen(req.ext), 0);
     int8_t ret;
     syscall(DELETE, (uint32_t)&req, (uint32_t)&ret, 0); 
+    if (ret == 0){
+        put_chars("rm: berhasil\n", BIOS_LIGHT_GREEN);
+    }
+    else if (ret == 1){
+        put_chars("rm: entry tidak ditemukan\n", BIOS_RED);
+    }
+    else if (ret == 2){
+        put_chars("rm: folder yang akan dihapus tidak kosong\n", BIOS_RED);
+    }  
+    else{
+        put_chars("rm : nt (unknown error)\n", BIOS_RED);
+    } 
+
 }
