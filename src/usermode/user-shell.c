@@ -13,6 +13,8 @@
 #include "exec.h"
 #include "kill.h"
 #include "play.h"
+#include "txt.h"
+#include "write.h"
 
 void syscall(uint32_t eax, uint32_t ebx, uint32_t ecx, uint32_t edx) {
     __asm__ volatile("mov %0, %%ebx" : /* <Empty> */ : "r"(ebx));
@@ -98,6 +100,15 @@ void run_prompt() {
     else if (memcmp(token, "play", 4) == 0){
         char* arg = my_strtok(NULL, '\0'); 
         play(arg, state.current_directory);        
+    }
+    else if(memcmp(token, "txt", 3) == 0){
+        char* arg = my_strtok(NULL, '\0'); 
+        txt(arg);
+    }
+    else if(memcmp(token, "write", 5) == 0){
+        char* arg1 = my_strtok(NULL, ' '); 
+        char* arg2 = my_strtok(NULL, '\0'); 
+        writef(arg1, arg2);
     }
     else{
         put_chars("Shell: Perintah tidak ada", BIOS_RED);

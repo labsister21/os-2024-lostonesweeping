@@ -13,6 +13,10 @@ void put_char(char buf);
 
 void put_chars(char* buf, uint8_t color);
 
+int my_atoi(char* str);
+
+bool is_number(const char* str);
+
 int findEntryName(char* name);
 
 
