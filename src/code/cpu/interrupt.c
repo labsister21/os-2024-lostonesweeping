@@ -195,6 +195,18 @@ void main_interrupt_handler(struct InterruptFrame frame) {
             pic_ack(IRQ_TIMER);
             scheduler_switch_to_next_process();
             break;
+        case 0xe: 
+            uint32_t current_process = process_get_current_running_pcb_pointer()->metadata.pid;
+            pic_ack(IRQ_TIMER); 
+            scheduler_switch_to_next_process();
+            process_destroy(current_process);
+            break;
+        case 0xd:    
+            uint32_t current_process_to_kill = process_get_current_running_pcb_pointer()->metadata.pid;
+            pic_ack(IRQ_TIMER); 
+            scheduler_switch_to_next_process();
+            process_destroy(current_process_to_kill);
+            break;
     }
 }
 
