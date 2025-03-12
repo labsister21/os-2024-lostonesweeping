@@ -227,7 +227,7 @@ void move(char directories_src[10][12], int num_dir_src , char directories_dest[
 
 
 void mv(char* arg1, char* arg2, uint32_t curr_pos){
-    if(arg1 == NULL ||  arg2){
+    if(arg1 == NULL ||  arg2 == NULL){
         put_chars("mv: Argumen kurang", BIOS_RED);
         put_char('\n');
         return;
